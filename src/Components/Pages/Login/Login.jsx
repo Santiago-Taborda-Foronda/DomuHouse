@@ -2,10 +2,12 @@ import React from 'react'
 import  logoDomuHouse from '../../../assets/images/Logo-DomuHouse.png'
 import  LogoLogin from '../../../assets/images/imagen-login.png'
 import { Button } from '../../UI/Button/Button'
+import { Header } from '../../Layouts/Header/Header'
 
 export const Login = () => {
   return (
     <>
+    <Header />
     <div className='flex flex-col justify-around px-20 pr-30 w-full space-y-10 items-start'>
     <header className='flex items-center justify-start'>
         <img 

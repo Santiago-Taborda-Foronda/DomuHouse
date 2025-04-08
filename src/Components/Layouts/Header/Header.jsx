@@ -17,9 +17,9 @@ export const Header = () => {
       <div className='flex justify-between w-full items-center'>
         <Navbar >
         <ul className='flex space-x-3 ml-3 '>
-          <ItemsNavbar content='Inicio'/>
-          <ItemsNavbar content='Tendencias'/>
-          <ItemsNavbar content='Encuentrame'/>
+          <ItemsNavbar content='Inicio' Route='/' styles="" />
+          <ItemsNavbar content= 'Tendencias' Route ='/Tendencias' styles= ''/>
+          <ItemsNavbar content='Encuentrame' Route='/Encuentrame' styles= ''/>
         </ul>
       </Navbar>
 

@@ -1,11 +1,10 @@
 import React from 'react'
-import  logoDomuHouse from '../../../assets/images/Logo-DomuHouse.png'
-import  LogoLogin from '../../../assets/images/imagen-login.png'
-import { Button } from '../../UI/Button/Button'
-import { Header } from '../../Layouts/Header/Header'
-import { Link } from 'react-router'
+import  logoDomuHouse from '../../../../assets/images/Logo-DomuHouse.png'
+import  LogoLogin from '../../../../assets/images/imagen-login.png'
+import { Button } from '../../../UI/Button/Button'
+import { Header } from '../../../Layouts/Header/Header'
 
-export const Login = () => {
+export const Registrarse = () => {
   return (
     <>
     <div className='flex flex-col justify-around px-20 pr-30 w-full space-y-10 items-start'>
@@ -20,10 +19,16 @@ export const Login = () => {
 
     <section className='flex  items-center  gap-20  w-full'>
         <div className='flex flex-col items-center shadow-lg border-1 border-gray-100 p-10 rounded-3xl min-w-110 space-y-5'>
-            <p className='text-2xl'>Login</p>
+            <p className='text-2xl'>Registrarse</p>
             <form className='flex flex-col space-y-3 w-full'>
-                <input className='p-3 border-gray-400 hover:border-gray-600 focus:outline-none border-2 rounded-lg w-full' placeholder='✉ Ingrese su correo'></input>
-                <input className='p-3 border-gray-400 hover:border-gray-600 focus:outline-none border-2 rounded-lg w-full' placeholder='🔒Ingrese su contraseña'></input>
+                <label htmlFor="">Nombre</label>
+                <input className='p-3 border-gray-400 hover:border-gray-600 focus:outline-none border-2 rounded-lg w-full' placeholder='Ingrese su Nombre'></input>
+                <label htmlFor="">Apellidos</label>
+                <input className='p-3 border-gray-400 hover:border-gray-600 focus:outline-none border-2 rounded-lg w-full' placeholder='🔒Ingrese sus Apellidos'></input>
+                <label htmlFor="">Correo</label>
+                <input className='p-3 border-gray-400 hover:border-gray-600 focus:outline-none border-2 rounded-lg w-full' placeholder='✉ Ingrese su Correo'></input>
+                <label htmlFor="">Contraseña</label>
+                <input className='p-3 border-gray-400 hover:border-gray-600 focus:outline-none border-2 rounded-lg w-full' placeholder='🔒Ingrese su Contraseña'></input>
             </form>
 
             <div className='flex justify-around items-start gap-8 mt-4' >
@@ -35,17 +40,13 @@ export const Login = () => {
                     <span>Recordar contraseña</span>    
                 </label>
                     
-                <a href="/Registrarse" Route='/Registarse' className='text-sm text-sky-500 underline hover:text-sky-700'>
+                <a href="###" className='text-sm text-sky-500 underline hover:text-sky-700'>
                     Olvidaste tu contraseña?     
                 </a>    
             </div>
 
             <Button name = 'Entrar' className='bg-sky-500 text-white p-3 w-full rounded-2xl' />
-            <span>Aun no tienes una cuenta? 
-                <Link to="/Registrarse" className='text-sm text-sky-500 underline hover:text-sky-700'>
-                    Registrate     
-                </Link>  
-            </span>
+            <span>Aun no tienes una cuenta? <a href="###" className='text-sm text-sky-500 underline hover:text-sky-700'>Registrate</a></span>
         </div>
 
         <div>

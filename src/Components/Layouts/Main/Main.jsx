@@ -1,7 +1,8 @@
 import React from 'react';
 import LogoRobot from '../../../assets/images/robot.png'
 import Casa from '../../../assets/images/casa.jpg'
-import { Button } from '../../UI/Button/Button';
+import { Button } from '../../UI/Button/Button'
+import "../../../App"
 
 export const Main = () => {
     return (
@@ -15,60 +16,68 @@ export const Main = () => {
                     <Button name="Arriendo" className="bg-transparent border border-white text-white rounded-2xl px-10 p-2" />
                 </div>
 
-                <form className="flex bg-white rounded-2xl shadow-lg p-4 gap-4 items-center w-[90%] max-w-5xl">
+                <form className="flex bg-white rounded-full shadow-lg px-4 py-3 gap-4 items-center w-[90%] max-w-5xl">
 
-                    <select className="border border-gray-300 rounded-2xl p-2 text-gray-700">
-                        <option value="">Tipo de Inmueble</option>
-                        <option value="casa">Casa</option>
-                        <option value="apartamento">Apartamento</option>
-                        <option value="local">Local Comercial</option>
-                    </select>
+                    <div className="flex flex-col w-40">
+                        <label className="text-xs text-gray-500 text-left ml-2 mb-1">Tipo</label>
+                        <select className="border-none bg-transparent focus:outline-none text-sm text-gray-800 px-2">
+                            <option value="casa">Casa</option>
+                            <option value="apartamento">Apartamento</option>
+                            <option value="local">Local Comercial</option>
+                        </select>
+                    </div>
 
-                    <input
-                        type="text"
-                        name="ubicacion"
-                        placeholder="Ubicación"
-                        className="border border-gray-300 rounded-2xl p-2 text-gray-700"
-                    />
+                    <div className="flex flex-col w-40">
+                        <label className="text-xs text-gray-500 text-left ml-2 mb-1">Ubicación</label>
+                        <input
+                            type="text"
+                            name="ubicacion"
+                            placeholder="Norte"
+                            className="border-none bg-transparent focus:outline-none text-sm text-gray-800 px-2"
+                        />
+                    </div>
 
-                    <input
-                        type="text"
-                        name="palabraClave"
-                        placeholder="Palabra clave"
-                        className="border border-gray-300 rounded-2xl p-2 text-gray-700"
-                    />
+                    <div className="flex flex-col w-48">
+                        <label className="text-xs text-gray-500 text-left ml-2 mb-1">Palabra clave</label>
+                        <input
+                            type="text"
+                            name="palabraClave"
+                            placeholder="Búsqueda por palabra"
+                            className="border-none bg-transparent focus:outline-none text-sm text-gray-800 px-2"
+                        />
+                    </div>
 
-                    <Button
-                        name="Búsqueda avanzada"
-                        className="bg-white border border-[#2F8EAC] text-[#2F8EAC] rounded-2xl px-4 py-2 flex items-center gap-2"
-                    />
+                    <button
+                        type="button"
+                        className="flex items-center gap-2 border border-[#2F8EAC] text-[#2F8EAC] rounded-full px-4 py-2 text-sm"
+                    >
+                        Búsqueda avanzada
+                    </button>
 
-                    <Button
-                        name="Buscar"
-                        className="bg-[#2F8EAC] text-white rounded-2xl px-6 py-2"
-                    />
-
+                    <button
+                        type="submit"
+                        className="bg-[#2F8EAC] text-white rounded-full px-6 py-2 text-sm"
+                    >
+                        Buscar
+                    </button>
                 </form>
-
             </div>
 
-            <section className="flex items-center bg-[#2F8EAC] overflow-hidden text-white relative">
-                <div className="flex items-center gap-15 p-10 flex-1">
-                    <img src={LogoRobot} alt="Robot" className="w-20 h-20" />
-
-                    <div className='text-4xl '>
-                        <h2 className="font-bold mb-2">¿Tienes alguna duda?</h2>
-                        <p className="">Pregúntame y te guío paso a paso</p>
+            <section className="flex items-stretch w-full text-white relative">
+                {/* Sección azul con el fondo en forma de flecha */}
+                <div className="flex items-center gap-6 pl-10 pr-16 py-10 bg-[#2F8EAC] clip-polygon w-[75%]">
+                    <img src={LogoRobot} alt="Robot" className="w-16 h-16" />
+                    <div>
+                        <h2 className="text-2xl font-bold mb-1">¿Tienes alguna duda?</h2>
+                        <p className="text-lg">Pregúntame y te guío paso a paso</p>
                     </div>
                 </div>
-                <div className="w-10 h-full bg-[#2F8EAC] transform rotate-45 origin-left"></div>
 
-                <div className="flex items-center bg-white rounded-2xl overflow-hidden mx-6 px-4 py-2 text-[#3187A5]">
-                    <input
-                        type="text"
-                        name="preguntanosAqui"
-                        placeholder="Pregúntanos aquí"
-                        className="p-2 text-gray-700 outline-none"
+                {/* Botón a la derecha en fondo gris */}
+                <div className="flex items-center justify-center bg-[#E9E9E9] w-[25%]">
+                    <Button
+                        name="Pregúntanos aquí"
+                        className="bg-transparent border border-[#2F8EAC] text-[#2F8EAC] rounded-2xl px-6 py-2"
                     />
                 </div>
             </section>
@@ -107,32 +116,56 @@ export const Main = () => {
                 </div>
                  */}
 
-                <section className='bg-white rounded-2xl shadow-md '>
-                    <img src={Casa} alt="Casa" className='w-full h-48' />
+                <section className="bg-white rounded-2xl shadow-md overflow-hidden w-full max-w-sm">
 
-                    <div className='flex items-center px-4 pt-4'>
-                        <span className='text-white text-sm flex items-center gap-2'>Ur. La Portada Americana</span>
-                    </div>
+                    <div className="px-4 pt-2 pb-4">
+                        {/* Dirección */}
+                        <div className="relative w-full h-48">
+                            <img src={Casa} alt="Casa" className="w-full h-48" />
 
-                    <div className='px-4 pt-2 pb-4'>
-                        <h2 className=' text-xl mb-2'>Casa Lomas Del Norte</h2>
-
-                        <div className='flex items-center text-gray-600 text-sm gap-4 mb-4'>
-                            <span className="flex items-center gap-1">53</span>
-                            <span className="flex items-center gap-1">53</span>
-                            <span className="flex items-center gap-1">53</span>
+                            <div className="absolute bottom-2 left-2 text-white text-sm px-2 py-1 rounded flex items-center gap-1">
+                               
+                                <span>Ur. La Portada Americana 23 #56</span>
+                            </div>
                         </div>
 
-                        <hr className='my-2'/>
-                        <div className='flex items-center justify-between mt-4'>
-                            <div className='flex items-center gap-2'>
-                                <img src="" alt="" className='w-8 h-8 rounded-full' />
-                                <span>Mariana</span>
+
+                        {/* Título */}
+                        <h2 className="text-lg font-semibold text-gray-800 mb-3">Casa Lomas Del Norte</h2>
+
+                        {/* Info general */}
+                        <div className="flex items-center text-gray-600 text-sm gap-4 mb-4">
+                            <span className="flex items-center gap-1">
+                                53
+                            </span>
+                            <span className="flex items-center gap-1">
+                                53
+                            </span>
+                            <span className="flex items-center gap-1">
+                                53 m²
+                            </span>
+                        </div>
+
+                        <hr className="my-2" />
+
+                        {/* Agente y precio */}
+                        <div className="flex items-center justify-between mt-4">
+                            <div className="flex items-center gap-2">
+                                <img
+
+                                    alt="Jane Doe"
+                                    className="w-8 h-8 rounded-full object-cover"
+                                />
+                                <span className="text-sm text-gray-800">Jane Doe</span>
                             </div>
-                            <span>$7.250.000</span>
+                            <span className="text-base font-semibold text-gray-900">$7250,00</span>
                         </div>
                     </div>
                 </section>
+                <Button
+                    name="➡ Ver Más"
+                    className="bg-[#2F8EAC] border border-[#2F8EAC] text-white rounded-3xl px-6 py-2 flex items-center gap-2"
+                />
             </section>
         </>
     )

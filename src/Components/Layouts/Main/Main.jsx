@@ -1,6 +1,6 @@
 import React from 'react';
 import LogoRobot from '../../../assets/images/robot.png'
-import Casa from '../../../assets/images/casa.jpg'
+import Casa from '../../../assets/images/casLujo2.jpg'
 import { Button } from '../../UI/Button/Button'
 import "../../../App"
 
@@ -16,7 +16,7 @@ export const Main = () => {
                     <Button name="Arriendo" className="bg-transparent border border-white text-white rounded-2xl px-10 p-2" />
                 </div>
 
-                <form className="flex bg-white rounded-full shadow-lg px-4 py-3 gap-4 items-center w-[90%] max-w-5xl">
+                <form className="flex bg-white rounded-full shadow-lg px-5 py-4 gap-5 items-center w-[48%] max-w-5xl">
 
                     <div className="flex flex-col w-40">
                         <label className="text-xs text-gray-500 text-left ml-2 mb-1">Tipo</label>
@@ -72,8 +72,8 @@ export const Main = () => {
                         <p className="text-lg">Pregúntame y te guío paso a paso</p>
                     </div>
                 </div>
-
                 {/* Botón a la derecha en fondo gris */}
+
                 <div className="flex items-center justify-center bg-[#E9E9E9] w-[25%]">
                     <Button
                         name="Pregúntanos aquí"
@@ -117,38 +117,36 @@ export const Main = () => {
                  */}
 
                 <section className="bg-white rounded-2xl shadow-md overflow-hidden w-full max-w-sm">
-
-                    <div className="px-4 pt-2 pb-4">
-                        {/* Dirección */}
-                        <div className="relative w-full h-48">
-                            <img src={Casa} alt="Casa" className="w-full h-48" />
-
-                            <div className="absolute bottom-2 left-2 text-white text-sm px-2 py-1 rounded flex items-center gap-1">
-                               
-                                <span>Ur. La Portada Americana 23 #56</span>
-                            </div>
+                    {/* Imagen con dirección encima */}
+                    <div className="relative w-full h-52">
+                        <img
+                            src={Casa}
+                            alt="Casa"
+                            className="w-full h-full object-cover"
+                        />
+                        <div className="absolute bottom-0 left-0 w-full text-white text-sm px-4 py-2 flex items-center gap-1">
+                            <span>Ur. La Portada Americana 23 #56</span>
                         </div>
+                    </div>
 
-
-                        {/* Título */}
+                    {/* Contenido */}
+                    <div className="px-4 pt-2 pb-4">
                         <h2 className="text-lg font-semibold text-gray-800 mb-3">Casa Lomas Del Norte</h2>
 
-                        {/* Info general */}
                         <div className="flex items-center text-gray-600 text-sm gap-4 mb-4">
                             <span className="flex items-center gap-1">
-                                53
+                                Cuartos: <strong>53</strong>
                             </span>
                             <span className="flex items-center gap-1">
-                                53
+                                Baños: <strong>53</strong>
                             </span>
                             <span className="flex items-center gap-1">
-                                53 m²
+                                m²: <strong>53</strong>
                             </span>
                         </div>
 
                         <hr className="my-2" />
 
-                        {/* Agente y precio */}
                         <div className="flex items-center justify-between mt-4">
                             <div className="flex items-center gap-2">
                                 <img
@@ -162,6 +160,7 @@ export const Main = () => {
                         </div>
                     </div>
                 </section>
+
                 <Button
                     name="➡ Ver Más"
                     className="bg-[#2F8EAC] border border-[#2F8EAC] text-white rounded-3xl px-6 py-2 flex items-center gap-2"

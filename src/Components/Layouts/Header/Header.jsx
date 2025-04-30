@@ -24,8 +24,8 @@ export const Header = () => {
       </Navbar>
 
       <div className='space-x-2 mr-4'>
-      <Button name = 'Regístrate' Route='/Login' className='bg-sky-500 hover:bg-sky-600 active:bg-sky-700 transition duration-150 ease-in-out p-3 w-30 rounded-2xl'/>
-      <Button name = 'Iniciar' className= 'bg-sky-500 p-3 w-30 rounded-2xl'/>
+      <Button name = 'Regístrate' Route='/Registrarse' className='bg-[#2F8EAC] hover:bg-sky-600 active:bg-sky-700 transition duration-150 ease-in-out text-white p-3 w-30 rounded-2xl'/>
+      <Button name = 'Iniciar' Route='/Login' className= 'bg-[#2F8EAC] hover:bg-sky-600 active:bg-sky-700 transition duration-150 ease-in-out text-white p-3 w-30 rounded-2xl'/>
       </div>
       </div>
       

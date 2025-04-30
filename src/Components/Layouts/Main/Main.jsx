@@ -1,6 +1,7 @@
 import React from 'react';
 import LogoRobot from '../../../assets/images/robot.png'
 import Casa from '../../../assets/images/casLujo2.jpg'
+import Cuadro from '../../../assets/images/cuadro.png'
 import { Button } from '../../UI/Button/Button'
 import "../../../App"
 
@@ -16,10 +17,10 @@ export const Main = () => {
                     <Button name="Arriendo" className="bg-transparent border border-white text-white rounded-2xl px-10 p-2" />
                 </div>
 
-                <form className="flex bg-white rounded-full shadow-lg px-5 py-4 gap-5 items-center w-[48%] max-w-5xl">
-
-                    <div className="flex flex-col w-40">
-                        <label className="text-xs text-gray-500 text-left ml-2 mb-1">Tipo</label>
+                <form className="flex bg-white rounded-full shadow-lg px-10 py-6 gap-6 items-center w-[85%] max-w-7xl mx-auto">
+                    
+                    <div className="flex flex-col w-55">
+                        <label className="text-xs text-gray-800 text-left ml-2 mb-1">Tipo</label>
                         <select className="border-none bg-transparent focus:outline-none text-sm text-gray-800 px-2">
                             <option value="casa">Casa</option>
                             <option value="apartamento">Apartamento</option>
@@ -27,8 +28,8 @@ export const Main = () => {
                         </select>
                     </div>
 
-                    <div className="flex flex-col w-40">
-                        <label className="text-xs text-gray-500 text-left ml-2 mb-1">Ubicación</label>
+                    <div className="flex flex-col w-70">
+                        <label className="text-xs text-gray-800 text-left ml-2 mb-1">Ubicación</label>
                         <input
                             type="text"
                             name="ubicacion"
@@ -37,8 +38,8 @@ export const Main = () => {
                         />
                     </div>
 
-                    <div className="flex flex-col w-48">
-                        <label className="text-xs text-gray-500 text-left ml-2 mb-1">Palabra clave</label>
+                    <div className="flex flex-col w-70">
+                        <label className="text-xs text-gray-800 text-left ml-2 mb-1">Palabra clave</label>
                         <input
                             type="text"
                             name="palabraClave"
@@ -49,14 +50,14 @@ export const Main = () => {
 
                     <button
                         type="button"
-                        className="flex items-center gap-2 border border-[#2F8EAC] text-[#2F8EAC] rounded-full px-4 py-2 text-sm"
+                        className="flex items-center gap-8 border border-[#2F8EAC] text-[#2F8EAC] rounded-full px-10 py-2 text-sm"
                     >
                         Búsqueda avanzada
                     </button>
 
                     <button
                         type="submit"
-                        className="bg-[#2F8EAC] text-white rounded-full px-6 py-2 text-sm"
+                        className="bg-[#2F8EAC] text-white rounded-full px-8 py-2 text-sm"
                     >
                         Buscar
                     </button>
@@ -66,15 +67,17 @@ export const Main = () => {
             <section className="flex items-stretch w-full text-white relative">
                 {/* Sección azul con el fondo en forma de flecha */}
                 <div className="flex items-center gap-6 pl-10 pr-16 py-10 bg-[#2F8EAC] clip-polygon w-[75%]">
-                    <img src={LogoRobot} alt="Robot" className="w-16 h-16" />
+                    <img src={LogoRobot} alt="Robot" className="w-20 h-20" />
                     <div>
-                        <h2 className="text-2xl font-bold mb-1">¿Tienes alguna duda?</h2>
-                        <p className="text-lg">Pregúntame y te guío paso a paso</p>
+                        <h2 className="text-4xl font-bold mb-1">¿Tienes alguna duda?</h2>
+                        <p className=" text-4xl">Pregúntame y te guío paso a paso</p>
                     </div>
                 </div>
                 {/* Botón a la derecha en fondo gris */}
+                    <img src={Cuadro} alt="Cuadro" className='select-none' />
 
-                <div className="flex items-center justify-center bg-[#E9E9E9] w-[25%]">
+                <div className="flex items-center justify-center bg-[#E9E9E9] w-[50%]">
+                   
                     <Button
                         name="Pregúntanos aquí"
                         className="bg-transparent border border-[#2F8EAC] text-[#2F8EAC] rounded-2xl px-6 py-2"
@@ -107,14 +110,7 @@ export const Main = () => {
                         className="bg-[#F4F4F4] text-black rounded-3xl px-6 py-2"
                     />
                 </div>
-                {/* <div className='flex flex-col items-start rounded-2xl '>
-                    <div >
-                    <img src={Casa} alt="Casa" className='w-70 h-70' />
-                    <h2>Casa Lomas Del Norte</h2>
-                </div>
-
-                </div>
-                 */}
+             
 
                 <section className="bg-white rounded-2xl shadow-md overflow-hidden w-full max-w-sm">
                     {/* Imagen con dirección encima */}

@@ -1,55 +1,7 @@
 import React from 'react';
 import { Header } from '../../Layouts/Header/Header';
-import Casa from "../../../assets/images/casLujo2.png";
-
-// Componente de tarjeta de propiedad reutilizable
-const PropertyCard = ({ address, title, rooms, bathrooms, area, price, agentName }) => {
-  return (
-    <div className='bg-white flex flex-col rounded-2xl max-w-100 shadow-md overflow-hidden'>
-      <div className="relative w-full h-52">
-        <img
-          src={Casa}
-          alt="Propiedad"
-          className="w-full h-full object-cover"
-        />
-        <div className="absolute bottom-0 left-0 w-full text-white text-sm px-4 py-2">
-          <span>{address}</span>
-        </div>
-      </div>
-
-      <div className="px-4 pt-2 pb-4">
-        <h2 className="text-lg font-semibold text-gray-800 mb-3">{title}</h2>
-        
-        <div className="flex items-center text-gray-600 text-sm gap-4 mb-4">
-          <span className="flex items-center gap-1">
-            Cuartos: <strong>{rooms}</strong>
-          </span>
-          <span className="flex items-center gap-1">
-            Baños: <strong>{bathrooms}</strong>
-          </span>
-          <span className="flex items-center gap-1">
-            m²: <strong>{area}</strong>
-          </span>
-        </div>
-        
-        
-        <hr className="my-2" />
-        
-        <div className="flex items-center justify-between mt-4">
-          <div className="flex items-center gap-2">
-            <img
-              src="/api/placeholder/32/32"
-              alt={agentName}
-              className="w-8 h-8 rounded-full object-cover"
-            />
-            <span className="text-sm text-gray-800">{agentName}</span>
-          </div>
-          <span className="text-base font-semibold text-gray-900">${price}</span>
-        </div>
-      </div>
-    </div>
-  );
-};
+import { PropertyCard } from '../../Layouts/PropertyCard/PropertyCard';
+import { useNavigate } from 'react-router-dom';
 
 export const Tendencias = () => {
   // Datos de muestra - en una aplicación real estos vendrían de una API o props
@@ -147,6 +99,13 @@ export const Tendencias = () => {
     // Puedes agregar más propiedades según sea necesario
   ];
 
+  // Handler para cuando se hace clic en una propiedad (futura funcionalidad)
+  const navigate = useNavigate();
+
+const handlePropertyClick = (property) => {
+  navigate('/propiedad-seleccionada', { state: { property } });
+};
+
   return (
     <>
       <Header />
@@ -162,6 +121,7 @@ export const Tendencias = () => {
               area={property.area}
               price={property.price}
               agentName={property.agentName}
+              onClick={() => handlePropertyClick(property)}
             />
           ))}
         </div>

@@ -6,6 +6,8 @@ import { Home } from './Components/Pages/Home/Home'
 import { Tendencias } from './Components/Pages/Tendencias/Tendencias'
 import { Encuentrame } from './Components/Pages/Encuentrame/Encuentrame'
 import { Registrarse } from './Components/Pages/Home/Registrarse/Registrarse'
+import { PropiedadSeleccionada } from './Components/Pages/PropiedadSeleccionada/PropiedadSeleccionada';
+
 
 export const App = () => {
   return (
@@ -16,7 +18,7 @@ export const App = () => {
       <Route path='/Encuentrame' element={<Encuentrame />} />
       <Route path='/Login' element={<Login />} />
       <Route path='/Registrarse' element={<Registrarse />} />
-      
+      <Route path='/propiedad-seleccionada' element={<PropiedadSeleccionada />} />
       
     </Routes>
     </>

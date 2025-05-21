@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import LogoRobot from '../../../assets/images/robot.png'
 import Casa from '../../../assets/images/casLujo2.jpg'
 import Cuadro from '../../../assets/images/cuadro.png'
@@ -53,6 +53,10 @@ const PropertyCard = ({ address, title, rooms, bathrooms, area, price, agentName
 }
 
 export const Main = () => {
+    const [showAdvanced, setShowAdvanced] = useState(false);   
+    const [priceRange, setPriceRange] = useState(2500000);
+    const toggleAdvanced = () => setShowAdvanced(!showAdvanced);
+
     const properties = [
         {
             id: 1,
@@ -204,9 +208,10 @@ export const Main = () => {
 
                         <button
                             type="button"
+                            onClick={toggleAdvanced}
                             className="flex items-center gap-8 border border-[#2F8EAC] text-[#2F8EAC] rounded-full px-10 py-2 text-sm "
                         >
-                            Búsqueda avanzada
+                            {showAdvanced ? "Búsqueda avanzada" : "Búsqueda avanzada"}
                         </button>
 
                         <button
@@ -215,8 +220,94 @@ export const Main = () => {
                         >
                             Buscar
                         </button>
+
+                        
+
                     </form>
                 </div>
+                {/* Panel de Búsqueda Avanzada */}
+                        {showAdvanced && (
+                            <div className="bg-white shadow-lg rounded-2xl p-6 mb-4">
+                                {/* Precio */}
+                                <div className="mb-6">
+                                    <div className="flex justify-between items-center mb-3">
+                                        <span className="text-sm text-gray-700 font-medium">
+                                            Precio: $650 - ${priceRange.toLocaleString()}
+                                        </span>
+                                    </div>
+                                    <div className="relative">
+                                        <input 
+                                            type="range" 
+                                            min="650" 
+                                            max="2500000" 
+                                            value={priceRange}
+                                            onChange={(e) => setPriceRange(parseInt(e.target.value))}
+                                            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                                        />
+                                        <div 
+                                            className="absolute top-0 left-0 h-2 bg-teal-600 rounded-lg pointer-events-none"
+                                            style={{ width: `${((priceRange - 650) / (2500000 - 650)) * 100}%` }}
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Filtros en Flexbox */}
+                                <div className="flex flex-wrap gap-4 mb-6">
+                                    <div className="flex flex-col flex-1 min-w-48">
+                                        <label className="text-xs text-gray-600 mb-2">Habitaciones</label>
+                                        <input 
+                                            type="number" 
+                                            placeholder="2" 
+                                            className="text-sm px-3 py-2 border border-gray-300 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500" 
+                                        />
+                                    </div>
+
+                                    <div className="flex flex-col flex-1 min-w-48">
+                                        <label className="text-xs text-gray-600 mb-2">Baños</label>
+                                        <input 
+                                            type="number" 
+                                            placeholder="2" 
+                                            className="text-sm px-3 py-2 border border-gray-300 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500" 
+                                        />
+                                    </div>
+
+                                    <div className="flex flex-col flex-1 min-w-48">
+                                        <label className="text-xs text-gray-600 mb-2">Parqueaderos</label>
+                                        <input 
+                                            type="number" 
+                                            placeholder="2" 
+                                            className="text-sm px-3 py-2 border border-gray-300 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500" 
+                                        />
+                                    </div>
+
+                                    <div className="flex flex-col flex-1 min-w-48">
+                                        <label className="text-xs text-gray-600 mb-2">Estado</label>
+                                        <select className="text-sm px-3 py-2 border border-gray-300 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500">
+                                            <option value="nueva">Nueva</option>
+                                            <option value="usada">Usada</option>
+                                        </select>
+                                    </div>
+
+                                    <div className="flex flex-col flex-1 min-w-48">
+                                        <label className="text-xs text-gray-600 mb-2">Cercanía a Servicios</label>
+                                        <select className="text-sm px-3 py-2 border border-gray-300 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500">
+                                            <option value="transporte">Transporte</option>
+                                            <option value="escuelas">Escuelas</option>
+                                        </select>
+                                    </div>
+
+                                    <div className="flex flex-col flex-1 min-w-48">
+                                        <label className="text-xs text-gray-600 mb-2">Descripción</label>
+                                        <input 
+                                            type="text" 
+                                            placeholder="Opcional" 
+                                            className="text-sm px-3 py-2 border border-gray-300 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500" 
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
             </div>
 
 

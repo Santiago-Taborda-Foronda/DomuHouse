@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import LogoRobot from '../../../assets/images/robot.png'
 import Casa from '../../../assets/images/casLujo2.jpg'
-import Cuadro from '../../../assets/images/cuadro.png'
+import { LuSettings2 } from "react-icons/lu";
+import { ChatDomu } from '../../UI/ChatDomu/ChatDomu';
 import { Button } from '../../UI/Button/Button'
 import "../../../App"
 
@@ -53,7 +54,7 @@ const PropertyCard = ({ address, title, rooms, bathrooms, area, price, agentName
 }
 
 export const Main = () => {
-    const [showAdvanced, setShowAdvanced] = useState(false);   
+    const [showAdvanced, setShowAdvanced] = useState(false);
     const [priceRange, setPriceRange] = useState(2500000);
     const toggleAdvanced = () => setShowAdvanced(!showAdvanced);
 
@@ -212,6 +213,7 @@ export const Main = () => {
                             className="flex items-center gap-8 border border-[#2F8EAC] text-[#2F8EAC] rounded-full px-10 py-2 text-sm "
                         >
                             {showAdvanced ? "Búsqueda avanzada" : "Búsqueda avanzada"}
+                            <LuSettings2 className='text-[#2F8EAC] text-xl'/>
                         </button>
 
                         <button
@@ -221,97 +223,91 @@ export const Main = () => {
                             Buscar
                         </button>
 
-                        
+
 
                     </form>
                 </div>
                 {/* Panel de Búsqueda Avanzada */}
-                        {showAdvanced && (
-                            <div className="bg-white shadow-lg rounded-2xl p-6 mb-4">
-                                {/* Precio */}
-                                <div className="mb-6">
-                                    <div className="flex justify-between items-center mb-3">
-                                        <span className="text-sm text-gray-700 font-medium">
-                                            Precio: $650 - ${priceRange.toLocaleString()}
-                                        </span>
-                                    </div>
-                                    <div className="relative">
-                                        <input 
-                                            type="range" 
-                                            min="650" 
-                                            max="2500000" 
-                                            value={priceRange}
-                                            onChange={(e) => setPriceRange(parseInt(e.target.value))}
-                                            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-                                        />
-                                        <div 
-                                            className="absolute top-0 left-0 h-2 bg-teal-600 rounded-lg pointer-events-none"
-                                            style={{ width: `${((priceRange - 650) / (2500000 - 650)) * 100}%` }}
-                                        />
-                                    </div>
-                                </div>
-
-                                {/* Filtros en Flexbox */}
-                                <div className="flex flex-wrap gap-4 mb-6">
-                                    <div className="flex flex-col flex-1 min-w-48">
-                                        <label className="text-xs text-gray-600 mb-2">Habitaciones</label>
-                                        <input 
-                                            type="number" 
-                                            placeholder="2" 
-                                            className="text-sm px-3 py-2 border border-gray-300 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500" 
-                                        />
-                                    </div>
-
-                                    <div className="flex flex-col flex-1 min-w-48">
-                                        <label className="text-xs text-gray-600 mb-2">Baños</label>
-                                        <input 
-                                            type="number" 
-                                            placeholder="2" 
-                                            className="text-sm px-3 py-2 border border-gray-300 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500" 
-                                        />
-                                    </div>
-
-                                    <div className="flex flex-col flex-1 min-w-48">
-                                        <label className="text-xs text-gray-600 mb-2">Parqueaderos</label>
-                                        <input 
-                                            type="number" 
-                                            placeholder="2" 
-                                            className="text-sm px-3 py-2 border border-gray-300 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500" 
-                                        />
-                                    </div>
-
-                                    <div className="flex flex-col flex-1 min-w-48">
-                                        <label className="text-xs text-gray-600 mb-2">Estado</label>
-                                        <select className="text-sm px-3 py-2 border border-gray-300 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500">
-                                            <option value="nueva">Nueva</option>
-                                            <option value="usada">Usada</option>
-                                        </select>
-                                    </div>
-
-                                    <div className="flex flex-col flex-1 min-w-48">
-                                        <label className="text-xs text-gray-600 mb-2">Cercanía a Servicios</label>
-                                        <select className="text-sm px-3 py-2 border border-gray-300 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500">
-                                            <option value="transporte">Transporte</option>
-                                            <option value="escuelas">Escuelas</option>
-                                        </select>
-                                    </div>
-
-                                    <div className="flex flex-col flex-1 min-w-48">
-                                        <label className="text-xs text-gray-600 mb-2">Descripción</label>
-                                        <input 
-                                            type="text" 
-                                            placeholder="Opcional" 
-                                            className="text-sm px-3 py-2 border border-gray-300 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500" 
-                                        />
-                                    </div>
-                                </div>
+                {showAdvanced && (
+                    <div className="bg-white shadow-lg rounded-2xl p-6 mb-4 z-10 mt-4">
+                        {/* Precio */}
+                        <div className="mb-6">
+                            <div className="flex justify-between items-center mb-3">
+                                <span className="text-sm text-gray-700 font-medium">
+                                    Precio: $650 - ${priceRange.toLocaleString()}
+                                </span>
                             </div>
-                        )}
+                            <input
+                                type="range"
+                                min="650"
+                                max="2500000"
+                                value={priceRange}
+                                onChange={(e) => setPriceRange(parseInt(e.target.value))}
+                                className="w-full h-2 appearance-none bg-gray-200 rounded-lg accent-teal-600 cursor-pointer"
+                            />
+                        </div>
 
+                        {/* Filtros en Flexbox */}
+                        <div className="flex flex-wrap gap-4 mb-6">
+                            <div className="flex flex-col flex-1 min-w-48">
+                                <label className="text-xs text-gray-600 mb-2">Habitaciones</label>
+                                <input
+                                    type="number"
+                                    placeholder="2"
+                                    className="text-sm px-3 py-2 border border-gray-300 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                                />
+                            </div>
+
+                            <div className="flex flex-col flex-1 min-w-48">
+                                <label className="text-xs text-gray-600 mb-2">Baños</label>
+                                <input
+                                    type="number"
+                                    placeholder="2"
+                                    className="text-sm px-3 py-2 border border-gray-300 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                                />
+                            </div>
+
+                            <div className="flex flex-col flex-1 min-w-48">
+                                <label className="text-xs text-gray-600 mb-2">Parqueaderos</label>
+                                <input
+                                    type="number"
+                                    placeholder="2"
+                                    className="text-sm px-3 py-2 border border-gray-300 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                                />
+                            </div>
+
+                            <div className="flex flex-col flex-1 min-w-48">
+                                <label className="text-xs text-gray-600 mb-2">Estado</label>
+                                <select className="text-sm px-3 py-2 border border-gray-300 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500">
+                                    <option value="nueva">Nueva</option>
+                                    <option value="usada">Usada</option>
+                                </select>
+                            </div>
+
+                            <div className="flex flex-col flex-1 min-w-48">
+                                <label className="text-xs text-gray-600 mb-2">Cercanía a Servicios</label>
+                                <select className="text-sm px-3 py-2 border border-gray-300 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500">
+                                    <option value="transporte">Transporte</option>
+                                    <option value="escuelas">Escuelas</option>
+                                </select>
+                            </div>
+
+                            <div className="flex flex-col flex-1 min-w-48">
+                                <label className="text-xs text-gray-600 mb-2">Descripción</label>
+                                <input
+                                    type="text"
+                                    placeholder="Opcional"
+                                    className="text-sm px-3 py-2 border border-gray-300 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                                />
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
 
-
-            <div className="fixed bottom-5 right-5 z-50 flex items-center bg-white shadow-lg rounded-full pl-0 pr-6 py4">
+            {/* <div
+            onClick={toggleChat} 
+            className="fixed bottom-5 right-5 z-50 flex items-center bg-white shadow-lg rounded-full pl-0 pr-6 py4">
                 <div className="w-14 h-14 bg-[#2F8EAC] rounded-full flex items-center justify-center ml-0">
                     <img
                         src={LogoRobot}
@@ -321,7 +317,10 @@ export const Main = () => {
                     />
                 </div>
                 <span className="ml-4 text-[#2F8EAC] font-bold text-lg">Domu Te Asesora</span>
-            </div>
+            </div> */}
+            <ChatDomu />
+
+            {/* Sección de Propiedades Destacadas */}
 
             <section className='flex flex-col items-center gap-4 m-15'>
                 <h3 className='text-2xl text-[#2F8EAC]'>Propiedades Destacadas</h3>

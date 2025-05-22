@@ -1,5 +1,6 @@
 import React from 'react'
 import  LogoDomuHouse from '../../../assets/images/Logo-DomuHouse.png'
+import { MdEmail } from "react-icons/md";
 
 export const Footer = () => {
   return (
@@ -13,8 +14,8 @@ export const Footer = () => {
         alt="LogoDomuHouse"
         className="w-30 h-auto"
       />
-      <span className="text-2xl font-semibold text-[#2798b9]">DOMU</span>
-      <span className="text-2xl font-semibold text-black">HOUSE</span>
+      <span className="text-2xl font-semibold  text-black ">DOMU</span>
+      <span className="text-2xl font-semibold text-[#2F8EAC]">HOUSE</span>
     </div>
 
     {/* Enlaces útiles */}
@@ -34,7 +35,7 @@ export const Footer = () => {
     <div>
       <h3 className="font-semibold mb-2">Contacto rápido</h3>
       <div className="flex items-center gap-2">
-    
+    <MdEmail className='text-[#2F8EAC] text-xl'/>
         <span>domuhouse62@gmail.com</span>
       </div>
     </div>

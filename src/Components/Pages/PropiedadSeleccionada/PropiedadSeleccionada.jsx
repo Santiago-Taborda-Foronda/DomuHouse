@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { Header } from '../../Layouts/Header/Header';
 
 export const PropiedadSeleccionada = () => {
   const { state } = useLocation();
   const property = state?.property;
   const [currentSlide, setCurrentSlide] = useState(0);
+  const navigate = useNavigate();
+
 
   // Imágenes de ejemplo - aquí podrás conectar las imágenes reales de la propiedad
   const propertyImages = [
@@ -265,7 +268,10 @@ export const PropiedadSeleccionada = () => {
                 <div className="text-sm text-gray-600">marina@example.com</div>
               </div>
             </div>
-            <button className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-3 px-4 rounded-lg transition-colors duration-200">
+            <button
+              onClick={() => navigate('/contact-agent')}
+              className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-3 px-4 rounded-lg transition-colors duration-200"
+              >
               Contactar →
             </button>
           </div>

@@ -39,12 +39,12 @@ export const Tendencias = () => {
     {
       id: 4,
       address: "Ur. La Portada Americana 12 #78",
-      title: "Casa Santiago",
-      rooms: 3,
-      bathrooms: 1,
-      area: 100,
-      price: "3,800.00",
-      agentName: "Felipe Gonzalez"
+      title: "Mega Casa Santiago",
+      rooms: 54,
+      bathrooms: 30,
+      area: 1000,
+      price: "100,800.00",
+      agentName: "Augusto Rodas"
     },
     {
       id: 5,

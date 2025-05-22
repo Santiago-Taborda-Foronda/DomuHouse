@@ -7,6 +7,7 @@ import { Tendencias } from './Components/Pages/Tendencias/Tendencias'
 import { Encuentrame } from './Components/Pages/Encuentrame/Encuentrame'
 import { Registrarse } from './Components/Pages/Home/Registrarse/Registrarse'
 import { PropiedadSeleccionada } from './Components/Pages/PropiedadSeleccionada/PropiedadSeleccionada';
+import { ContactAgent } from './Components/Pages/ContactAgent/ContactAgent';
 
 
 export const App = () => {
@@ -19,6 +20,7 @@ export const App = () => {
       <Route path='/Login' element={<Login />} />
       <Route path='/Registrarse' element={<Registrarse />} />
       <Route path='/propiedad-seleccionada' element={<PropiedadSeleccionada />} />
+      <Route path="/contact-agent" element={<ContactAgent />} />
       
     </Routes>
     </>

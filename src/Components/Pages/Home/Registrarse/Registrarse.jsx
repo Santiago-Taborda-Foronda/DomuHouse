@@ -83,9 +83,9 @@ export const Registrarse = () => {
             </form>
 
             <div className='flex justify-around items-start mt-2' >    
-                <a href="###" className='text-sm text-sky-500 underline hover:text-sky-700'>
-                    Olvidaste tu contraseña?     
-                </a>    
+                <Link to="/recuperar-password" className='text-sm text-sky-500 underline hover:text-sky-700'>
+                    ¿Olvidaste tu contraseña?     
+                </Link>    
             </div>
 
             <Button name = 'Crear Cuenta' className='bg-sky-500 text-white p-3 w-full rounded-2xl' />

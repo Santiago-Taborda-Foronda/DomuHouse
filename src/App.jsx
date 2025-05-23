@@ -8,6 +8,7 @@ import { Encuentrame } from './Components/Pages/Encuentrame/Encuentrame'
 import { Registrarse } from './Components/Pages/Home/Registrarse/Registrarse'
 import { PropiedadSeleccionada } from './Components/Pages/PropiedadSeleccionada/PropiedadSeleccionada';
 import { ContactAgent } from './Components/Pages/ContactAgent/ContactAgent';
+import { RecoverPassword } from './Components/Pages/RecoverPassword/RecoverPassword'
 
 
 export const App = () => {
@@ -21,7 +22,7 @@ export const App = () => {
       <Route path='/Registrarse' element={<Registrarse />} />
       <Route path='/propiedad-seleccionada' element={<PropiedadSeleccionada />} />
       <Route path="/contact-agent" element={<ContactAgent />} />
-      
+      <Route path="/recuperar-password" element={<RecoverPassword />} />
     </Routes>
     </>
   )

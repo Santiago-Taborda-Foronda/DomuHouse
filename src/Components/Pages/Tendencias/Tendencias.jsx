@@ -4,7 +4,7 @@ import { PropertyCard } from '../../Layouts/PropertyCard/PropertyCard';
 import { useNavigate } from 'react-router-dom';
 
 export const Tendencias = () => {
-  // Datos de muestra - en una aplicación real estos vendrían de una API o props
+  // Datos de muestra con información completa de agentes
   const properties = [
     {
       id: 1,
@@ -14,7 +14,14 @@ export const Tendencias = () => {
       bathrooms: 3,
       area: 150,
       price: "7,250.00",
-      agentName: "Jane Doe"
+      description: "Hermosa casa en una ubicación privilegiada con acabados de primera calidad.",
+      agentInfo: {
+        name: "Jane Doe",
+        phone: "+57 3224456789",
+        email: "jane.doe@realestate.com",
+        initials: "JD",
+        whatsapp: "+57 3224456789"
+      }
     },
     {
       id: 2,
@@ -24,7 +31,14 @@ export const Tendencias = () => {
       bathrooms: 2,
       area: 120,
       price: "6,500.00",
-      agentName: "Jane Doe"
+      description: "Casa moderna con excelente ubicación y espacios amplios.",
+      agentInfo: {
+        name: "Jane Doe",
+        phone: "+57 3224456789",
+        email: "jane.doe@realestate.com",
+        initials: "JD",
+        whatsapp: "+57 3224456789"
+      }
     },
     {
       id: 10,
@@ -34,7 +48,14 @@ export const Tendencias = () => {
       bathrooms: 4,
       area: 200,
       price: "9,800.00",
-      agentName: "Jane Doe"
+      description: "Amplia casa familiar con jardín y garage para dos vehículos.",
+      agentInfo: {
+        name: "Jane Doe",
+        phone: "+57 3224456789",
+        email: "jane.doe@realestate.com",
+        initials: "JD",
+        whatsapp: "+57 3224456789"
+      }
     },
     {
       id: 4,
@@ -44,7 +65,14 @@ export const Tendencias = () => {
       bathrooms: 30,
       area: 1000,
       price: "100,800.00",
-      agentName: "Augusto Rodas"
+      description: "Casa de lujo con múltiples amenidades y espacios únicos.",
+      agentInfo: {
+        name: "Augusto Rodas",
+        phone: "+57 3156789012",
+        email: "augusto.rodas@realestate.com",
+        initials: "AR",
+        whatsapp: "+57 3156789012"
+      }
     },
     {
       id: 5,
@@ -54,7 +82,14 @@ export const Tendencias = () => {
       bathrooms: 4,
       area: 200,
       price: "9,800.00",
-      agentName: "Jane Doe"
+      description: "Casa espaciosa con diseño contemporáneo y acabados premium.",
+      agentInfo: {
+        name: "María González",
+        phone: "+57 3187654321",
+        email: "maria.gonzalez@realestate.com",
+        initials: "MG",
+        whatsapp: "+57 3187654321"
+      }
     },
     {
       id: 6,
@@ -64,7 +99,14 @@ export const Tendencias = () => {
       bathrooms: 4,
       area: 200,
       price: "9,800.00",
-      agentName: "Jane Doe"
+      description: "Propiedad ideal para familias grandes con espacios bien distribuidos.",
+      agentInfo: {
+        name: "Carlos Mendoza",
+        phone: "+57 3209876543",
+        email: "carlos.mendoza@realestate.com",
+        initials: "CM",
+        whatsapp: "+57 3209876543"
+      }
     },
     {
       id: 7,
@@ -74,7 +116,14 @@ export const Tendencias = () => {
       bathrooms: 4,
       area: 200,
       price: "9,800.00",
-      agentName: "Jane Doe"
+      description: "Casa con excelente iluminación natural y áreas sociales amplias.",
+      agentInfo: {
+        name: "Ana Sofía López",
+        phone: "+57 3123456789",
+        email: "ana.lopez@realestate.com",
+        initials: "AL",
+        whatsapp: "+57 3123456789"
+      }
     },
     {
       id: 8,
@@ -84,7 +133,14 @@ export const Tendencias = () => {
       bathrooms: 4,
       area: 200,
       price: "9,800.00",
-      agentName: "Jane Doe"
+      description: "Hermosa propiedad con piscina y zonas verdes privadas.",
+      agentInfo: {
+        name: "Roberto Silva",
+        phone: "+57 3145678901",
+        email: "roberto.silva@realestate.com",
+        initials: "RS",
+        whatsapp: "+57 3145678901"
+      }
     },
     {
       id: 9,
@@ -94,17 +150,22 @@ export const Tendencias = () => {
       bathrooms: 4,
       area: 200,
       price: "9,800.00",
-      agentName: "Jane Doe"
-    },
-    // Puedes agregar más propiedades según sea necesario
+      description: "Casa moderna con tecnología inteligente integrada.",
+      agentInfo: {
+        name: "Patricia Ruiz",
+        phone: "+57 3167890123",
+        email: "patricia.ruiz@realestate.com",
+        initials: "PR",
+        whatsapp: "+57 3167890123"
+      }
+    }
   ];
 
-  // Handler para cuando se hace clic en una propiedad (futura funcionalidad)
   const navigate = useNavigate();
 
-const handlePropertyClick = (property) => {
-  navigate('/propiedad-seleccionada', { state: { property } });
-};
+  const handlePropertyClick = (property) => {
+    navigate('/propiedad-seleccionada', { state: { property } });
+  };
 
   return (
     <>
@@ -120,7 +181,7 @@ const handlePropertyClick = (property) => {
               bathrooms={property.bathrooms}
               area={property.area}
               price={property.price}
-              agentName={property.agentName}
+              agentName={property.agentInfo.name}
               onClick={() => handlePropertyClick(property)}
             />
           ))}

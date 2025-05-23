@@ -76,19 +76,32 @@ export const Main = () => {
             bathrooms: 3,
             area: 150,
             price: "7,250.00",
-            agentName: "Jane Doe"
+            description: "Hermosa casa en una ubicación privilegiada con acabados de primera calidad.",
+            agentInfo: {
+                name: "Jane Doe",
+                phone: "+57 3224456789",
+                email: "jane.doe@realestate.com",
+                initials: "JD",
+                whatsapp: "+57 3224456789"
+            }
         },
         {
             id: 2,
             address: "Ur. La Portada Americana 45 #22",
-            title: "Casa Lomas Del Norte",
+            title: "Casa Lomas Del Sur",
             rooms: 4,
             bathrooms: 2,
             area: 120,
-            price: "6,500.00",
-            agentName: "Jane Doe"
-        },
-        // ... más propiedades
+            price: "3,500.00",
+            description: "Casa moderna con excelente ubicación y espacios amplios.",
+            agentInfo: {
+                name: "Angelica Smith",
+                phone: "+57 3224456789",
+                email: "angelicasm231@gmai..com",
+                initials: "JD",
+                whatsapp: "+57 3224456789"
+            }
+        }
     ];
 
     return (
@@ -246,7 +259,7 @@ export const Main = () => {
                             bathrooms={property.bathrooms}
                             area={property.area}
                             price={property.price}
-                            agentName={property.agentName}
+                            agentName={property.agentInfo.name}
                             onClick={() => handlePropertyClick(property)}
                         />
                     ))}

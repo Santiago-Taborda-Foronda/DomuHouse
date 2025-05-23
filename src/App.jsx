@@ -12,6 +12,7 @@ import {CrearInmobiliarias} from './Components/Pages/Inmobiliarias/CrearInmobili
 import { RegistrarseAdministrador } from './Components/Pages/Administrador/RegistrarseAdministrador/RegistrarseAdministrador'
 import { ActualizarInmobiliaria } from './Components/Pages/Inmobiliarias/ActualizarInmobiliaria'
 import { RecoverPassword } from './Components/Pages/RecoverPassword/RecoverPassword'
+import { ShowInmobiliarias } from './Components/Pages/ShowInmobiliarias/ShowInmobiliarias'
 
 
 export const App = () => {
@@ -28,6 +29,7 @@ export const App = () => {
       <Route path='/registrarseAdministrador' element={<RegistrarseAdministrador />} />
       <Route path="/contact-agent" element={<ContactAgent />} />
       <Route path="/recuperar-password" element={<RecoverPassword />} />
+      <Route path="/inmobiliarias" element={<ShowInmobiliarias />} />
     </Routes>
     </>
   )

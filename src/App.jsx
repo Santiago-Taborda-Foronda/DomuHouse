@@ -8,6 +8,9 @@ import { Encuentrame } from './Components/Pages/Encuentrame/Encuentrame'
 import { Registrarse } from './Components/Pages/Home/Registrarse/Registrarse'
 import { PropiedadSeleccionada } from './Components/Pages/PropiedadSeleccionada/PropiedadSeleccionada';
 import { ContactAgent } from './Components/Pages/ContactAgent/ContactAgent';
+import {CrearInmobiliarias} from './Components/Pages/Inmobiliarias/CrearInmobiliarias'
+import { RegistrarseAdministrador } from './Components/Pages/Administrador/RegistrarseAdministrador/RegistrarseAdministrador'
+import { ActualizarInmobiliaria } from './Components/Pages/Inmobiliarias/ActualizarInmobiliaria'
 import { RecoverPassword } from './Components/Pages/RecoverPassword/RecoverPassword'
 
 
@@ -21,6 +24,8 @@ export const App = () => {
       <Route path='/Login' element={<Login />} />
       <Route path='/Registrarse' element={<Registrarse />} />
       <Route path='/propiedad-seleccionada' element={<PropiedadSeleccionada />} />
+      <Route path='/CrearInmobiliarias' element={<CrearInmobiliarias />} />
+      <Route path='/registrarseAdministrador' element={<RegistrarseAdministrador />} />
       <Route path="/contact-agent" element={<ContactAgent />} />
       <Route path="/recuperar-password" element={<RecoverPassword />} />
     </Routes>

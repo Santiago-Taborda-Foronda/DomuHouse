@@ -109,7 +109,7 @@ export const Main = () => {
                     <form className="flex bg-white rounded-full shadow-lg px-10 py-6 gap-6 items-center w-[85%] max-w-7xl mx-auto">
                         <div className="flex flex-col w-55">
                             <label className="text-xs text-gray-800 text-left ml-2 mb-1">Tipo</label>
-                            <select className="border-none bg-transparent focus:outline-none text-sm text-gray-800 px-2"> 
+                            <select className="border-none bg-transparent focus:outline-none text-sm text-gray-800 px-2">
                                 <option value="casa">Casa</option>
                                 <option value="apartamento">Apartamento</option>
                                 <option value="local">Local Comercial</option>
@@ -135,14 +135,13 @@ export const Main = () => {
                                 className="border-none bg-transparent focus:outline-none text-sm text-gray-800 px-2"
                             />
                         </div>
-
                         <button
                             type="button"
                             onClick={toggleAdvanced}
-                            className="flex items-center gap-8 border border-[#2F8EAC] text-[#2F8EAC] rounded-full px-10 py-2 text-sm "
+                            className="flex items-center gap-2 border border-[#2F8EAC] text-[#2F8EAC] rounded-full px-10 py-2 text-sm whitespace-nowrap"
                         >
                             {showAdvanced ? "Búsqueda avanzada" : "Búsqueda avanzada"}
-                            <LuSettings2 className='text-[#2F8EAC] text-xl'/>
+                            <LuSettings2 className='text-[#2F8EAC] text-xl' />
                         </button>
 
                         <button

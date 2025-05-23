@@ -11,6 +11,8 @@ import { ContactAgent } from './Components/Pages/ContactAgent/ContactAgent';
 import {CrearInmobiliarias} from './Components/Pages/Inmobiliarias/CrearInmobiliarias'
 import { RegistrarseAdministrador } from './Components/Pages/Administrador/RegistrarseAdministrador/RegistrarseAdministrador'
 import { ActualizarInmobiliaria } from './Components/Pages/Inmobiliarias/ActualizarInmobiliaria'
+import { Privacidad } from './Components/Pages/PrivacidadYTerminos/Privacidad'
+import { Terminos } from './Components/Pages/PrivacidadYTerminos/Terminos'
 
 
 export const App = () => {
@@ -27,6 +29,10 @@ export const App = () => {
       <Route path='/registrarseAdministrador' element={<RegistrarseAdministrador />} />
       <Route path="/contact-agent" element={<ContactAgent />} />
       
+      <Route path="/Privacidad" element={<Privacidad />} />
+      <Route path="/Terminos" element={<Terminos />} />
+
+
     </Routes>
     </>
   )

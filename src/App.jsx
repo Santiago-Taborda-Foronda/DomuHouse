@@ -10,6 +10,7 @@ import { PropiedadSeleccionada } from './Components/Pages/PropiedadSeleccionada/
 import { ContactAgent } from './Components/Pages/ContactAgent/ContactAgent';
 import {CrearInmobiliarias} from './Components/Pages/Inmobiliarias/CrearInmobiliarias'
 import { RegistrarseAdministrador } from './Components/Pages/Administrador/RegistrarseAdministrador/RegistrarseAdministrador'
+import { ActualizarInmobiliaria } from './Components/Pages/Inmobiliarias/ActualizarInmobiliaria'
 
 
 export const App = () => {

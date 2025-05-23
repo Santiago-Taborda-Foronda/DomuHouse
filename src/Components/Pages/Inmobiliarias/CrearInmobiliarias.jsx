@@ -22,6 +22,10 @@ export const CrearInmobiliarias = () => {
 
   const fullAddress = `${address}, ${city}`;
 
+  const handleCancel = () => {
+    navigate("/")
+  }
+
   const handleNext = () => {
     // Redirigir a la interfaz de registro
     navigate("/registrarseAdministrador")
@@ -140,7 +144,9 @@ export const CrearInmobiliarias = () => {
         </div>
 
         <div className="flex justify-between mt-10">
-          <button className="px-6 py-2 rounded-full border border-[#2F8EAC] text-[#2F8EAC] hover:bg-[#2F8EAC] hover:text-white transition">
+          <button
+            onClick={handleCancel}
+            className="px-6 py-2 rounded-full border border-[#2F8EAC] text-[#2F8EAC] hover:bg-[#2F8EAC] hover:text-white transition">
             Cancelar
           </button>
           <button

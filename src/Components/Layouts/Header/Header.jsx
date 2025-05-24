@@ -81,7 +81,7 @@ export const Header = () => {
                     />
                     <ItemsNavbar 
                       content={<div className="flex items-center gap-2 text-gray-600 hover:text-blue-600"><MessageSquare size={18}/>Inmobiliarias</div>} 
-                      Route="/chatbot" 
+                      Route="/inmobiliarias" 
                     />
                     <ItemsNavbar 
                       content={<div className="flex items-center gap-2 text-gray-600 hover:text-blue-600"><Star size={18}/>Tendencias</div>} 

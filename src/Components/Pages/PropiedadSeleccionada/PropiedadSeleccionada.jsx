@@ -10,7 +10,6 @@ export const PropiedadSeleccionada = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const navigate = useNavigate();
 
-
   // Imágenes de ejemplo - aquí podrás conectar las imágenes reales de la propiedad
   const propertyImages = [
   "https://picsum.photos/800/400?random=1",
@@ -258,18 +257,18 @@ export const PropiedadSeleccionada = () => {
             
             <div className="flex items-center gap-4 mb-6">
               <div className="w-15 h-15 bg-blue-500 rounded-full flex items-center justify-center text-white font-semibold text-lg">
-                {property.agentName ? property.agentName.split(' ').map(n => n[0]).join('') : 'MC'}
+                {property.agentInfo?.initials || property.agentInfo?.name?.split(' ').map(n => n[0]).join('') || 'MC'}
               </div>
               <div>
                 <h3 className="font-semibold text-gray-800">
-                  {property.agentName || 'Marina Chvernak'}
+                  {property.agentInfo?.name || 'Marina Chvernak'}
                 </h3>
-                <div className="text-sm text-gray-600">+47 222444666</div>
-                <div className="text-sm text-gray-600">marina@example.com</div>
+                <div className="text-sm text-gray-600">{property.agentInfo?.phone || '+47 222444666'}</div>
+                <div className="text-sm text-gray-600">{property.agentInfo?.email || 'marina@example.com'}</div>
               </div>
             </div>
             <button
-              onClick={() => navigate('/contact-agent')}
+              onClick={() => navigate('/contact-agent', { state: { agent: property.agentInfo, property: property } })}
               className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-3 px-4 rounded-lg transition-colors duration-200"
               >
               Contactar →

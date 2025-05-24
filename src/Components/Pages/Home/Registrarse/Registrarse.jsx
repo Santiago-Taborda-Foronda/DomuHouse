@@ -10,7 +10,10 @@ import { Eye, EyeOff } from "lucide-react";
 export const Registrarse = () => {
     const [showPassword, setShowPassword] = useState(false)
     const [credentials, setCredentials] = useState({
-        email: "",
+        nombre: "",
+        apellido: "",
+        telefono:"",
+        correo: "",
         password: ""
     })
 
@@ -24,10 +27,33 @@ export const Registrarse = () => {
     const togglePasswordVisibility = () => {
         setShowPassword(!showPassword)
     }
-    const handelSubmit = (e) =>{
-        e.preventDefault();
+    const handleSubmit = async (e) => {
+  e.preventDefault();
 
-    }    
+  try {
+    const response = await fetch("http://localhost:10101/register", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(credentials)
+    });
+
+    const data = await response.json();
+    console.log("Respuesta del servidor:", data);
+
+    if (response.ok) {
+      alert("Usuario registrado con éxito");
+    } else {
+      alert("Error al registrar: " + (data?.mensaje || JSON.stringify(data) || 'Error desconocido'));
+    }
+  } catch (error) {
+    console.error("Error al conectar con el servidor:", error);
+    alert("No se pudo conectar al servidor");
+  }
+};
+
+
     return (
     <>
     <div className='flex flex-col justify-around px-20 pr-30 w-full space-y-10 items-start'>
@@ -43,19 +69,21 @@ export const Registrarse = () => {
     <section className='flex  items-center  gap-20  w-full'>
         <div className='flex flex-col items-center shadow-lg border-1 border-gray-100 p-10 rounded-3xl min-w-160 space-y-5'>
             <p className='text-2xl'>Registrarse</p>
-            <form className='flex flex-col space-y-3 w-full'>
+            <form className='flex flex-col space-y-3 w-full'onSubmit={handleSubmit}>
                 <label htmlFor="">Nombre</label>
-                <input className='p-3 border-gray-400 hover:border-gray-600 focus:outline-none border-2 rounded-lg w-full' placeholder='Ingrese su Nombre'></input>
+                <input  name="nombre"value={credentials.nombre} onChange={handleInputChange} className='p-3 border-gray-400 hover:border-gray-600 focus:outline-none border-2 rounded-lg w-full' placeholder='Ingrese su Nombre'></input>
                 <label htmlFor="">Apellidos</label>
-                <input className='p-3 border-gray-400 hover:border-gray-600 focus:outline-none border-2 rounded-lg w-full' placeholder='Ingrese sus Apellidos'></input>
+                <input  name="apellido"value={credentials.apellido} onChange={handleInputChange} className='p-3 border-gray-400 hover:border-gray-600 focus:outline-none border-2 rounded-lg w-full' placeholder='Ingrese su Nombre'></input>
+                <label htmlFor="">Telefono</label>
+                <input  name="telefono" value={credentials.telefono} onChange={handleInputChange} className='p-3 border-gray-400 hover:border-gray-600 focus:outline-none border-2 rounded-lg w-full' placeholder='Ingrese sus Apellidos'></input>
                 <label htmlFor="">Correo</label>
                 <input 
                 className='p-3 border-gray-400 hover:border-gray-600 focus:outline-none border-2 rounded-lg w-full' 
                 placeholder='✉ Ingrese su correo' 
-                type='emai'
-                id='email'
-                name='email'
-                value={credentials.email}
+                type='correo'
+                id='correo'
+                name='correo'
+                value={credentials.correo}
                 onChange={handleInputChange}
                 required
                 >
@@ -80,6 +108,8 @@ export const Registrarse = () => {
                         {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                     </button>
                 </div>                
+                            <Button type="submit"  name = 'Crear Cuenta' className='bg-sky-500 text-white p-3 w-full rounded-2xl hover:bg-yellow-200' />
+
             </form>
 
             <div className='flex justify-around items-start mt-2' >    
@@ -88,7 +118,6 @@ export const Registrarse = () => {
                 </Link>    
             </div>
 
-            <Button name = 'Crear Cuenta' className='bg-sky-500 text-white p-3 w-full rounded-2xl' />
             <span>Ya tienes cuenta?
                 <Link to="/Login" className='ml-4 text-sm text-sky-500 underline hover:text-sky-700'>
                     Ingresar     

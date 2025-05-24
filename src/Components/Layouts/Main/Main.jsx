@@ -1,25 +1,21 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import LogoRobot from '../../../assets/images/robot.png';
-import Casa from '../../../assets/images/casLujo2.jpg';
+import React, { useState, useEffect } from 'react';
+import LogoRobot from '../../../assets/images/robot.png'
+import Casa from '../../../assets/images/casLujo2.jpg'
 import { LuSettings2 } from "react-icons/lu";
 import { ChatDomu } from '../../UI/ChatDomu/ChatDomu';
-import { Button } from '../../UI/Button/Button';
-import "../../../App";
+import { Button } from '../../UI/Button/Button'
+import "../../../App"
 
-const PropertyCard = ({ address, title, rooms, bathrooms, area, price, agentName, onClick }) => {
+const PropertyCard = ({ address, title, rooms, bathrooms, area, price, agentName }) => {
     return (
-        <div
-            onClick={onClick}
-            className='cursor-pointer bg-white flex flex-col rounded-2xl max-w-100 shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300'
-        >
+        <div className='bg-white flex flex-col rounded-2xl max-w-100 shadow-md overflow-hidden'>
             <div className="relative w-full h-52">
                 <img
                     src={Casa}
                     alt="Propiedad"
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover  "
                 />
-                <div className="absolute bottom-0 left-0 w-full text-white text-sm px-4 py-2 bg-black/50">
+                <div className="absolute bottom-0 left-0 w-full text-white text-sm px-4 py-2">
                     <span>{address}</span>
                 </div>
             </div>
@@ -54,55 +50,29 @@ const PropertyCard = ({ address, title, rooms, bathrooms, area, price, agentName
                 </div>
             </div>
         </div>
-    );
-};
+    )
+}
 
 export const Main = () => {
-    const [showAdvanced, setShowAdvanced] = useState(false);
-    const [priceRange, setPriceRange] = useState(2500000);
-    const toggleAdvanced = () => setShowAdvanced(!showAdvanced);
-    const navigate = useNavigate();
+  const [showAdvanced, setShowAdvanced] = useState(false);
+  const [priceRange, setPriceRange] = useState(2500000);
+  const [properties, setProperties] = useState([]);
 
-    const handlePropertyClick = (property) => {
-        navigate('/propiedad-seleccionada', { state: { property } });
+  const toggleAdvanced = () => setShowAdvanced(!showAdvanced);
+
+  useEffect(() => {
+    const fetchProperties = async () => {
+      try {
+        const res = await fetch('http://localhost:10101/api/propiedades/aprobadas');
+        const data = await res.json('');
+        setProperties(data);
+      } catch (error) {
+        console.error("Error al cargar propiedades:", error);
+      }
     };
 
-    const properties = [
-        {
-            id: 1,
-            address: "Ur. La Portada Americana 23 #56",
-            title: "Casa Lomas Del Norte",
-            rooms: 5,
-            bathrooms: 3,
-            area: 150,
-            price: "7,250.00",
-            description: "Hermosa casa en una ubicación privilegiada con acabados de primera calidad.",
-            agentInfo: {
-                name: "Jane Doe",
-                phone: "+57 3224456789",
-                email: "jane.doe@realestate.com",
-                initials: "JD",
-                whatsapp: "+57 3224456789"
-            }
-        },
-        {
-            id: 2,
-            address: "Ur. La Portada Americana 45 #22",
-            title: "Casa Lomas Del Sur",
-            rooms: 4,
-            bathrooms: 2,
-            area: 120,
-            price: "3,500.00",
-            description: "Casa moderna con excelente ubicación y espacios amplios.",
-            agentInfo: {
-                name: "Angelica Smith",
-                phone: "+57 3224456789",
-                email: "angelicasm231@gmai..com",
-                initials: "JD",
-                whatsapp: "+57 3224456789"
-            }
-        }
-    ];
+    fetchProperties();
+  }, []);
 
     return (
         <>
@@ -122,7 +92,7 @@ export const Main = () => {
                     <form className="flex bg-white rounded-full shadow-lg px-10 py-6 gap-6 items-center w-[85%] max-w-7xl mx-auto">
                         <div className="flex flex-col w-55">
                             <label className="text-xs text-gray-800 text-left ml-2 mb-1">Tipo</label>
-                            <select className="border-none bg-transparent focus:outline-none text-sm text-gray-800 px-2"> 
+                            <select className="border-none bg-transparent focus:outline-none text-sm text-gray-800 px-2">
                                 <option value="casa">Casa</option>
                                 <option value="apartamento">Apartamento</option>
                                 <option value="local">Local Comercial</option>
@@ -247,24 +217,76 @@ export const Main = () => {
                 )}
             </div>
 
-            {/* Renderizar tarjetas de propiedades */}
-            <div className='px-6 md:px-10 lg:px20 py-10'>
-                <div className='flex flex-wrap justify-center gap-6'>
-                    {properties.map(property => (
-                        <PropertyCard
-                            key={property.id}
-                            address={property.address}
-                            title={property.title}
-                            rooms={property.rooms}
-                            bathrooms={property.bathrooms}
-                            area={property.area}
-                            price={property.price}
-                            agentName={property.agentInfo.name}
-                            onClick={() => handlePropertyClick(property)}
+                {/* <div
+                onClick={toggleChat} 
+                className="fixed bottom-5 right-5 z-50 flex items-center bg-white shadow-lg rounded-full pl-0 pr-6 py4">
+                    <div className="w-14 h-14 bg-[#2F8EAC] rounded-full flex items-center justify-center ml-0">
+                        <img
+                            src={LogoRobot}
+                            alt="Robot"
+                            className="w-10 h-10 object-contain"
+                            draggable="false"
                         />
+                    </div>
+                    <span className="ml-4 text-[#2F8EAC] font-bold text-lg">Domu Te Asesora</span>
+                </div> */}
+                <ChatDomu />
+
+            {/* Sección de Propiedades Destacadas */}
+
+            <section className='flex flex-col items-center gap-4 m-15'>
+                <h3 className='text-2xl text-[#2F8EAC]'>Propiedades Destacadas</h3>
+                <h2 className='text-4xl font-bold'>Recomendaciones Para Ti</h2>
+
+                <div className='flex gap-5'>
+                    <Button
+                        name="Ver Todo"
+                        className="bg-[#2F8EAC] border border-[#2F8EAC] text-white rounded-3xl px-6 py-2 flex items-center gap-2"
+                    />
+
+                    <Button
+                        name="Apartamento"
+                        className="bg-[#F4F4F4]  text-black rounded-3xl px-6 py-2"
+                    />
+
+                    <Button
+                        name="Villa"
+                        className="bg-[#F4F4F4]  text-black rounded-3xl px-6 py-2"
+                    />
+
+                    <Button
+                        name="Casa"
+                        className="bg-[#F4F4F4] text-black rounded-3xl px-6 py-2"
+                    />
+                </div>
+
+                <div className='px-6 md:px-10 lg:px20 py-10'>
+                <div className='flex flex-wrap justify-center gap-8'>
+                    {properties.map((property) => (
+                    <PropertyCard
+                        key={property.property_id}
+                        address={property.address}
+                        title={property.property_title}
+                        rooms={property.bedrooms}
+                        bathrooms={property.bathrooms}
+                        area={property.built_area}
+                        price={property.price}
+                        agentName="Jane Doe"
+                        onClick={() => handlePropertyClick(property.property_id)}
+                    />
+
                     ))}
                 </div>
-            </div>
+                </div>
+
+
+
+                <Button
+                    name="➡ Ver Más"
+                    className="bg-[#2F8EAC] border border-[#2F8EAC] text-white rounded-3xl px-6 py-2 flex items-center gap-2"
+                />
+            </section>
+
         </>
-    );
-};
+    )
+}

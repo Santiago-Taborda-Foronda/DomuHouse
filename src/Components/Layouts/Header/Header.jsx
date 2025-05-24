@@ -76,12 +76,12 @@ export const Header = () => {
                       Route="/" 
                     />
                     <ItemsNavbar 
-                      content={<div className="flex items-center gap-2 text-gray-600 hover:text-blue-600"><Search size={18}/>Búsqueda Avanzada</div>} 
-                      Route="/busqueda" 
+                      content={<div className="flex items-center gap-2 text-gray-600 hover:text-blue-600"><Search size={18}/>Publicar Inmobiliaria</div>} 
+                      Route="/CrearInmobiliarias" 
                     />
                     <ItemsNavbar 
-                      content={<div className="flex items-center gap-2 text-gray-600 hover:text-blue-600"><MessageSquare size={18}/>Chatbot Domu</div>} 
-                      Route="/chatbot" 
+                      content={<div className="flex items-center gap-2 text-gray-600 hover:text-blue-600"><MessageSquare size={18}/>Inmobiliarias</div>} 
+                      Route="/inmobiliarias" 
                     />
                     <ItemsNavbar 
                       content={<div className="flex items-center gap-2 text-gray-600 hover:text-blue-600"><Star size={18}/>Tendencias</div>} 

@@ -82,9 +82,9 @@ export const Login = () => {
             </form>
 
             <div className='flex items-start mt-2' >
-                <a href="/Registrarse" Route='/Registarse' className='text-sm text-sky-500 underline hover:text-sky-700'>
-                    Olvidaste tu contraseña?     
-                </a>    
+                <Link to="/recuperar-password" className='text-sm text-sky-500 underline hover:text-sky-700'>
+                    ¿Olvidaste tu contraseña?     
+                </Link>     
             </div>
 
             <Button 

@@ -1,16 +1,16 @@
 import React, { useState, useEffect } from 'react'
-import { Menu, X, Home, Search, Star, MessageSquare, Heart, Building2, Percent, User, ShoppingCart, CreditCard, LogOut, UserCircle, Settings } from 'lucide-react'
+import { Menu, UserCircle, Settings, LogOut, User } from 'lucide-react'
 import LogoDomuHouse from '../../../assets/images/Logo-DomuHouse.png'
 import '../../../index.css'
-import { Navbar } from '../Navbar/Navbar'
-import { ItemsNavbar } from '../../UI/ItemsNavbar/ItemsNavbar'
 import { Button } from '../../UI/Button/Button'
+import { SidebarMenu } from '../SidebarMenu/SidebarMenu'
 
-export const Header = () => {
+export const Header = ({ toggleSidebar }) => {
   const [isOpen, setIsOpen] = useState(false)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [userInfo, setUserInfo] = useState(null)
   const [showUserMenu, setShowUserMenu] = useState(false)
+  const [currentPath, setCurrentPath] = useState('')
 
   const toggleMenu = () => setIsOpen(!isOpen)
   const toggleUserMenu = () => setShowUserMenu(!showUserMenu)
@@ -31,17 +31,33 @@ export const Header = () => {
     }
   }
 
+  // Verificar la ruta actual
+  const checkCurrentPath = () => {
+    setCurrentPath(window.location.pathname)
+  }
+
   // Verificar autenticación al montar el componente
   useEffect(() => {
     checkAuthStatus()
+    checkCurrentPath()
     
     // Escuchar cambios en el localStorage (útil para cuando se hace login/logout en otra pestaña)
     const handleStorageChange = () => {
       checkAuthStatus()
     }
     
+    // Escuchar cambios de ruta
+    const handleLocationChange = () => {
+      checkCurrentPath()
+    }
+    
     window.addEventListener('storage', handleStorageChange)
-    return () => window.removeEventListener('storage', handleStorageChange)
+    window.addEventListener('popstate', handleLocationChange)
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange)
+      window.removeEventListener('popstate', handleLocationChange)
+    }
   }, [])
 
   // Función para hacer logout
@@ -55,15 +71,46 @@ export const Header = () => {
     window.location.href = '/'
   }
 
+  const simulateLogin = () => {
+    localStorage.setItem('authToken', 'fake-token-for-development')
+    localStorage.setItem('userData', JSON.stringify({
+      id: 1,
+      name: 'Juan Pérez',
+      email: 'juan@example.com',
+      avatar: null
+    }))
+    checkAuthStatus()
+  }
+
+  // Función temporal para simular logout (SOLO PARA DESARROLLO)
+  const simulateLogout = () => {
+    localStorage.removeItem('authToken')
+    localStorage.removeItem('userData')
+    checkAuthStatus()
+  }
+
+  // Verificar si estamos en la página de Mi Inmobiliaria
+  const isInInmobiliariaPage = currentPath.includes('/mi-inmobiliaria') || 
+                               currentPath.includes('/MiInmobiliaria')
+
   return (
     <>
       {/* Header - Fijo en pantalla al hacer scroll */}
       <header className="flex items-center justify-between px-4 py-2 bg-white fixed top-0 left-0 right-0 z-50 shadow-sm h-16">
         <div className="flex items-center gap-4">
-          {/* Botón hamburguesa */}
-          <button onClick={toggleMenu} className="focus:outline-none">
-            <Menu className="w-6 h-6 text-gray-700" />
-          </button>
+          {/* Botón hamburguesa - Solo se muestra si NO estamos en Mi Inmobiliaria */}
+          {!isInInmobiliariaPage && (
+            <button onClick={toggleMenu} className="focus:outline-none">
+              <Menu className="w-6 h-6 text-gray-700" />
+            </button>
+          )}
+
+          {/* Botón hamburguesa para Mi Inmobiliaria - Solo se muestra EN Mi Inmobiliaria */}
+          {isInInmobiliariaPage && toggleSidebar && (
+            <button onClick={toggleSidebar} className="focus:outline-none lg:hidden">
+              <Menu className="w-6 h-6 text-gray-700" />
+            </button>
+          )}
 
           {/* Logo */}
           <img src={LogoDomuHouse} alt="LogoDomuHouse" className="w-20 h-auto" />
@@ -72,6 +119,29 @@ export const Header = () => {
 
         {/* Botones del header o perfil de usuario */}
         <div className="flex items-center space-x-2">
+           <div className="flex items-center space-x-2 mr-4 p-2 bg-yellow-100 rounded border-yellow-300 border">
+            <span className="text-xs text-yellow-800">DEV:</span>
+            <button 
+              onClick={simulateLogin}
+              className="text-xs bg-green-500 text-white px-2 py-1 rounded hover:bg-green-600"
+            >
+              Simular Login
+            </button>
+            <button 
+              onClick={simulateLogout}
+              className="text-xs bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600"
+            >
+              Simular Logout
+            </button>
+          </div>
+
+          {/* Botón Mi Inmobiliaria - Siempre presente */}
+          <Button 
+            name="Mi Inmobiliaria" 
+            Route="/MiInmobiliaria" 
+            className="bg-[#2F8EAC] hover:bg-sky-600 active:bg-sky-700 transition duration-150 ease-in-out text-white px-3 py-2 rounded-xl text-sm"
+          />
+
           {!isAuthenticated ? (
             // Mostrar botones de registro e inicio de sesión si NO está autenticado
             <>
@@ -159,122 +229,14 @@ export const Header = () => {
         ></div>
       )}
 
-      {/* Sidebar y Overlay */}
-      {isOpen && (
-        <>
-          {/* Overlay - fondo oscuro cuando el menú está abierto */}
-          <div
-            className="fixed inset-0 bg-opacity-30 z-40 transition-opacity duration-300"
-            onClick={toggleMenu}
-          ></div>
-
-          {/* Menú lateral */}
-          <aside className="fixed top-0 left-0 w-72 h-full bg-white shadow-lg z-50 p-6 overflow-y-auto transition-transform duration-300 ease-in-out transform">
-            {/* Logo en la parte superior del menú */}
-            <div className="flex items-center mb-6">
-              <img src={LogoDomuHouse} alt="LogoDomuHouse" className="w-20" />
-              <span className="text-lg title-montserrat ml-2">DOMU<span className='text-[#2F8EAC]'>HOUSE</span></span>
-            </div>
-            
-            {/* Botón cerrar */}
-            <button onClick={toggleMenu} className="absolute top-4 right-4 focus:outline-none">
-              <X className="w-6 h-6 text-gray-700" />
-            </button>
-
-            <div className="flex flex-col gap-6 mt-8">
-              <section>
-                <h3 className="font-semibold text-gray-700 mb-2 title-montserrat">Principal</h3>
-                <Navbar>
-                  <ul className="space-y-2">
-                    <ItemsNavbar 
-                      content={<div className="flex items-center gap-2 text-gray-600 hover:text-blue-600"><Home size={18}/>Inicio</div>} 
-                      Route="/" 
-                    />
-                    <ItemsNavbar 
-                      content={<div className="flex items-center gap-2 text-gray-600 hover:text-blue-600"><Search size={18}/>Publicar Inmobiliaria</div>} 
-                      Route="/CrearInmobiliarias" 
-                    />
-                    <ItemsNavbar 
-                      content={<div className="flex items-center gap-2 text-gray-600 hover:text-blue-600"><MessageSquare size={18}/>Inmobiliarias</div>} 
-                      Route="/inmobiliarias" 
-                    />
-                    <ItemsNavbar 
-                      content={<div className="flex items-center gap-2 text-gray-600 hover:text-blue-600"><Star size={18}/>Tendencias</div>} 
-                      Route="/tendencias" 
-                    />
-                    <ItemsNavbar 
-                      content={<div className="flex items-center gap-2 text-gray-600 hover:text-blue-600"><Heart size={18}/>Favoritos</div>} 
-                      Route="/favoritos" 
-                    />
-                  </ul>
-                </Navbar>
-              </section>
-
-              <section>
-                <h3 className="font-semibold text-gray-700 mb-2 title-montserrat">Propiedades</h3>
-                <Navbar>
-                  <ul className="space-y-2">
-                    <ItemsNavbar 
-                      content={<div className="flex items-center gap-2 text-gray-600 hover:text-blue-600"><Building2 size={18}/>Destacadas</div>} 
-                      Route="/propiedades/destacadas" 
-                    />
-                    <ItemsNavbar 
-                      content={<div className="flex items-center gap-2 text-gray-600 hover:text-blue-600"><Building2 size={18}/>Nuevas</div>} 
-                      Route="/propiedades/nuevas" 
-                    />
-                    <ItemsNavbar 
-                      content={<div className="flex items-center gap-2 text-gray-600 hover:text-blue-600"><Percent size={18}/>En Oferta</div>} 
-                      Route="/propiedades/ofertas" 
-                    />
-                  </ul>
-                </Navbar>
-              </section>
-
-              <section>
-                <h3 className="font-semibold text-gray-700 mb-2 title-montserrat">Agentes / Contacto</h3>
-                <Navbar>
-                  <ul className="space-y-2">
-                    <ItemsNavbar 
-                      content={<div className="flex items-center gap-2 text-gray-600 hover:text-blue-600"><User size={18}/>Nuestros Agentes</div>} 
-                      Route="/agentes" 
-                    />
-                  </ul>
-                </Navbar>
-              </section>
-
-              <section>
-                <h3 className="font-semibold text-gray-700 mb-2 title-montserrat">Servicios</h3>
-                <Navbar>
-                  <ul className="space-y-2">
-                    <ItemsNavbar 
-                      content={<div className="flex items-center gap-2 text-gray-600 hover:text-blue-600"><ShoppingCart size={18}/>Compra y Venta</div>} 
-                      Route="/servicios/compra-venta" 
-                    />
-                    <ItemsNavbar 
-                      content={<div className="flex items-center gap-2 text-gray-600 hover:text-blue-600"><ShoppingCart size={18}/>Alquileres</div>} 
-                      Route="/servicios/alquileres" 
-                    />
-                    <ItemsNavbar 
-                      content={<div className="flex items-center gap-2 text-gray-600 hover:text-blue-600"><CreditCard size={18}/>Métodos de Pago</div>} 
-                      Route="/servicios/pagos" 
-                    />
-                  </ul>
-                </Navbar>
-              </section>
-            </div>
-            
-            {/* Cerrar sesión movido al final - solo mostrar si está autenticado */}
-            {isAuthenticated && (
-              <section className="pt-4 border-t mt-6 mb-4">
-                <Button 
-                  name={<div className="flex items-center gap-2"><LogOut size={18}/>Cerrar sesión en DomuHouse</div>}
-                  onClick={handleLogout}
-                  className="text-sm text-blue-600 hover:underline bg-transparent p-0"
-                />
-              </section>
-            )}
-          </aside>
-        </>
+      {/* Componente del menú lateral - Solo se muestra si NO estamos en Mi Inmobiliaria */}
+      {!isInInmobiliariaPage && (
+        <SidebarMenu 
+          isOpen={isOpen}
+          toggleMenu={toggleMenu}
+          isAuthenticated={isAuthenticated}
+          handleLogout={handleLogout}
+        />
       )}
     </>
   )

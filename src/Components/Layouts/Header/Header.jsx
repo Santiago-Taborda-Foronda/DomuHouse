@@ -71,23 +71,7 @@ export const Header = ({ toggleSidebar }) => {
     window.location.href = '/'
   }
 
-  const simulateLogin = () => {
-    localStorage.setItem('authToken', 'fake-token-for-development')
-    localStorage.setItem('userData', JSON.stringify({
-      id: 1,
-      name: 'Juan Pérez',
-      email: 'juan@example.com',
-      avatar: null
-    }))
-    checkAuthStatus()
-  }
-
-  // Función temporal para simular logout (SOLO PARA DESARROLLO)
-  const simulateLogout = () => {
-    localStorage.removeItem('authToken')
-    localStorage.removeItem('userData')
-    checkAuthStatus()
-  }
+  
 
   // Verificar si estamos en la página de Mi Inmobiliaria
   const isInInmobiliariaPage = currentPath.includes('/mi-inmobiliaria') || 
@@ -119,21 +103,7 @@ export const Header = ({ toggleSidebar }) => {
 
         {/* Botones del header o perfil de usuario */}
         <div className="flex items-center space-x-2">
-           <div className="flex items-center space-x-2 mr-4 p-2 bg-yellow-100 rounded border-yellow-300 border">
-            <span className="text-xs text-yellow-800">DEV:</span>
-            <button 
-              onClick={simulateLogin}
-              className="text-xs bg-green-500 text-white px-2 py-1 rounded hover:bg-green-600"
-            >
-              Simular Login
-            </button>
-            <button 
-              onClick={simulateLogout}
-              className="text-xs bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600"
-            >
-              Simular Logout
-            </button>
-          </div>
+           
 
           {/* Botón Mi Inmobiliaria - Siempre presente */}
           <Button 

@@ -15,6 +15,7 @@ import { RecoverPassword } from './Components/Pages/RecoverPassword/RecoverPassw
 import { ShowInmobiliarias } from './Components/Pages/ShowInmobiliarias/ShowInmobiliarias'
 import { InmobiliariaSeleccionada } from './Components/Pages/InmobiliariaSeleccionada/InmobiliariaSeleccionada'
 import  MiInmobiliaria from './Components/Pages/MiInmobiliaria/MiInmobiliaria'
+import AgregarPropiedad from './Components/Pages/AgregarPropiedad/AgregarPropiedad'
 
 
 export const App = () => {
@@ -34,6 +35,7 @@ export const App = () => {
       <Route path="/inmobiliarias" element={<ShowInmobiliarias />} />
       <Route path="/inmobiliaria-seleccionada" element={<InmobiliariaSeleccionada />} />
       <Route path="/MiInmobiliaria" element={<MiInmobiliaria />} />
+      <Route path="/agregar-propiedad" element={<AgregarPropiedad />} />
     </Routes>
     </>
   )

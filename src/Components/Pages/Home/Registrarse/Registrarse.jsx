@@ -10,10 +10,10 @@ import { Eye, EyeOff } from "lucide-react";
 export const Registrarse = () => {
     const [showPassword, setShowPassword] = useState(false)
     const [credentials, setCredentials] = useState({
-        nombre: "",
-        apellido: "",
-        telefono:"",
-        correo: "",
+        first_name: "",
+        last_name: "",
+        phone:"",
+        email: "",
         password: ""
     })
 
@@ -71,19 +71,19 @@ export const Registrarse = () => {
             <p className='text-2xl'>Registrarse</p>
             <form className='flex flex-col space-y-3 w-full'onSubmit={handleSubmit}>
                 <label htmlFor="">Nombre</label>
-                <input  name="nombre"value={credentials.nombre} onChange={handleInputChange} className='p-3 border-gray-400 hover:border-gray-600 focus:outline-none border-2 rounded-lg w-full' placeholder='Ingrese su Nombre'></input>
+                <input  name="first_name"value={credentials.first_name} onChange={handleInputChange} className='p-3 border-gray-400 hover:border-gray-600 focus:outline-none border-2 rounded-lg w-full' placeholder='Ingrese su Nombre'></input>
                 <label htmlFor="">Apellidos</label>
-                <input  name="apellido"value={credentials.apellido} onChange={handleInputChange} className='p-3 border-gray-400 hover:border-gray-600 focus:outline-none border-2 rounded-lg w-full' placeholder='Ingrese su Nombre'></input>
+                <input  name="last_name"value={credentials.last_name} onChange={handleInputChange} className='p-3 border-gray-400 hover:border-gray-600 focus:outline-none border-2 rounded-lg w-full' placeholder='Ingrese su Apellido'></input>
                 <label htmlFor="">Telefono</label>
-                <input  name="telefono" value={credentials.telefono} onChange={handleInputChange} className='p-3 border-gray-400 hover:border-gray-600 focus:outline-none border-2 rounded-lg w-full' placeholder='Ingrese sus Apellidos'></input>
+                <input  name="phone" value={credentials.phone} onChange={handleInputChange} className='p-3 border-gray-400 hover:border-gray-600 focus:outline-none border-2 rounded-lg w-full' placeholder='Ingrese su Telefono'></input>
                 <label htmlFor="">Correo</label>
                 <input 
                 className='p-3 border-gray-400 hover:border-gray-600 focus:outline-none border-2 rounded-lg w-full' 
                 placeholder='✉ Ingrese su correo' 
                 type='correo'
-                id='correo'
-                name='correo'
-                value={credentials.correo}
+                id='email'
+                name='email'
+                value={credentials.email}
                 onChange={handleInputChange}
                 required
                 >

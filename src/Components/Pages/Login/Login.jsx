@@ -5,31 +5,60 @@ import  logoDomuHouse from '../../../assets/images/Logo-DomuHouse.png'
 import  LogoLogin from '../../../assets/images/imagen-login.png'
 import { Button } from '../../UI/Button/Button'
 import { Header } from '../../Layouts/Header/Header'
-import { Link } from 'react-router'
+import { Link , useNavigate } from 'react-router-dom'
 
 
 export const Login = () => {
 
-    const [showPassword, setShowPassword] = useState(false)
-    const [credentials, setCredentials] = useState({
-        email: "",
-        password: ""
-    })
+     const [credentials, setCredentials] = useState({
+    email: '',
+    password: ''
+  });
 
-    const handleInputChange = (e) => {
-        const {name, value} = e.target;
-        setCredentials({
-            ...credentials,[name] : value
-        })
-    }
+  const [errorMessage, setErrorMessage] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
-    const togglePasswordVisibility = () => {
-        setShowPassword(!showPassword)
-    }
-    const handelSubmit = (e) =>{
-        e.preventDefault();
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setCredentials((prev) => ({
+      ...prev,
+      [name]: value
+    }));
+  };
 
+  const handelSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setErrorMessage("");
+
+    try {
+      const response = await fetch('http://localhost:10101/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(credentials)
+      });
+
+      const data = await response.json();
+
+      if (data.logged) {
+        localStorage.setItem('userId', data.id);
+        localStorage.setItem('userRole', data.role);
+        navigate('/dashboard');
+      } else {
+        setErrorMessage(data.status || "Credenciales incorrectas");
+      }
+
+    } catch (error) {
+      setErrorMessage("Ocurrió un error. Intenta nuevamente.");
+    } finally {
+      setLoading(false);
     }
+  };
+
 
   return (
     <>
@@ -47,6 +76,12 @@ export const Login = () => {
         <div className='flex flex-col items-center shadow-lg border-1 border-gray-100 p-10 rounded-3xl min-w-110 space-y-5'>
             <p className='text-2xl'>Login</p>
             <form onSubmit={handelSubmit} className='flex flex-col space-y-3 w-full'>
+                {errorMessage && (
+                    <div className="text-red-500 text-sm font-semibold">
+                        {errorMessage}
+                    </div>
+                )}
+
                 <input 
                 className='p-3 border-gray-400 hover:border-gray-600 focus:outline-none border-2 rounded-lg w-full' 
                 placeholder='✉ Ingrese su correo' 
@@ -70,13 +105,10 @@ export const Login = () => {
                     onChange={handleInputChange}
                     required                
                     />
-                    <button
-                    type="button"
-                    className="absolute right-4 top-3.5 text-gray-500 hover:text-gray-700"
-                    onClick={togglePasswordVisibility}
-                    >
+                    <button type="button" className="absolute right-4 top-3.5 text-gray-500 hover:text-gray-700" onClick={() => setShowPassword((prev) => !prev)} >
                     {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                     </button>
+                   
                 </div>
                 
             </form>

@@ -14,6 +14,7 @@ export const Tendencias = () => {
       bathrooms: 3,
       area: 150,
       price: "7,250.00",
+      type: "venta",
       description: "Hermosa casa en una ubicación privilegiada con acabados de primera calidad.",
       agentInfo: {
         name: "Jane Doe",
@@ -31,6 +32,7 @@ export const Tendencias = () => {
       bathrooms: 2,
       area: 120,
       price: "6,500.00",
+      type: "alquiler",
       description: "Casa moderna con excelente ubicación y espacios amplios.",
       agentInfo: {
         name: "Jane Doe",
@@ -181,6 +183,7 @@ export const Tendencias = () => {
               bathrooms={property.bathrooms}
               area={property.area}
               price={property.price}
+              type={property.type}
               agentName={property.agentInfo.name}
               onClick={() => handlePropertyClick(property)}
             />

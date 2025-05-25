@@ -5,57 +5,8 @@ import Casa from '../../../assets/images/casLujo2.jpg';
 import { LuSettings2 } from "react-icons/lu";
 import { ChatDomu } from '../../UI/ChatDomu/ChatDomu';
 import { Button } from '../../UI/Button/Button';
+import { PropertyCard } from '../PropertyCard/PropertyCard'; // Importa tu componente PropertyCard
 import "../../../App";
-
-const PropertyCard = ({ address, title, rooms, bathrooms, area, price, agentName, onClick }) => {
-    return (
-        <div
-            onClick={onClick}
-            className='cursor-pointer bg-white flex flex-col rounded-2xl max-w-100 shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300'
-        >
-            <div className="relative w-full h-52">
-                <img
-                    src={Casa}
-                    alt="Propiedad"
-                    className="w-full h-full object-cover"
-                />
-                <div className="absolute bottom-0 left-0 w-full text-white text-sm px-4 py-2 bg-black/50">
-                    <span>{address}</span>
-                </div>
-            </div>
-
-            <div className="px-4 pt-2 pb-4">
-                <h2 className="text-lg font-semibold text-gray-800 mb-3">{title}</h2>
-
-                <div className="flex items-center text-gray-600 text-sm gap-4 mb-4">
-                    <span className="flex items-center gap-1">
-                        Cuartos: <strong>{rooms}</strong>
-                    </span>
-                    <span className="flex items-center gap-1">
-                        Baños: <strong>{bathrooms}</strong>
-                    </span>
-                    <span className="flex items-center gap-1">
-                        m²: <strong>{area}</strong>
-                    </span>
-                </div>
-
-                <hr className="my-2" />
-
-                <div className="flex items-center justify-between mt-4">
-                    <div className="flex items-center gap-2">
-                        <img
-                            src="/api/placeholder/32/32"
-                            alt={agentName}
-                            className="w-8 h-8 rounded-full object-cover"
-                        />
-                        <span className="text-sm text-gray-800">{agentName}</span>
-                    </div>
-                    <span className="text-base font-semibold text-gray-900">${price}</span>
-                </div>
-            </div>
-        </div>
-    );
-};
 
 export const Main = () => {
     const [showAdvanced, setShowAdvanced] = useState(false);
@@ -68,41 +19,43 @@ export const Main = () => {
     };
 
     const properties = [
-        {
-            id: 1,
-            address: "Ur. La Portada Americana 23 #56",
-            title: "Casa Lomas Del Norte",
-            rooms: 5,
-            bathrooms: 3,
-            area: 150,
-            price: "7,250.00",
-            description: "Hermosa casa en una ubicación privilegiada con acabados de primera calidad.",
-            agentInfo: {
-                name: "Jane Doe",
-                phone: "+57 3224456789",
-                email: "jane.doe@realestate.com",
-                initials: "JD",
-                whatsapp: "+57 3224456789"
-            }
-        },
-        {
-            id: 2,
-            address: "Ur. La Portada Americana 45 #22",
-            title: "Casa Lomas Del Sur",
-            rooms: 4,
-            bathrooms: 2,
-            area: 120,
-            price: "3,500.00",
-            description: "Casa moderna con excelente ubicación y espacios amplios.",
-            agentInfo: {
-                name: "Angelica Smith",
-                phone: "+57 3224456789",
-                email: "angelicasm231@gmai..com",
-                initials: "JD",
-                whatsapp: "+57 3224456789"
-            }
+    {
+        id: 1,
+        address: "Ur. La Portada Americana 23 #56",
+        title: "Casa Lomas Del Norte",
+        rooms: 5,
+        bathrooms: 3,
+        area: 150,
+        price: "7,250.00",
+        type: "venta",
+        description: "Hermosa casa en una ubicación privilegiada con acabados de primera calidad.",
+        agentInfo: {
+            name: "Jane Doe",
+            phone: "+57 3224456789",
+            email: "jane.doe@realestate.com",
+            initials: "JD",
+            whatsapp: "+57 3224456789"
         }
-    ];
+    },
+    {
+        id: 2,
+        address: "Ur. La Portada Americana 45 #22",
+        title: "Casa Lomas Del Sur",
+        rooms: 4,
+        bathrooms: 2,
+        area: 120,
+        price: "3,500.00",
+        type: "alquiler",
+        description: "Casa moderna con excelente ubicación y espacios amplios.",
+        agentInfo: {
+            name: "Angelica Smith",
+            phone: "+57 3224456789",
+            email: "angelicasm231@gmai..com",
+            initials: "JD",
+            whatsapp: "+57 3224456789"
+        }
+    }
+];
 
     return (
         <>
@@ -164,9 +117,6 @@ export const Main = () => {
                         >
                             Buscar
                         </button>
-
-
-
                     </form>
                 </div>
                 {/* Panel de Búsqueda Avanzada */}
@@ -249,22 +199,23 @@ export const Main = () => {
 
             {/* Renderizar tarjetas de propiedades */}
             <div className='px-6 md:px-10 lg:px20 py-10'>
-                <div className='flex flex-wrap justify-center gap-6'>
-                    {properties.map(property => (
-                        <PropertyCard
-                            key={property.id}
-                            address={property.address}
-                            title={property.title}
-                            rooms={property.rooms}
-                            bathrooms={property.bathrooms}
-                            area={property.area}
-                            price={property.price}
-                            agentName={property.agentInfo.name}
-                            onClick={() => handlePropertyClick(property)}
-                        />
-                    ))}
-                </div>
+            <div className='flex flex-wrap justify-center gap-6'>
+                {properties.map(property => (
+                    <PropertyCard
+                        key={property.id}
+                        address={property.address}
+                        title={property.title}
+                        rooms={property.rooms}
+                        bathrooms={property.bathrooms}
+                        area={property.area}
+                        price={property.price}
+                        type={property.type}
+                        agentName={property.agentInfo.name}
+                        onClick={() => handlePropertyClick(property)}
+                    />
+                ))}
             </div>
+        </div>
         </>
     );
 };

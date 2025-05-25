@@ -12,6 +12,7 @@ import Casa from "../../../assets/images/casLujo2.png"; // Ajusta la ruta según
  * @param {string} props.price - Precio de la propiedad (formato string)
  * @param {string} props.agentName - Nombre del agente
  * @param {string} [props.imageUrl] - URL opcional de la imagen (si no se proporciona, se usa la imagen por defecto)
+ * @param {string} props.type - Tipo de propiedad: "venta" o "alquiler"
  * @param {Function} [props.onClick] - Función opcional para manejar el clic en la tarjeta
  * @returns {JSX.Element} - Componente PropertyCard
  */
@@ -24,8 +25,25 @@ export const PropertyCard = ({
   price, 
   agentName,
   imageUrl,
+  type = "venta", // Valor por defecto
   onClick
 }) => {
+  // Configuración de la etiqueta según el tipo
+  const tagConfig = {
+    venta: {
+      text: "En Venta",
+      bgColor: "bg-green-500",
+      textColor: "text-white"
+    },
+    alquiler: {
+      text: "En Alquiler",
+      bgColor: "bg-blue-500",
+      textColor: "text-white"
+    }
+  };
+
+  const currentTag = tagConfig[type] || tagConfig.venta;
+
   return (
     <div 
       className='bg-white flex flex-col rounded-2xl max-w-100 shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300'
@@ -38,7 +56,14 @@ export const PropertyCard = ({
           alt={title}
           className="w-full h-full object-cover"
         />
-        <div className="absolute bottom-0 left-0 w-full text-white text-sm px-4 py-2">
+        
+        {/* Etiqueta de tipo (Venta/Alquiler) - Usando el mismo patrón del RealEstateCard */}
+        <div className={`absolute top-4 right-4 px-3 py-1 rounded-full text-sm font-medium ${currentTag.bgColor} ${currentTag.textColor}`}>
+          {currentTag.text}
+        </div>
+        
+        {/* Dirección en la parte inferior */}
+        <div className="absolute bottom-0 left-0 w-full text-white text-sm px-4 py-2 bg-gradient-to-t from-black/70 to-transparent">
           <span>{address}</span>
         </div>
       </div>

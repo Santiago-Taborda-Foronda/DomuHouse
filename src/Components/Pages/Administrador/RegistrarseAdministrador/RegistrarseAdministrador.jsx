@@ -9,9 +9,13 @@ import { Eye, EyeOff } from "lucide-react";
 export const RegistrarseAdministrador = () => {
     const [showPassword, setShowPassword] = useState(false);
     const [credentials, setCredentials] = useState({
+        first_name: "",
+        last_name: "",
+        phone: "",
         email: "",
         password: ""
-    });
+        });
+
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -25,12 +29,31 @@ export const RegistrarseAdministrador = () => {
         setShowPassword(!showPassword);
     };
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
+   const handleSubmit = async (e) => {
+  e.preventDefault();
 
-        // Aquí iría la lógica para registrar administrador
-        console.log("Registrar Administrador:", credentials);
-    };
+  try {
+    const response = await fetch('http://localhost:10101/api/admin/registro', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(credentials)
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      alert("Administrador registrado exitosamente");
+      // puedes redirigir o limpiar el formulario aquí
+    } else {
+      alert(`Error: ${data.message}`);
+    }
+  } catch (error) {
+    console.error("Error al registrar administrador:", error);
+    alert("Error al conectar con el servidor");
+  }
+};
 
     return (
         <>
@@ -52,15 +75,19 @@ export const RegistrarseAdministrador = () => {
                             <input 
                                 className='p-3 border-gray-400 hover:border-gray-600 focus:outline-none border-2 rounded-lg w-full' 
                                 placeholder='Ingrese su Nombre'
-                                name="nombre"
+                                name="first_name"
                                 id="nombre"
+                                value={credentials.first_name}
+                                onChange={handleInputChange}
                             />
 
                             <label htmlFor="apellidos">Apellidos</label>
                             <input 
                                 className='p-3 border-gray-400 hover:border-gray-600 focus:outline-none border-2 rounded-lg w-full' 
                                 placeholder='Ingrese sus Apellidos'
-                                name="apellidos"
+                                name="last_name"
+                                value={credentials.last_name}
+                                onChange={handleInputChange}
                                 id="apellidos"
                             />
 

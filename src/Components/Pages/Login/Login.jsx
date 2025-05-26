@@ -55,15 +55,16 @@ export const Login = () => {
             console.log('Token decodificado:', decoded);
 
             // Extraer datos del usuario desde el token
-            const user = decoded.data; // Asegúrate que el token tenga este campo
+            const user = decoded;
 
             localStorage.setItem('authToken', data.token);
            localStorage.setItem('userData', JSON.stringify({
-                id: user.id,
-                name: user.first_name,        // ← adaptado
-                email: user.correo,           // ← adaptado
-                avatar: user.foto_perfil || null  // ← adaptado
-                }))
+            id: user.id,
+            name: user.first_name,
+            email: user.correo,
+            avatar: user.foto_perfil || null
+            }));ñ
+
 
             // Disparar evento para que el Header se actualice
             window.dispatchEvent(new Event('storage'));
@@ -142,7 +143,6 @@ export const Login = () => {
 
                              <button
                             type="submit"
-                            onClick={handleSubmit}
                             disabled={isLoading}
                             className={`bg-sky-500 text-white p-3 w-full rounded-2xl transition-colors ${
                                 isLoading 

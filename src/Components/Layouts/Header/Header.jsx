@@ -238,6 +238,6 @@ export const Header = ({ toggleSidebar }) => {
           handleLogout={handleLogout}
         />
       )} 
-    // </>
+   </>
   )
 }

@@ -52,7 +52,7 @@ const PropertyCard = ({ address, title, rooms, bathrooms, area, price, agentName
 
 export const Main = () => {
     const [showAdvanced, setShowAdvanced] = useState(false);
-    const [priceRange, setPriceRange] = useState(250000000); // Ajustado para incluir el precio de la propiedad
+    const [priceRange, setPriceRange] = useState(250000000);
     const [properties, setProperties] = useState([]);
     const [filters, setFilters] = useState({
         operation_type: '',
@@ -136,8 +136,29 @@ export const Main = () => {
 
     // Manejar clic en propiedad
     const handlePropertyClick = (propertyId) => {
-        // Aquí puedes implementar la navegación a los detalles de la propiedad
         console.log("Propiedad seleccionada:", propertyId);
+    };
+
+    // Manejar filtros de botones
+    const handleFilterClick = (filterType, value) => {
+        setFilters(prev => ({...prev, [filterType]: value}));
+    };
+
+    // Resetear filtros
+    const resetFilters = () => {
+        setFilters({
+            operation_type: '',
+            property_type: '',
+            city: '',
+            neighborhood: '',
+            keyword: '',
+            bedrooms_min: '',
+            bathrooms_min: '',
+            parking_spaces: '',
+            socioeconomic_stratum: ''
+        });
+        setPriceRange(500000000);
+        setShowAdvanced(false);
     };
 
     return (
@@ -156,9 +177,7 @@ export const Main = () => {
                                     ? 'bg-[#2F8EAC] text-white' 
                                     : 'bg-transparent border border-white text-white'
                             }`}
-                            onClick={() => {
-                                setFilters(prev => ({...prev, operation_type: 'Venta'}));
-                            }}
+                            onClick={() => handleFilterClick('operation_type', 'Venta')}
                         />
                         <Button 
                             name="Arriendo" 
@@ -167,9 +186,7 @@ export const Main = () => {
                                     ? 'bg-[#2F8EAC] text-white' 
                                     : 'bg-transparent border border-white text-white'
                             }`}
-                            onClick={() => {
-                                setFilters(prev => ({...prev, operation_type: 'Arriendo'}));
-                            }}
+                            onClick={() => handleFilterClick('operation_type', 'Arriendo')}
                         />
                     </div>
 
@@ -180,11 +197,14 @@ export const Main = () => {
                                 name="property_type" 
                                 className="border-none bg-transparent focus:outline-none text-sm text-gray-800 px-2"
                                 defaultValue=""
+                                value={filters.property_type}
+                                onChange={(e) => handleFilterClick('property_type', e.target.value)}
                             >
                                 <option value="">Todos</option>
-                                <option value="casa">Casa</option>
-                                <option value="apartamento">Apartamento</option>
-                                <option value="local">Local Comercial</option>
+                                <option value="1">Casa</option>
+                                <option value="2">Apartamento</option>
+                                <option value="3">Finca</option>
+                                <option value="4">Local Comercial</option>
                             </select>
                         </div>
 
@@ -195,6 +215,8 @@ export const Main = () => {
                                 name="city"
                                 placeholder="Ingrese la Ciudad"
                                 className="border-none bg-transparent focus:outline-none focus:placeholder-gray-400 text-sm text-gray-800 px-2"
+                                value={filters.city}
+                                onChange={(e) => handleFilterClick('city', e.target.value)}
                             />
                         </div>
 
@@ -205,6 +227,8 @@ export const Main = () => {
                                 name="neighborhood"
                                 placeholder="Ingrese el Barrio"
                                 className="border-none bg-transparent focus:outline-none focus:placeholder-gray-400 text-sm text-gray-800 px-2"
+                                value={filters.neighborhood}
+                                onChange={(e) => handleFilterClick('neighborhood', e.target.value)}
                             />
                         </div>
 
@@ -213,7 +237,7 @@ export const Main = () => {
                             onClick={toggleAdvanced}
                             className="flex items-center gap-8 border border-[#2F8EAC] text-[#2F8EAC] rounded-full px-10 py-2 text-sm"
                         >
-                            {showAdvanced ? "Búsqueda avanzada" : "Búsqueda avanzada"}
+                            Búsqueda avanzada
                             <LuSettings2 className='text-[#2F8EAC] text-xl'/>
                         </button>
 
@@ -254,6 +278,8 @@ export const Main = () => {
                                     name="bedrooms_min"
                                     placeholder="Mínimo"
                                     className="text-sm px-3 py-2 border border-gray-300 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                                    value={filters.bedrooms_min}
+                                    onChange={(e) => handleFilterClick('bedrooms_min', e.target.value)}
                                 />
                             </div>
 
@@ -264,6 +290,8 @@ export const Main = () => {
                                     name="bathrooms_min"
                                     placeholder="Mínimo"
                                     className="text-sm px-3 py-2 border border-gray-300 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                                    value={filters.bathrooms_min}
+                                    onChange={(e) => handleFilterClick('bathrooms_min', e.target.value)}
                                 />
                             </div>
 
@@ -274,6 +302,8 @@ export const Main = () => {
                                     name="parking_spaces"
                                     placeholder="Mínimo"
                                     className="text-sm px-3 py-2 border border-gray-300 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                                    value={filters.parking_spaces}
+                                    onChange={(e) => handleFilterClick('parking_spaces', e.target.value)}
                                 />
                             </div>
 
@@ -282,6 +312,8 @@ export const Main = () => {
                                 <select 
                                     name="socioeconomic_stratum"
                                     className="text-sm px-3 py-2 border border-gray-300 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                                    value={filters.socioeconomic_stratum}
+                                    onChange={(e) => handleFilterClick('socioeconomic_stratum', e.target.value)}
                                 >
                                     <option value="">Todos</option>
                                     <option value="1">1</option>
@@ -313,25 +345,34 @@ export const Main = () => {
                     <Button
                         name="Ver Todo"
                         className="bg-[#2F8EAC] border border-[#2F8EAC] text-white rounded-3xl px-6 py-2 flex items-center gap-2"
-                        onClick={() => {
-                            setFilters({});
-                            setPriceRange(500000000);
-                            setShowAdvanced(false);
-                        }}
+                        onClick={resetFilters}
                     />
                     <Button
                         name="Apartamento"
-                        className="bg-[#F4F4F4] text-black rounded-3xl px-6 py-2"
-                        onClick={() => {
-                            setFilters(prev => ({...prev, property_type: 'apartamento'}));
-                        }}
+                        className={`rounded-3xl px-6 py-2 ${
+                            filters.property_type === '2' 
+                                ? 'bg-[#2F8EAC] text-white' 
+                                : 'bg-[#F4F4F4] text-black'
+                        }`}
+                        onClick={() => handleFilterClick('property_type', '2')}
                     />
                     <Button
                         name="Casa"
-                        className="bg-[#F4F4F4] text-black rounded-3xl px-6 py-2"
-                        onClick={() => {
-                            setFilters(prev => ({...prev, property_type: 'casa'}));
-                        }}
+                        className={`rounded-3xl px-6 py-2 ${
+                            filters.property_type === '1' 
+                                ? 'bg-[#2F8EAC] text-white' 
+                                : 'bg-[#F4F4F4] text-black'
+                        }`}
+                        onClick={() => handleFilterClick('property_type', '1')}
+                    />
+                    <Button
+                        name="Finca"
+                        className={`rounded-3xl px-6 py-2 ${
+                            filters.property_type === '3' 
+                                ? 'bg-[#2F8EAC] text-white' 
+                                : 'bg-[#F4F4F4] text-black'
+                        }`}
+                        onClick={() => handleFilterClick('property_type', '3')}
                     />
                 </div>
 

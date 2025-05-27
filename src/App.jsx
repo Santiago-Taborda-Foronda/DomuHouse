@@ -16,6 +16,8 @@ import { ShowInmobiliarias } from './Components/Pages/ShowInmobiliarias/ShowInmo
 import { InmobiliariaSeleccionada } from './Components/Pages/InmobiliariaSeleccionada/InmobiliariaSeleccionada'
 import  MiInmobiliaria from './Components/Pages/MiInmobiliaria/MiInmobiliaria'
 import AgregarPropiedad from './Components/Pages/AgregarPropiedad/AgregarPropiedad'
+import { Privacidad } from './Components/Pages/PrivacidadYTerminos/Privacidad'
+import { Terminos } from './Components/Pages/PrivacidadYTerminos/Terminos'
 
 
 export const App = () => {
@@ -36,6 +38,9 @@ export const App = () => {
       <Route path="/inmobiliaria-seleccionada" element={<InmobiliariaSeleccionada />} />
       <Route path="/MiInmobiliaria" element={<MiInmobiliaria />} />
       <Route path="/agregar-propiedad" element={<AgregarPropiedad />} />
+      {/* <Route path="/actualizar-inmobiliaria" element={<ActualizarInmobiliaria />} /> */}
+      <Route path="/privacidad" element={<Privacidad />} />
+      <Route path="/terminos" element={<Terminos />} />
     </Routes>
     </>
   )

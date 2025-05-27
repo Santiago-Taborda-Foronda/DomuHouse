@@ -10,7 +10,6 @@ import { PropiedadSeleccionada } from './Components/Pages/PropiedadSeleccionada/
 import { ContactAgent } from './Components/Pages/ContactAgent/ContactAgent';
 import {CrearInmobiliarias} from './Components/Pages/Inmobiliarias/CrearInmobiliarias'
 import { RegistrarseAdministrador } from './Components/Pages/Administrador/RegistrarseAdministrador/RegistrarseAdministrador'
-import { ActualizarInmobiliaria } from './Components/Pages/Inmobiliarias/ActualizarInmobiliaria'
 import { RecoverPassword } from './Components/Pages/RecoverPassword/RecoverPassword'
 import { ShowInmobiliarias } from './Components/Pages/ShowInmobiliarias/ShowInmobiliarias'
 import { InmobiliariaSeleccionada } from './Components/Pages/InmobiliariaSeleccionada/InmobiliariaSeleccionada'
@@ -45,4 +44,3 @@ export const App = () => {
     </>
   )
 }
-

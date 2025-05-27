@@ -195,6 +195,32 @@ export const Main = () => {
                     </div>
                 )}
             </div>
+            <ChatDomu />
+             <section className='flex flex-col items-center gap-4 m-15'>
+                <h3 className='text-2xl text-[#2F8EAC]'>Propiedades Destacadas</h3>
+                <h2 className='text-4xl font-bold'>Recomendaciones Para Ti</h2>
+
+                <div className='flex gap-5'>
+                    <Button
+                        name="Ver Todo"
+                        className="bg-[#2F8EAC] border border-[#2F8EAC] text-white rounded-3xl px-6 py-2 flex items-center gap-2"
+                    />
+
+                    <Button
+                        name="Apartamento"
+                        className="bg-[#F4F4F4]  text-black rounded-3xl px-6 py-2"
+                    />
+
+                    <Button
+                        name="Villa"
+                        className="bg-[#F4F4F4]  text-black rounded-3xl px-6 py-2"
+                    />
+
+                    <Button
+                        name="Casa"
+                        className="bg-[#F4F4F4] text-black rounded-3xl px-6 py-2"
+                    />
+                </div>
 
             {/* Renderizar tarjetas de propiedades */}
             <div className='px-6 md:px-10 lg:px20 py-10'>
@@ -215,6 +241,11 @@ export const Main = () => {
                 ))}
             </div>
         </div>
+        <Button
+            name="➡ Ver Más"
+            className="bg-[#2F8EAC] border border-[#2F8EAC] text-white rounded-3xl px-6 py-2 flex items-center gap-2"
+        />
+        </section>
         </>
     );
 };

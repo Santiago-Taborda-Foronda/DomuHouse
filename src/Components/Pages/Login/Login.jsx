@@ -5,7 +5,9 @@ import logoDomuHouse from '../../../assets/images/Logo-DomuHouse.png'
 import LogoLogin from '../../../assets/images/imagen-login.png'
 import { Button } from '../../UI/Button/Button'
 import { Header } from '../../Layouts/Header/Header'
-import { Link, useNavigate } from 'react-router'
+import { Link, useNavigate } from 'react-router-dom'
+import { jwtDecode } from 'jwt-decode';
+
 
 export const Login = () => {
     const navigate = useNavigate()
@@ -30,52 +32,57 @@ export const Login = () => {
         setShowPassword(!showPassword)
     }
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setIsLoading(true)
-        setError('')
+   const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError('');
 
-        try {
-            // Aquí es donde tu backend developer agregará la lógica de autenticación
-            const response = await fetch('/api/auth/login', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(credentials)
-            })
+    try {
+        const response = await fetch('http://localhost:10101/login', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(credentials)
+        });
 
-            const data = await response.json()
+        const data = await response.json();
+        console.log('Respuesta del backend:', data);
 
-            if (response.ok) {
-                // Login exitoso - guardar datos de autenticación
-                localStorage.setItem('authToken', data.token)
-                localStorage.setItem('userData', JSON.stringify({
-                    id: data.user.id,
-                    name: data.user.name,
-                    email: data.user.email,
-                    avatar: data.user.avatar || null
-                }))
+        if (response.ok && data.token) {
+            // Decodificar el token JWT
+            const decoded = jwtDecode(data.token);
+            console.log('Token decodificado:', decoded);
 
-                // Disparar evento para que el Header se actualice
-                window.dispatchEvent(new Event('storage'))
+            // Extraer datos del usuario desde el token
+            const user = decoded;
 
-                // Redirigir al home o dashboard
-                navigate('/')
-                
-            } else {
-                // Mostrar error del servidor
-                setError(data.message || 'Error al iniciar sesión')
-            }
+            localStorage.setItem('authToken', data.token);
+           localStorage.setItem('userData', JSON.stringify({
+            id: user.id,
+            name: user.first_name,
+            email: user.correo,
+            avatar: user.foto_perfil || null
+            }));ñ
 
-        } catch (error) {
-            console.error('Error durante el login:', error)
-            setError('Error de conexión. Por favor, intenta de nuevo.')
-        } finally {
-            setIsLoading(false)
+
+            // Disparar evento para que el Header se actualice
+            window.dispatchEvent(new Event('storage'));
+
+            // Redirigir al home o dashboard
+            navigate('/');
+        } else {
+            // Mostrar error del servidor
+            setError(data.message || 'Error al iniciar sesión');
         }
-    }
 
+    } catch (error) {
+        console.error('Error durante el login:', error);
+        setError('Error de conexión. Por favor, intenta de nuevo.');
+    } finally {
+        setIsLoading(false);
+    }
+};
     return (
         <>
             <div className='flex flex-col justify-around px-20 pr-30 w-full space-y-10 items-start'>
@@ -133,17 +140,9 @@ export const Login = () => {
                                     {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                                 </button>
                             </div>
-                        </form>
 
-                        <div className='flex items-start mt-2'>
-                            <Link to="/recuperar-password" className='text-sm text-sky-500 underline hover:text-sky-700'>
-                                ¿Olvidaste tu contraseña?     
-                            </Link>     
-                        </div>
-
-                        <button
+                             <button
                             type="submit"
-                            onClick={handleSubmit}
                             disabled={isLoading}
                             className={`bg-sky-500 text-white p-3 w-full rounded-2xl transition-colors ${
                                 isLoading 
@@ -153,6 +152,15 @@ export const Login = () => {
                         >
                             {isLoading ? 'Iniciando sesión...' : 'Entrar'}
                         </button>
+                        </form>
+
+                        <div className='flex items-start mt-2'>
+                            <Link to="/recuperar-password" className='text-sm text-sky-500 underline hover:text-sky-700'>
+                                ¿Olvidaste tu contraseña?     
+                            </Link>     
+                        </div>
+
+                       
 
                         <span>Aun no tienes una cuenta? 
                             <Link to="/Registrarse" className='ml-4 text-sm text-sky-500 underline hover:text-sky-700'>

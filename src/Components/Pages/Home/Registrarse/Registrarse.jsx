@@ -14,8 +14,9 @@ export const Registrarse = () => {
     const [error, setError] = useState('')
     const [success, setSuccess] = useState('')
     const [formData, setFormData] = useState({
-        nombre: "",
-        apellidos: "",
+        first_name: "",
+        last_name: "",
+        phone:"",
         email: "",
         password: ""
     })
@@ -41,13 +42,13 @@ export const Registrarse = () => {
         setSuccess('')
 
         // Validaciones básicas del frontend
-        if (!formData.nombre.trim()) {
+        if (!formData.first_name.trim()) {
             setError('El nombre es requerido')
             setIsLoading(false)
             return
         }
         
-        if (!formData.apellidos.trim()) {
+        if (!formData.last_name.trim()) {
             setError('Los apellidos son requeridos')
             setIsLoading(false)
             return
@@ -61,20 +62,16 @@ export const Registrarse = () => {
 
         try {
             // Aquí es donde tu backend developer agregará la lógica de registro
-            const response = await fetch('/api/auth/register', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    name: formData.nombre,
-                    lastName: formData.apellidos,
-                    email: formData.email,
-                    password: formData.password
-                })
-            })
+            const response = await fetch("http://localhost:10101/register", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(formData)
+            });
 
-            const data = await response.json()
+            const data = await response.json();
+            console.log("Respuesta del servidor:", data);
 
             if (response.ok) {
                 // Registro exitoso
@@ -119,7 +116,7 @@ export const Registrarse = () => {
         } finally {
             setIsLoading(false)
         }
-    }
+}
 
     return (
         <>
@@ -158,8 +155,8 @@ export const Registrarse = () => {
                                 placeholder='Ingrese su Nombre'
                                 type='text'
                                 id='nombre'
-                                name='nombre'
-                                value={formData.nombre}
+                                name='first_name'
+                                value={formData.first_name}
                                 onChange={handleInputChange}
                                 required
                                 disabled={isLoading}
@@ -171,8 +168,8 @@ export const Registrarse = () => {
                                 placeholder='Ingrese sus Apellidos'
                                 type='text'
                                 id='apellidos'
-                                name='apellidos'
-                                value={formData.apellidos}
+                                name='last_name'
+                                value={formData.last_name}
                                 onChange={handleInputChange}
                                 required
                                 disabled={isLoading}

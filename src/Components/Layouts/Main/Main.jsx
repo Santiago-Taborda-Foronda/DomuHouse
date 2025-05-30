@@ -75,7 +75,7 @@ export const Main = () => {
         const fetchProperties = async () => {
             setIsLoading(true);
             try {
-                const res = await fetch('http://localhost:10101/api/propiedades/aprobadas');
+                const res = await fetch('http://localhost:10101/api/properties/aprobadas');
                 const data = await res.json();
                 setProperties(data);
                 setError(null);

@@ -17,19 +17,17 @@ export const Header = ({ toggleSidebar }) => {
 
   // Función para verificar el estado de autenticación
   const checkAuthStatus = () => {
-    // Aquí puedes verificar si hay un token en localStorage, sessionStorage, etc.
-    // Por ejemplo:
-    const token = localStorage.getItem('authToken')
-    const userData = localStorage.getItem('userData')
-    
-    if (token && userData) {
-      setIsAuthenticated(true)
-      setUserInfo(JSON.parse(userData))
-    } else {
-      setIsAuthenticated(false)
-      setUserInfo(null)
-    }
+  const token = localStorage.getItem('authToken')
+  const userData = localStorage.getItem('userData')
+
+  if (token && userData) {
+    setIsAuthenticated(true)
+    setUserInfo(JSON.parse(userData)) // <== AQUÍ
+  } else {
+    setIsAuthenticated(false)
+    setUserInfo(null)
   }
+}
 
   // Verificar la ruta actual
   const checkCurrentPath = () => {
@@ -71,16 +69,16 @@ export const Header = ({ toggleSidebar }) => {
     window.location.href = '/'
   }
 
-  const simulateLogin = () => {
-    localStorage.setItem('authToken', 'fake-token-for-development')
-    localStorage.setItem('userData', JSON.stringify({
-      id: 1,
-      name: 'Juan Pérez',
-      email: 'juan@example.com',
-      avatar: null
-    }))
-    checkAuthStatus()
-  }
+  // const simulateLogin = () => {
+  //   localStorage.setItem('authToken', 'fake-token-for-development')
+  //   localStorage.setItem('userData', JSON.stringify({
+  //     id: 1,
+  //     name: 'Juan Pérez',
+  //     email: 'juan@example.com',
+  //     avatar: null
+  //   }))
+  //   checkAuthStatus()
+  // }
 
   // // Función temporal para simular logout (SOLO PARA DESARROLLO)
   // const simulateLogout = () => {
@@ -174,8 +172,9 @@ export const Header = ({ toggleSidebar }) => {
                     <UserCircle className="w-8 h-8 text-gray-600" />
                   )}
                   <span className="text-sm font-medium text-gray-700 hidden sm:block">
-                    {userInfo?.name || 'Usuario'}
+                    {userInfo?.first_name || userInfo?.name || 'Usuario'}
                   </span>
+
                 </button>
 
                 {/* Menú desplegable del usuario */}

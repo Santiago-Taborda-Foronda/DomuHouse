@@ -17,19 +17,17 @@ export const Header = ({ toggleSidebar }) => {
 
   // Función para verificar el estado de autenticación
   const checkAuthStatus = () => {
-    // Aquí puedes verificar si hay un token en localStorage, sessionStorage, etc.
-    // Por ejemplo:
-    const token = localStorage.getItem('authToken')
-    const userData = localStorage.getItem('userData')
-    
-    if (token && userData) {
-      setIsAuthenticated(true)
-      setUserInfo(JSON.parse(userData))
-    } else {
-      setIsAuthenticated(false)
-      setUserInfo(null)
-    }
+  const token = localStorage.getItem('authToken')
+  const userData = localStorage.getItem('userData')
+
+  if (token && userData) {
+    setIsAuthenticated(true)
+    setUserInfo(JSON.parse(userData)) // <== AQUÍ
+  } else {
+    setIsAuthenticated(false)
+    setUserInfo(null)
   }
+}
 
   // Verificar la ruta actual
   const checkCurrentPath = () => {
@@ -71,23 +69,23 @@ export const Header = ({ toggleSidebar }) => {
     window.location.href = '/'
   }
 
-  const simulateLogin = () => {
-    localStorage.setItem('authToken', 'fake-token-for-development')
-    localStorage.setItem('userData', JSON.stringify({
-      id: 1,
-      name: 'Juan Pérez',
-      email: 'juan@example.com',
-      avatar: null
-    }))
-    checkAuthStatus()
-  }
-
-  // // Función temporal para simular logout (SOLO PARA DESARROLLO)
-  // const simulateLogout = () => {
-  //   localStorage.removeItem('authToken')
-  //   localStorage.removeItem('userData')
+  // const simulateLogin = () => {
+  //   localStorage.setItem('authToken', 'fake-token-for-development')
+  //   localStorage.setItem('userData', JSON.stringify({
+  //     id: 1,
+  //     name: 'Juan Pérez',
+  //     email: 'juan@example.com',
+  //     avatar: null
+  //   }))
   //   checkAuthStatus()
   // }
+
+  // Función temporal para simular logout (SOLO PARA DESARROLLO)
+  const simulateLogout = () => {
+    localStorage.removeItem('authToken')
+    localStorage.removeItem('userData')
+    checkAuthStatus()
+  }
 
   // Verificar si estamos en la página de Mi Inmobiliaria
   const isInInmobiliariaPage = currentPath.includes('/mi-inmobiliaria') || 
@@ -119,9 +117,9 @@ export const Header = ({ toggleSidebar }) => {
 
           {/* Botones del header o perfil de usuario */}
           <div className="flex items-center space-x-2">
-            {/* <div className="flex items-center space-x-2 mr-4 p-2 bg-yellow-100 rounded border-yellow-300 border"> */}
-              {/* <span className="text-xs text-yellow-800">DEV:</span> */}
-              {/* <button 
+            <div className="flex items-center space-x-2 mr-4 p-2 bg-yellow-100 rounded border-yellow-300 border"> 
+              <span className="text-xs text-yellow-800">DEV:</span>
+               <button 
                 onClick={simulateLogin}
                 className="text-xs bg-green-500 text-white px-2 py-1 rounded hover:bg-green-600"
               >
@@ -132,8 +130,8 @@ export const Header = ({ toggleSidebar }) => {
                 className="text-xs bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600"
               >
                 Simular Logout
-              </button> */}
-            {/* </div> */}
+              </button> 
+             </div>
 
             {/* Botón Mi Inmobiliaria - Siempre presente */}
             <Button 
@@ -180,8 +178,9 @@ export const Header = ({ toggleSidebar }) => {
                     <UserCircle className="w-8 h-8 text-gray-600" />
                   )}
                   <span className="text-sm font-medium text-gray-700 hidden sm:block">
-                    {userInfo?.name || 'Usuario'}
+                    {userInfo?.first_name || userInfo?.name || 'Usuario'}
                   </span>
+
                 </button>
 
                 {/* Menú desplegable del usuario */}

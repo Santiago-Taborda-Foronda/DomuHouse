@@ -1,5 +1,3 @@
-"use client"
-
 import { useState, useEffect } from "react"
 import Casa from "../../../assets/images/casLujo2.jpg"
 import { LuSettings2 } from "react-icons/lu"
@@ -92,10 +90,10 @@ export const Main = () => {
         const fetchProperties = async () => {
             setIsLoading(true)
             try {
-                const res = await fetch("http://localhost:10101/api/propiedades/aprobadas")
-                const data = await res.json()
-                setProperties(data)
-                setError(null)
+                const res = await fetch('http://localhost:10101/api/properties/aprobadas');
+                const data = await res.json();
+                setProperties(data);
+                setError(null);
             } catch (error) {
                 console.error("Error al cargar propiedades:", error)
                 setError("Error al cargar propiedades")

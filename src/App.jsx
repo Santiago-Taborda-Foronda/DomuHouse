@@ -19,6 +19,7 @@ import { Privacidad } from './Components/Pages/PrivacidadYTerminos/Privacidad'
 import { Terminos } from './Components/Pages/PrivacidadYTerminos/Terminos'
 import AgentDashboard from './Components/Pages/Agente/AgentDashboard'
 import MisPropiedades from './Components/Pages/Agente/MisPropiedades'
+import { Perfil } from './Components/Pages/Perfil/Perfil'
 
 
 export const App = () => {
@@ -42,12 +43,14 @@ export const App = () => {
       {/* <Route path="/actualizar-inmobiliaria" element={<ActualizarInmobiliaria />} /> */}
       <Route path="/privacidad" element={<Privacidad />} />
       <Route path="/terminos" element={<Terminos />} />
-
+      <Route path="/Perfil" element={<Perfil />} />
+      
       {/* Rutas del Agente */}
   
         <Route path="/AgentDashboard" element={<AgentDashboard />} />
         <Route path="MisPropiedades" element={<MisPropiedades />} />
 
+     
     </Routes>
 
     

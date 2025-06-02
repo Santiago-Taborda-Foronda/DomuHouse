@@ -117,7 +117,7 @@ export const Header = ({ toggleSidebar }) => {
 
           {/* Botones del header o perfil de usuario */}
           <div className="flex items-center space-x-2">
-            <div className="flex items-center space-x-2 mr-4 p-2 bg-yellow-100 rounded border-yellow-300 border"> 
+            {/* <div className="flex items-center space-x-2 mr-4 p-2 bg-yellow-100 rounded border-yellow-300 border"> 
               <span className="text-xs text-yellow-800">DEV:</span>
                <button 
                 onClick={simulateLogin}
@@ -131,7 +131,7 @@ export const Header = ({ toggleSidebar }) => {
               >
                 Simular Logout
               </button> 
-             </div>
+             </div> */}
 
             {/* Botón Mi Inmobiliaria - Siempre presente */}
             <Button 

@@ -18,6 +18,7 @@ import AgregarPropiedad from './Components/Pages/AgregarPropiedad/AgregarPropied
 import { Privacidad } from './Components/Pages/PrivacidadYTerminos/Privacidad'
 import { Terminos } from './Components/Pages/PrivacidadYTerminos/Terminos'
 import { Perfil } from './Components/Pages/Perfil/Perfil'
+import  UpdateProperty  from './Components/Pages/UpdateProperty/UpdateProperty'
 
 
 export const App = () => {
@@ -42,6 +43,7 @@ export const App = () => {
       <Route path="/privacidad" element={<Privacidad />} />
       <Route path="/terminos" element={<Terminos />} />
       <Route path="/Perfil" element={<Perfil />} />
+      <Route path="/editar-propiedad/:id" element={<UpdateProperty />} />
     </Routes>
     </>
   )

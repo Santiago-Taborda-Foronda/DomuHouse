@@ -144,7 +144,7 @@ export const Header = ({ toggleSidebar }) => {
 
              <Button 
               name="Mi Agente" 
-              Route="/MiInmobiliaria" 
+              Route="/AgentDashboard" 
               className="bg-[#2F8EAC] hover:bg-sky-600 active:bg-sky-700 transition duration-150 ease-in-out text-white px-3 py-2 rounded-xl text-sm"
             />
 

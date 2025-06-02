@@ -17,6 +17,8 @@ import  MiInmobiliaria from './Components/Pages/MiInmobiliaria/MiInmobiliaria'
 import AgregarPropiedad from './Components/Pages/AgregarPropiedad/AgregarPropiedad'
 import { Privacidad } from './Components/Pages/PrivacidadYTerminos/Privacidad'
 import { Terminos } from './Components/Pages/PrivacidadYTerminos/Terminos'
+import AgentDashboard from './Components/Pages/Agente/AgentDashboard'
+import MisPropiedades from './Components/Pages/Agente/MisPropiedades'
 
 
 export const App = () => {
@@ -40,7 +42,15 @@ export const App = () => {
       {/* <Route path="/actualizar-inmobiliaria" element={<ActualizarInmobiliaria />} /> */}
       <Route path="/privacidad" element={<Privacidad />} />
       <Route path="/terminos" element={<Terminos />} />
+
+      {/* Rutas del Agente */}
+  
+        <Route path="/AgentDashboard" element={<AgentDashboard />} />
+        <Route path="MisPropiedades" element={<MisPropiedades />} />
+
     </Routes>
+
+    
     </>
   )
 }

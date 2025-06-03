@@ -19,6 +19,8 @@ import { Privacidad } from './Components/Pages/PrivacidadYTerminos/Privacidad'
 import { Terminos } from './Components/Pages/PrivacidadYTerminos/Terminos'
 import { Perfil } from './Components/Pages/Perfil/Perfil'
 import  UpdateProperty  from './Components/Pages/UpdateProperty/UpdateProperty'
+import { GestionAgents } from './Components/Pages/GestionAgents/GestionAgents'
+import  TokenGenerationPage  from './Components/Pages/TokenGenerationPage/TokenGenerationPage'
 
 
 export const App = () => {
@@ -37,13 +39,15 @@ export const App = () => {
       <Route path="/recuperar-password" element={<RecoverPassword />} />
       <Route path="/inmobiliarias" element={<ShowInmobiliarias />} />
       <Route path="/inmobiliaria-seleccionada" element={<InmobiliariaSeleccionada />} />
-      <Route path="/MiInmobiliaria" element={<MiInmobiliaria />} />
+      <Route path="/mi-inmobiliaria/propiedades" element={<MiInmobiliaria />} />
       <Route path="/agregar-propiedad" element={<AgregarPropiedad />} />
       {/* <Route path="/actualizar-inmobiliaria" element={<ActualizarInmobiliaria />} /> */}
       <Route path="/privacidad" element={<Privacidad />} />
       <Route path="/terminos" element={<Terminos />} />
       <Route path="/Perfil" element={<Perfil />} />
       <Route path="/editar-propiedad/:id" element={<UpdateProperty />} />
+      <Route path="/mi-inmobiliaria/gestion-agentes" element={<GestionAgents />} />
+      <Route path="/invitar-agente" element={<TokenGenerationPage />} />
     </Routes>
     </>
   )

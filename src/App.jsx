@@ -20,6 +20,11 @@ import { Terminos } from './Components/Pages/PrivacidadYTerminos/Terminos'
 import AgentDashboard from './Components/Pages/Agente/AgentDashboard'
 import MisPropiedades from './Components/Pages/Agente/MisPropiedades'
 import { Perfil } from './Components/Pages/Perfil/Perfil'
+import CrearPropiedad from './Components/Pages/Agente/CrearPropiedad'
+import VisitasAgendadas from './Components/Pages/Agente/VisitasAgendadas'
+import ProgramarVisita from './Components/Pages/Agente/ProgramarVisita'
+import ContactarCliente from './Components/Pages/Agente/ContactarCliente'
+import EstadoInteres from './Components/Pages/Agente/EstadoInteres'
 
 
 export const App = () => {
@@ -44,11 +49,17 @@ export const App = () => {
       <Route path="/privacidad" element={<Privacidad />} />
       <Route path="/terminos" element={<Terminos />} />
       <Route path="/Perfil" element={<Perfil />} />
-      
+
       {/* Rutas del Agente */}
   
         <Route path="/AgentDashboard" element={<AgentDashboard />} />
         <Route path="MisPropiedades" element={<MisPropiedades />} />
+        <Route path="CrearPropiedad" element={<CrearPropiedad />} />
+        <Route path="VisitasAgendadas" element={<VisitasAgendadas />} />
+        <Route path="ProgramarVisita" element={<ProgramarVisita />} />
+        <Route path="ContactarCliente" element={<ContactarCliente />} />
+        <Route path="EstadoInteres" element={<EstadoInteres />} />
+
 
      
     </Routes>

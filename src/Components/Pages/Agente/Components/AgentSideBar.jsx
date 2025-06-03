@@ -1,21 +1,20 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import LogoDomuHouse from '../../../../assets/images/Logo-DomuHouse.png';
-import { Building, Plus, Calendar, MapPin, Users, Phone, TrendingUp, User, LogOut, X, Home } from 'lucide-react';
+import { LayoutDashboard, Building, Plus, Calendar, MapPin, Users, Phone, TrendingUp, User, LogOut, X, Home } from 'lucide-react';
 
 export default function AgentSideBar({ sidebarOpen, setSidebarOpen }) {
     const navigate = useNavigate();
     const location = useLocation();
 
     const menuItems = [
-        { name: "Dashboard", icon: Building, path: "/AgentDashboard" },
+        { name: "Dashboard", icon: LayoutDashboard, path: "/AgentDashboard" },
         { name: "Mis Propiedades", icon: Building, path: "/MisPropiedades" },
-        { name: "Crear Propiedad", icon: Plus, path: "/AgentDashboard/crear-propiedad" },
-        { name: "Visitas Agendadas", icon: Calendar, path: "/AgentDashboard/visitas-agendadas" },
-        { name: "Programar Visitas", icon: MapPin, path: "/AgentDashboard/programar-visitas" },
-        { name: "Clientes", icon: Users, path: "/AgentDashboard/clientes" },
-        { name: "Contactar Clientes", icon: Phone, path: "/AgentDashboard/contactar-clientes" },
-        { name: "Estado De Interés", icon: TrendingUp, path: "/AgentDashboard/estado-interes" },
+        { name: "Crear Propiedad", icon: Plus, path: "/CrearPropiedad" },
+        { name: "Visitas Agendadas", icon: Calendar, path: "/VisitasAgendadas" },
+        { name: "Programar Visitas", icon: MapPin, path: "/ProgramarVisita" },
+        { name: "Contactar Clientes", icon: Phone, path: "/ContactarCliente" },
+        { name: "Estado De Interés", icon: TrendingUp, path: "/EstadoInteres" },
     ];
 
     const handleMenuClick = (path) => {
@@ -59,9 +58,9 @@ export default function AgentSideBar({ sidebarOpen, setSidebarOpen }) {
                         <button
                             key={item.name}
                             onClick={() => handleMenuClick(item.path)}
-                            className={`w-full flex items-center space-x-3 px-4 sm:px-6 py-2.5 sm:py-3 text-left hover:bg-[#2F8EAC]/10 transition-colors ${isActive(item.path)
-                                    ? "bg-[#2F8EAC]/10 text-[#2F8EAC] border-r-2 border-[#2F8EAC]"
-                                    : "text-gray-600"
+                            className={`w-full flex items-center gap-3 px-3 py-3 text-left rounded-lg transition-colors duration-200 ${isActive(item.path)
+                                    ? 'bg-blue-50 text-[#2F8EAC] border-r-2 border-[#2F8EAC]'
+                                    : 'text-gray-700 hover:bg-gray-50 hover:text-[#2F8EAC]'
                                 }`}
                         >
                             <Icon className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />

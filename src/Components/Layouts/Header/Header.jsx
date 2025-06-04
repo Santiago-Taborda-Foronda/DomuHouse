@@ -17,19 +17,17 @@ export const Header = ({ toggleSidebar }) => {
 
   // Función para verificar el estado de autenticación
   const checkAuthStatus = () => {
-    // Aquí puedes verificar si hay un token en localStorage, sessionStorage, etc.
-    // Por ejemplo:
-    const token = localStorage.getItem('authToken')
-    const userData = localStorage.getItem('userData')
-    
-    if (token && userData) {
-      setIsAuthenticated(true)
-      setUserInfo(JSON.parse(userData))
-    } else {
-      setIsAuthenticated(false)
-      setUserInfo(null)
-    }
+  const token = localStorage.getItem('authToken')
+  const userData = localStorage.getItem('userData')
+
+  if (token && userData) {
+    setIsAuthenticated(true)
+    setUserInfo(JSON.parse(userData)) // <== AQUÍ
+  } else {
+    setIsAuthenticated(false)
+    setUserInfo(null)
   }
+}
 
   // Verificar la ruta actual
   const checkCurrentPath = () => {
@@ -142,6 +140,12 @@ export const Header = ({ toggleSidebar }) => {
               className="bg-[#2F8EAC] hover:bg-sky-600 active:bg-sky-700 transition duration-150 ease-in-out text-white px-3 py-2 rounded-xl text-sm"
             />
 
+             <Button 
+              name="Mi Agente" 
+              Route="/AgentDashboard" 
+              className="bg-[#2F8EAC] hover:bg-sky-600 active:bg-sky-700 transition duration-150 ease-in-out text-white px-3 py-2 rounded-xl text-sm"
+            />
+
             {!isAuthenticated ? (
               // Mostrar botones de registro e inicio de sesión si NO está autenticado
               <>
@@ -174,8 +178,9 @@ export const Header = ({ toggleSidebar }) => {
                     <UserCircle className="w-8 h-8 text-gray-600" />
                   )}
                   <span className="text-sm font-medium text-gray-700 hidden sm:block">
-                    {userInfo?.name || 'Usuario'}
+                    {userInfo?.first_name || userInfo?.name || 'Usuario'}
                   </span>
+
                 </button>
 
                 {/* Menú desplegable del usuario */}

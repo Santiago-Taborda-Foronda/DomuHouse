@@ -47,7 +47,7 @@ export const App = () => {
       <Route path="/Perfil" element={<Perfil />} />
       <Route path="/editar-propiedad/:id" element={<UpdateProperty />} />
       <Route path="/mi-inmobiliaria/gestion-agentes" element={<GestionAgents />} />
-      <Route path="/invitar-agente" element={<TokenGenerationPage />} />
+      <Route path="/invitar-agente knb" element={<TokenGenerationPage />} />
     </Routes>
     </>
   )

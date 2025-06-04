@@ -287,7 +287,7 @@ const UpdateProperty = () => {
       
       // Opcional: redirigir después del éxito
       setTimeout(() => {
-        navigate('/MiInmobiliaria');
+        navigate('/mi-inmobiliaria/propiedades');
       }, 2000);
       
     } catch (error) {

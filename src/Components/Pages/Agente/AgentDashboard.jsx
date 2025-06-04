@@ -2,6 +2,7 @@ import { useState } from "react"
 import { Home, Star, Eye, Edit, Menu, X, Check, Heart } from "lucide-react"
 import AgentSideBar from "./Components/AgentSideBar"
 import { Outlet } from "react-router-dom"
+import { Header } from "../../Layouts/Header/Header"
 
 export default function AgentDashboard() {
   const [activeSection, setActiveSection] = useState("Dashboard")
@@ -207,6 +208,8 @@ export default function AgentDashboard() {
   }
 
   return (
+    <>
+    <Header isInAgentPage={true} />
     <div className="flex h-screen bg-gray-50">
       {/* Overlay para móvil */}
       {sidebarOpen && (
@@ -677,5 +680,7 @@ export default function AgentDashboard() {
 
       <Outlet />
     </div>
+    </>
+    
   )
 }

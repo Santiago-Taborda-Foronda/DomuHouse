@@ -91,6 +91,14 @@ export const Header = ({ toggleSidebar }) => {
   const isInInmobiliariaPage = currentPath.includes('/mi-inmobiliaria') || 
                                currentPath.includes('/MiInmobiliaria')
 
+  // Verificar si estamos en la página de Agente
+  // const isInAgentPage = currentPath.includes('/AgentDashboard') ||
+  //                       currentPath.includes('/MisPropiedades') ||
+  //                       currentPath.includes('/CrearPropiedad') ||
+  //                       currentPath.includes('/VisitasAgendadas') ||
+  //                       currentPath.includes('/ProgramarVisita') ||
+  //                       currentPath.includes('/ContactarCliente') ||
+  //                       currentPath.includes('/EstadoInteres')                    
   return (
     <>
       {/* Header - Fijo en pantalla al hacer scroll */}
@@ -109,6 +117,19 @@ export const Header = ({ toggleSidebar }) => {
                 <Menu className="w-6 h-6 text-gray-700" />
               </button>
             )}
+            {/* Prueba */}
+            {/* {!isInAgentPage && (
+              <button onClick={toggleMenu} className="focus:outline-none">
+                <Menu className="w-6 h-6 text-gray-700" />
+              </button>
+            )} */}
+
+            {/* Botón hamburguesa para Mi Inmobiliaria - Solo se muestra EN Mi Inmobiliaria */}
+            {/* {isInAgentPage && toggleSidebar && (
+              <button onClick={toggleSidebar} className="focus:outline-none lg:hidden">
+                <Menu className="w-6 h-6 text-gray-700" />
+              </button>
+            )} */}
 
             {/* Logo */}
             <img src={LogoDomuHouse} alt="LogoDomuHouse" className="w-20 h-auto" />
@@ -235,7 +256,7 @@ export const Header = ({ toggleSidebar }) => {
       )} 
 
       {/* Componente del menú lateral - Solo se muestra si NO estamos en Mi Inmobiliaria */}
-      {!isInInmobiliariaPage && (
+      {!isInInmobiliariaPage &&  (
         <SidebarMenu 
           isOpen={isOpen}
           toggleMenu={toggleMenu}

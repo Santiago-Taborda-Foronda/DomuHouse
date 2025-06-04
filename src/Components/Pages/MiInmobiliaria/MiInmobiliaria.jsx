@@ -189,15 +189,15 @@ export default function MiInmobiliaria() {
   const getEstadoColor = (estado) => {
     switch (estado.toLowerCase()) {
       case 'disponible':
-        return 'bg-emerald-100 text-emerald-700 border border-emerald-200'
+        return 'bg-blue-100 text-[#2F8EAC]'
       case 'alquilada':
-        return 'bg-blue-100 text-blue-700 border border-blue-200'
+        return 'bg-blue-100 text-blue-700'
       case 'arrendada':
-        return 'bg-amber-100 text-amber-700 border border-amber-200'
+        return 'bg-blue-100 text-blue-500'
       case 'vendida':
-        return 'bg-gray-100 text-gray-700 border border-gray-200'
+        return 'bg-sky-100 text-indigo-800'
       default:
-        return 'bg-gray-100 text-gray-700 border border-gray-200'
+        return 'bg-gray-100 text-gray-700'
     }
   }
 
@@ -429,7 +429,7 @@ export default function MiInmobiliaria() {
                               </button>
                               <button 
                                 onClick={() => editarPropiedad(propiedad.id)}
-                                className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                                className="p-2 text-sky-600 hover:bg-green-50 rounded-lg transition-colors"
                                 title="Editar propiedad"
                               >
                                 <Edit className="w-4 h-4" />

@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { Menu, Calendar, User, Home, Phone, MapPin } from "lucide-react"
 import AgentSideBar from "./Components/AgentSideBar"
+import { Header } from "../../Layouts/Header/Header"
 
 export default function ProgramarVisita() {
   const [activeSection, setActiveSection] = useState("Programar Visitas")
@@ -178,122 +179,117 @@ export default function ProgramarVisita() {
   }
 
   return (
-    <div className="flex h-screen bg-gray-50">
-      {/* Mobile Sidebar Overlay */}
-      {sidebarOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden" onClick={() => setSidebarOpen(false)} />
-      )}
-
-      {/* Sidebar */}
-      <div
-        className={`
-          fixed lg:static inset-y-0 left-0 z-50 transform transition-transform duration-300 ease-in-out lg:transform-none
-          ${sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
-        `}
-      >
-        <AgentSideBar
-          activeSection={activeSection}
-          setActiveSection={setActiveSection}
-          sidebarOpen={sidebarOpen}
-          setSidebarOpen={setSidebarOpen}
-        />
-      </div>
-
-      {/* Main Content */}
-      <div className="flex-1 overflow-auto">
-        {/* Mobile Header */}
-        <div className="lg:hidden bg-white border-b px-4 py-3 flex items-center justify-between">
-          <button onClick={() => setSidebarOpen(true)} className="p-2 rounded-md text-gray-600 hover:bg-gray-100">
-            <Menu className="w-6 h-6" />
-          </button>
-          <h1 className="text-lg font-semibold text-gray-800">Programar Visita</h1>
-          <div className="w-10" />
+  <>
+    <Header hasSidebar={true} />
+    <div className="min-h-screen bg-gray-50">
+      {/* Layout principal con sidebar fijo */}
+      <div className="flex pt-16">
+        {/* Sidebar fijo siempre visible */}
+        <div className="fixed left-0 top-16 h-[calc(100vh-4rem)] w-72 bg-white shadow-lg border-r border-gray-200 overflow-y-auto z-30">
+          <AgentSideBar
+            activeSection={activeSection}
+            setActiveSection={setActiveSection}
+            sidebarOpen={true} // Siempre abierto
+            setSidebarOpen={() => {}} // Función vacía ya que no se necesita toggle
+          />
         </div>
 
-        <div className="p-4 sm:p-6 lg:p-8">
-          {/* Header Section */}
-          <div className="mb-6">
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Programar Visita</h1>
+      {/* Contenido principal con margen izquierdo para el sidebar */}
+      <main className="flex-1 ml-72">
+        <div className="p-6">
+          {/* Header de la página */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">Programar Visita</h1>
+              <p className="text-gray-600 text-sm mt-1">
+                Agenda una nueva visita para tus clientes
+              </p>
+            </div>
           </div>
 
           {/* Mensajes de estado */}
           {submitError && (
-            <div className="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl">{submitError}</div>
+            <div className="mb-6 bg-red-50 border border-red-200 text-red-700 px-6 py-4 rounded-2xl shadow-sm">
+              {submitError}
+            </div>
           )}
 
           {submitSuccess && (
-            <div className="mb-6 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-xl">
+            <div className="mb-6 bg-green-50 border border-green-200 text-green-700 px-6 py-4 rounded-2xl shadow-sm">
               ¡Visita programada exitosamente!
             </div>
           )}
 
-          {/* Form */}
-          <div className="max-w-4xl mx-auto">
-            <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-sm border p-6 sm:p-8">
+          {/* Formulario principal */}
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <form onSubmit={handleSubmit} className="p-6">
               <div className="space-y-8">
                 {/* Información del Cliente */}
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-gray-700 border-b pb-2 flex items-center gap-2">
+                <div className="space-y-6">
+                  <div className="flex items-center gap-2 mb-4">
                     <User className="w-5 h-5 text-[#2F8EAC]" />
-                    Información del Cliente
-                  </h3>
+                    <h3 className="font-semibold text-gray-800">Información del Cliente</h3>
+                  </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Nombre Completo *</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Nombre Completo *</label>
                       <input
                         type="text"
                         name="clienteName"
                         value={formData.clienteName}
                         onChange={handleInputChange}
                         required
-                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
+                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#2F8EAC] focus:border-[#2F8EAC] transition-colors"
                         placeholder="Nombre del cliente"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Teléfono *</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Teléfono *</label>
                       <input
                         type="tel"
                         name="clientePhone"
                         value={formData.clientePhone}
                         onChange={handleInputChange}
                         required
-                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
+                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#2F8EAC] focus:border-[#2F8EAC] transition-colors"
                         placeholder="+57 300 123 4567"
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Email (Opcional)</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Email (Opcional)</label>
                     <input
                       type="email"
                       name="clienteEmail"
                       value={formData.clienteEmail}
                       onChange={handleInputChange}
-                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#2F8EAC] focus:border-[#2F8EAC] transition-colors"
                       placeholder="cliente@email.com"
                     />
                   </div>
                 </div>
 
+                {/* Separador visual */}
+                <div className="border-t border-gray-100"></div>
+
                 {/* Información de la Propiedad */}
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-gray-700 border-b pb-2 flex items-center gap-2">
+                <div className="space-y-6">
+                  <div className="flex items-center gap-2 mb-4">
                     <Home className="w-5 h-5 text-[#2F8EAC]" />
-                    Información de la Propiedad
-                  </h3>
+                    <h3 className="font-semibold text-gray-800">Información de la Propiedad</h3>
+                  </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Seleccionar Propiedad *</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Seleccionar Propiedad *</label>
                     <select
                       name="propiedad"
                       value={formData.propiedad}
                       onChange={handleInputChange}
                       required
-                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#2F8EAC] focus:border-[#2F8EAC] transition-colors"
                     >
                       <option value="">Selecciona una propiedad</option>
                       {propiedadesDisponibles.map((propiedad) => (
@@ -306,25 +302,28 @@ export default function ProgramarVisita() {
 
                   {formData.direccion && (
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Dirección</label>
-                      <div className="flex items-center gap-2 px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl">
-                        <MapPin className="w-4 h-4 text-gray-500" />
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Dirección</label>
+                      <div className="flex items-center gap-3 px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl">
+                        <MapPin className="w-4 h-4 text-gray-400" />
                         <span className="text-gray-700">{formData.direccion}</span>
                       </div>
                     </div>
                   )}
                 </div>
 
+                {/* Separador visual */}
+                <div className="border-t border-gray-100"></div>
+
                 {/* Información de la Visita */}
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-gray-700 border-b pb-2 flex items-center gap-2">
+                <div className="space-y-6">
+                  <div className="flex items-center gap-2 mb-4">
                     <Calendar className="w-5 h-5 text-[#2F8EAC]" />
-                    Detalles de la Visita
-                  </h3>
+                    <h3 className="font-semibold text-gray-800">Detalles de la Visita</h3>
+                  </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Fecha *</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Fecha *</label>
                       <input
                         type="date"
                         name="fecha"
@@ -332,18 +331,18 @@ export default function ProgramarVisita() {
                         onChange={handleInputChange}
                         required
                         min={new Date().toISOString().split("T")[0]}
-                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
+                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#2F8EAC] focus:border-[#2F8EAC] transition-colors"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Hora *</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Hora *</label>
                       <select
                         name="hora"
                         value={formData.hora}
                         onChange={handleInputChange}
                         required
-                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
+                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#2F8EAC] focus:border-[#2F8EAC] transition-colors"
                       >
                         <option value="">Selecciona una hora</option>
                         {generateTimeOptions().map((time) => (
@@ -355,12 +354,12 @@ export default function ProgramarVisita() {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Tipo de Visita</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Tipo de Visita</label>
                       <select
                         name="tipoVisita"
                         value={formData.tipoVisita}
                         onChange={handleInputChange}
-                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
+                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#2F8EAC] focus:border-[#2F8EAC] transition-colors"
                       >
                         <option value="presencial">Presencial</option>
                         <option value="virtual">Virtual</option>
@@ -369,73 +368,91 @@ export default function ProgramarVisita() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Notas Adicionales</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Notas Adicionales</label>
                     <textarea
                       name="notas"
                       value={formData.notas}
                       onChange={handleInputChange}
-                      rows={3}
-                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
+                      rows={4}
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#2F8EAC] focus:border-[#2F8EAC] transition-colors resize-none"
                       placeholder="Información adicional sobre la visita..."
                     />
                   </div>
                 </div>
 
+                {/* Separador visual */}
+                <div className="border-t border-gray-100"></div>
+
                 {/* Información del Agente */}
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-gray-700 border-b pb-2 flex items-center gap-2">
+                <div className="space-y-6">
+                  <div className="flex items-center gap-2 mb-4">
                     <Phone className="w-5 h-5 text-[#2F8EAC]" />
-                    Información del Agente
-                  </h3>
+                    <h3 className="font-semibold text-gray-800">Información del Agente</h3>
+                  </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Nombre del Agente *</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Nombre del Agente *</label>
                       <input
                         type="text"
                         name="agenteName"
                         value={formData.agenteName}
                         onChange={handleInputChange}
                         required
-                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
+                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#2F8EAC] focus:border-[#2F8EAC] transition-colors"
                         placeholder="Nombre del agente responsable"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Teléfono del Agente *</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Teléfono del Agente *</label>
                       <input
                         type="tel"
                         name="agentePhone"
                         value={formData.agentePhone}
                         onChange={handleInputChange}
                         required
-                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
+                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#2F8EAC] focus:border-[#2F8EAC] transition-colors"
                         placeholder="+57 300 123 4567"
                       />
                     </div>
                   </div>
                 </div>
 
+                {/* Separador visual */}
+                <div className="border-t border-gray-100"></div>
+
                 {/* Botones de Acción */}
                 <div className="flex justify-end pt-4">
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className={`px-8 py-3 rounded-xl font-medium transition-colors ${
+                    className={`flex items-center gap-2 px-8 py-3 rounded-xl font-medium transition-colors shadow-sm ${
                       isSubmitting
                         ? "bg-gray-400 text-gray-600 cursor-not-allowed"
-                        : "bg-[#2F8EAC] text-white hover:bg-[#256b82]"
+                        : "bg-[#2F8EAC] text-white hover:bg-[#267a95]"
                     }`}
                   >
-                    {isSubmitting ? "Programando..." : "Programar Visita"}
+                    {isSubmitting ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                        Programando...
+                      </>
+                    ) : (
+                      <>
+                        <Calendar className="w-4 h-4" />
+                        Programar Visita
+                      </>
+                    )}
                   </button>
                 </div>
               </div>
             </form>
           </div>
         </div>
+      </main>
       </div>
     </div>
-  )
+  </>
+)
 }

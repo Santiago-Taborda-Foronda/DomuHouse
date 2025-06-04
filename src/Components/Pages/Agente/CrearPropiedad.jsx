@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { Upload, X, Menu } from "lucide-react"
 import AgentSideBar from "./Components/AgentSideBar"
+import { Header } from "../../Layouts/Header/Header"
 
 export default function CrearPropiedad() {
   const [activeSection, setActiveSection] = useState("Crear Propiedad")
@@ -252,6 +253,8 @@ export default function CrearPropiedad() {
   }
 
   return (
+    <>
+    <Header hasSidebar={true} />
     <div className="flex h-screen bg-gray-50">
       {/* Mobile Sidebar Overlay */}
       {sidebarOpen && (
@@ -592,5 +595,7 @@ export default function CrearPropiedad() {
         </div>
       </div>
     </div>
+    </>
+    
   )
 }

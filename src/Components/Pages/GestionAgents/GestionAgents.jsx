@@ -397,7 +397,7 @@ export const GestionAgents = () => {
                               </button>
                               <button 
                                 onClick={() => editarAgente(agente.id)}
-                                className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                                className="p-2 text-sky-600 hover:bg-green-50 rounded-lg transition-colors"
                                 title="Editar agente"
                               >
                                 <Edit className="w-4 h-4" />

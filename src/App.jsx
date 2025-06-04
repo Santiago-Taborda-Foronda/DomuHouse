@@ -54,6 +54,15 @@ export const App = () => {
       <Route path="/Perfil" element={<Perfil />} />
       <Route path="/editar-propiedad/:id" element={<UpdateProperty />} />
       <Route path="/mi-inmobiliaria/gestion-agentes" element={<GestionAgents />} />
+
+      {/* Rutas del Agente  */}
+        <Route path="/AgentDashboard" element={<AgentDashboard />} />
+        <Route path="MisPropiedades" element={<MisPropiedades />} />
+        <Route path="CrearPropiedad" element={<CrearPropiedad />} />
+        <Route path="VisitasAgendadas" element={<VisitasAgendadas />} />
+        <Route path="ProgramarVisita" element={<ProgramarVisita />} />
+        <Route path="ContactarCliente" element={<ContactarCliente />} />
+        <Route path="EstadoInteres" element={<EstadoInteres />} />
     
     </Routes>
 

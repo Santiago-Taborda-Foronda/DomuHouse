@@ -91,21 +91,22 @@ export const Header = ({ toggleSidebar }) => {
   const isInInmobiliariaPage = currentPath.includes('/mi-inmobiliaria') || 
                                currentPath.includes('/MiInmobiliaria')
 
-  // Verificar si estamos en la página de Agente
-  // const isInAgentPage = currentPath.includes('/AgentDashboard') ||
-  //                       currentPath.includes('/MisPropiedades') ||
-  //                       currentPath.includes('/CrearPropiedad') ||
-  //                       currentPath.includes('/VisitasAgendadas') ||
-  //                       currentPath.includes('/ProgramarVisita') ||
-  //                       currentPath.includes('/ContactarCliente') ||
-  //                       currentPath.includes('/EstadoInteres')                    
+  // Verificar si estamos en la página de Agente (AGREGADO)
+  const isInAgentPage = currentPath.includes('/AgentDashboard') ||
+                        currentPath.includes('/MisPropiedades') ||
+                        currentPath.includes('/CrearPropiedad') ||
+                        currentPath.includes('/VisitasAgendadas') ||
+                        currentPath.includes('/ProgramarVisita') ||
+                        currentPath.includes('/ContactarCliente') ||
+                        currentPath.includes('/EstadoInteres')                    
+  
   return (
     <>
       {/* Header - Fijo en pantalla al hacer scroll */}
       <header className="flex items-center justify-between px-4 py-2 bg-white fixed top-0 left-0 right-0 z-50 shadow-sm h-16">
           <div className="flex items-center gap-4">
-            {/* Botón hamburguesa - Solo se muestra si NO estamos en Mi Inmobiliaria */}
-            {!isInInmobiliariaPage && (
+            {/* Botón hamburguesa - Solo se muestra si NO estamos en Mi Inmobiliaria Y NO estamos en páginas de Agente */}
+            {!isInInmobiliariaPage && !isInAgentPage && (
               <button onClick={toggleMenu} className="focus:outline-none">
                 <Menu className="w-6 h-6 text-gray-700" />
               </button>
@@ -117,19 +118,6 @@ export const Header = ({ toggleSidebar }) => {
                 <Menu className="w-6 h-6 text-gray-700" />
               </button>
             )}
-            {/* Prueba */}
-            {/* {!isInAgentPage && (
-              <button onClick={toggleMenu} className="focus:outline-none">
-                <Menu className="w-6 h-6 text-gray-700" />
-              </button>
-            )} */}
-
-            {/* Botón hamburguesa para Mi Inmobiliaria - Solo se muestra EN Mi Inmobiliaria */}
-            {/* {isInAgentPage && toggleSidebar && (
-              <button onClick={toggleSidebar} className="focus:outline-none lg:hidden">
-                <Menu className="w-6 h-6 text-gray-700" />
-              </button>
-            )} */}
 
             {/* Logo */}
             <img src={LogoDomuHouse} alt="LogoDomuHouse" className="w-20 h-auto" />
@@ -138,7 +126,7 @@ export const Header = ({ toggleSidebar }) => {
 
           {/* Botones del header o perfil de usuario */}
           <div className="flex items-center space-x-2">
-            <div className="flex items-center space-x-2 mr-4 p-2 bg-yellow-100 rounded border-yellow-300 border"> 
+            {/* <div className="flex items-center space-x-2 mr-4 p-2 bg-yellow-100 rounded border-yellow-300 border"> 
               <span className="text-xs text-yellow-800">DEV:</span>
                <button 
                 onClick={simulateLogin}
@@ -152,7 +140,7 @@ export const Header = ({ toggleSidebar }) => {
               >
                 Simular Logout
               </button> 
-             </div>
+             </div> */}
 
             {/* Botón Mi Inmobiliaria - Siempre presente */}
             <Button 
@@ -255,8 +243,8 @@ export const Header = ({ toggleSidebar }) => {
         ></div>
       )} 
 
-      {/* Componente del menú lateral - Solo se muestra si NO estamos en Mi Inmobiliaria */}
-      {!isInInmobiliariaPage &&  (
+      {/* Componente del menú lateral - Solo se muestra si NO estamos en Mi Inmobiliaria Y NO estamos en páginas de Agente */}
+      {!isInInmobiliariaPage && !isInAgentPage && (
         <SidebarMenu 
           isOpen={isOpen}
           toggleMenu={toggleMenu}

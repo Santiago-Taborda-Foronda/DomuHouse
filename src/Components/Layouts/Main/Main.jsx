@@ -129,67 +129,68 @@ export const Main = () => {
         fetchProperties();
     }, []);
 
-    // ✅ CORREGIDO: Manejar búsqueda
-    const handleSearch = async (e) => {
-        e.preventDefault();
-        setIsLoading(true);
-        setError(null);
+   const handleSearch = async (e) => {
+  e.preventDefault();
+  setIsLoading(true);
+  setError(null);
 
-        try {
-            const formData = new FormData(e.target);
-            const searchParams = {
-                ...filters,
-                price_max: priceRange
-            };
-
-            // Agregar campos del formulario básico
-            if (formData.get('property_type')) searchParams.property_type = formData.get('property_type');
-            if (formData.get('city')) searchParams.city = formData.get('city');
-            if (formData.get('neighborhood')) searchParams.neighborhood = formData.get('neighborhood');
-            
-            // Agregar campos avanzados si están visibles
-            if (showAdvanced) {
-                if (formData.get('bedrooms_min')) searchParams.bedrooms_min = formData.get('bedrooms_min');
-                if (formData.get('socioeconomic_stratum')) searchParams.socioeconomic_stratum = formData.get('socioeconomic_stratum');
-                if (formData.get('bathrooms_min')) searchParams.bathrooms_min = formData.get('bathrooms_min');
-                if (formData.get('parking_spaces')) searchParams.parking_spaces = formData.get('parking_spaces');
-            }
-
-            // Construir query params
-            const queryParams = new URLSearchParams();
-            Object.entries(searchParams).forEach(([key, value]) => {
-                if (value && value !== '') {
-                    queryParams.append(key, value.toString());
-                }
-            });
-
-            // ✅ CORREGIDO: Usar la ruta de búsqueda correcta
-            const response = await fetch(`http://localhost:10101/search?${queryParams}`);
-            
-            if (!response.ok) {
-                throw new Error(`Search failed: ${response.status}`);
-            }
-            
-            const data = await response.json();
-            console.log('Resultado de búsqueda:', data);
-            
-            // ✅ CORREGIDO: El searchRoutes devuelve array directo
-            if (Array.isArray(data)) {
-                setProperties(data);
-            } else if (data.success && data.properties) {
-                setProperties(data.properties);
-            } else {
-                setProperties([]);
-                console.warn('Resultado de búsqueda vacío o formato inesperado:', data);
-            }
-        } catch (error) {
-            console.error("Error en la búsqueda:", error);
-            setError("Error al realizar la búsqueda: " + error.message);
-            // En caso de error, mantener las propiedades actuales en lugar de vaciar
-        } finally {
-            setIsLoading(false);
-        }
+  try {
+    const formData = new FormData(e.target);
+    const searchParams = {
+      ...filters,
+      price_max: priceRange
     };
+
+    // Agregar campos del formulario
+    if (formData.get('property_type')) searchParams.property_type = formData.get('property_type');
+    if (formData.get('city')) searchParams.city = formData.get('city');
+    if (formData.get('neighborhood')) searchParams.neighborhood = formData.get('neighborhood');
+    if (showAdvanced) {
+      if (formData.get('bedrooms_min')) searchParams.bedrooms_min = Number(formData.get('bedrooms_min'));
+      if (formData.get('socioeconomic_stratum')) searchParams.socioeconomic_stratum = formData.get('socioeconomic_stratum');
+      if (formData.get('bathrooms_min')) searchParams.bathrooms_min = Number(formData.get('bathrooms_min'));
+      if (formData.get('parking_spaces')) searchParams.parking_spaces = Number(formData.get('parking_spaces'));
+    }
+
+    const queryParams = new URLSearchParams();
+    Object.entries(searchParams).forEach(([key, value]) => {
+      if (value && value !== '') {
+        queryParams.append(key, value);
+      }
+    });
+
+    console.log('Enviando búsqueda con parámetros:', queryParams.toString());
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
+    const response = await fetch(`http://localhost:10101/search?${queryParams}`, {
+      signal: controller.signal
+    });
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || `Search failed: ${response.status}`);
+    }
+
+    const data = await response.json();
+    console.log('Resultado de búsqueda:', data);
+
+    if (Array.isArray(data)) {
+      setProperties(data);
+    } else if (data.success && data.properties) {
+      setProperties(data.properties);
+    } else {
+      setProperties([]);
+      setError('No se encontraron propiedades con los filtros aplicados');
+    }
+  } catch (error) {
+    console.error('Error en la búsqueda:', error);
+    setError(`Error al realizar la búsqueda: ${error.message}`);
+  } finally {
+    setIsLoading(false);
+  }
+};
 
     // Manejar clic en propiedad
     const handlePropertyClick = (propertyId) => {

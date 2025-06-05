@@ -153,7 +153,7 @@ const AgregarPropiedad = () => {
       const formDataToSend = new FormData();
       
       // Mapear campos del frontend a los que espera el backend
-      formDataToSend.append('adress', formData.address.trim()); // Nota: el backend usa 'adress'
+      formDataToSend.append('address', formData.address.trim()); // Nota: el backend usa 'adress'
       formDataToSend.append('property_title', formData.title.trim());
       formDataToSend.append('description', formData.description.trim());
       formDataToSend.append('price', formData.price.replace(/[^\d]/g, ''));
@@ -206,6 +206,79 @@ const AgregarPropiedad = () => {
       setIsSubmitting(false);
     }
   };
+
+// ------------------------
+
+//   const handleSubmit = async (e) => {
+//   e.preventDefault();
+  
+//   setSubmitError('');
+//   setSubmitSuccess(false);
+  
+//   if (!validateForm()) {
+//     return;
+//   }
+  
+//   setIsSubmitting(true);
+  
+//   try {
+//     // Crear FormData para enviar archivos e información
+//     const formDataToSend = new FormData();
+    
+//     // Mapear campos del frontend a los que espera el backend
+//     formDataToSend.append('address', formData.address.trim()); // Corregido: 'address' en lugar de 'adress'
+//     formDataToSend.append('property_title', formData.title.trim());
+//     formDataToSend.append('description', formData.description.trim());
+//     formDataToSend.append('price', formData.price.replace(/[^\d]/g, ''));
+//     formDataToSend.append('status', 'Disponible');
+//     formDataToSend.append('person_id', '1'); // TODO: Obtener del usuario autenticado
+//     formDataToSend.append('property_type_id', getPropertyTypeId(formData.type));
+//     formDataToSend.append('socioeconomic_stratum', formData.socioeconomic_stratum || '3');
+//     formDataToSend.append('city', formData.city.trim());
+//     formDataToSend.append('neighborhood', formData.neighborhood.trim());
+//     formDataToSend.append('operation_type', mapOperationType(formData.propertyType));
+//     formDataToSend.append('bedrooms', parseInt(formData.rooms));
+//     formDataToSend.append('bathrooms', parseInt(formData.bathrooms));
+//     formDataToSend.append('parking_spaces', parseInt(formData.parking_spaces) || 0);
+//     formDataToSend.append('built_area', parseInt(formData.area));
+//     formDataToSend.append('total_area', parseInt(formData.total_area) || parseInt(formData.area));
+//     formDataToSend.append('latitude', formData.latitude || '0');
+//     formDataToSend.append('longitude', formData.longitude || '0');
+    
+//     // Agregar imágenes
+//     imageFiles.forEach((file) => {
+//       formDataToSend.append('images', file); // 'images' debe coincidir con el nombre en multer
+//     });
+    
+//     // Llamada al API del backend
+//     const response = await fetch('http://localhost:10101/api/properties', {
+//       method: 'POST',
+//       body: formDataToSend,
+//       credentials: 'include', // Incluir cookies para autenticación si es necesario
+//     });
+    
+//     if (!response.ok) {
+//       const errorData = await response.json();
+//       throw new Error(errorData.error || 'Error al crear la propiedad');
+//     }
+    
+//     const result = await response.json();
+//     console.log('Propiedad creada exitosamente:', result);
+    
+//     setSubmitSuccess(true);
+    
+//     // Limpiar formulario después del éxito
+//     setTimeout(() => {
+//       resetForm();
+//     }, 2000);
+    
+//   } catch (error) {
+//     console.error('Error al enviar propiedad:', error);
+//     setSubmitError(error.message || 'Error al registrar la propiedad. Intenta de nuevo.');
+//   } finally {
+//     setIsSubmitting(false);
+//   }
+// };
   
   const resetForm = () => {
     setFormData({

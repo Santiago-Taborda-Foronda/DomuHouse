@@ -6,44 +6,65 @@ import { ChatDomu } from '../../UI/ChatDomu/ChatDomu';
 import { Button } from '../../UI/Button/Button';
 import "../../../App";
 
-const PropertyCard = ({ address, title, rooms, bathrooms, area, price, agentName, onClick }) => {
+const PropertyCard = ({ address, title, rooms, bathrooms, area, price, type, agentName, onClick }) => {
+    // Función para obtener el color y texto de la etiqueta según el tipo
+    const getOperationStyle = (operationType) => {
+        switch(operationType?.toLowerCase()) {
+            case 'venta':
+                return { bg: 'bg-green-500', text: 'En Venta' };
+            case 'arriendo':
+            case 'alquiler':
+                return { bg: 'bg-blue-500', text: 'En Alquiler' };
+            default:
+                return { bg: 'bg-green-500', text: 'En Venta' };
+        }
+    };
+
+    const operationStyle = getOperationStyle(type);
+
     return (
-        <div className='bg-white flex flex-col rounded-2xl max-w-100 shadow-md overflow-hidden cursor-pointer' onClick={onClick}>
-            <div className="relative w-full h-52">
+        <div className='bg-white flex flex-col rounded-2xl w-80 shadow-lg overflow-hidden cursor-pointer hover:shadow-xl transition-shadow duration-300' onClick={onClick}>
+            <div className="relative w-full h-48">
                 <img
                     src={Casa}
                     alt="Propiedad"
                     className="w-full h-full object-cover"
                 />
-                <div className="absolute bottom-0 left-0 w-full text-white text-sm px-4 py-2">
-                    <span>{address}</span>
+                {/* Etiqueta de tipo de operación */}
+                <div className={`absolute top-3 right-3 ${operationStyle.bg} text-white px-4 py-1 rounded-full text-sm font-medium`}>
+                    {operationStyle.text}
+                </div>
+                {/* Overlay con dirección */}
+                <div className="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/70 to-transparent text-white text-sm px-4 py-3">
+                    <span className="font-medium">{address}</span>
                 </div>
             </div>
 
-            <div className="px-4 pt-2 pb-4">
-                <h2 className="text-lg font-semibold text-gray-800 mb-3">{title}</h2>
-                <div className="flex items-center text-gray-600 text-sm gap-4 mb-4">
+            <div className="px-5 py-4">
+                <h2 className="text-xl font-semibold text-gray-800 mb-4">{title}</h2>
+                
+                <div className="flex items-center text-gray-600 text-sm gap-6 mb-4">
                     <span className="flex items-center gap-1">
-                        Cuartos: <strong>{rooms}</strong>
+                        Cuartos: <strong className="text-gray-800">{rooms}</strong>
                     </span>
                     <span className="flex items-center gap-1">
-                        Baños: <strong>{bathrooms}</strong>
+                        Baños: <strong className="text-gray-800">{bathrooms}</strong>
                     </span>
                     <span className="flex items-center gap-1">
-                        m²: <strong>{area}</strong>
+                        m²: <strong className="text-gray-800">{area}</strong>
                     </span>
                 </div>
-                <hr className="my-2" />
-                <div className="flex items-center justify-between mt-4">
-                    <div className="flex items-center gap-2">
-                        <img
-                            src="/api/placeholder/32/32"
-                            alt={agentName}
-                            className="w-8 h-8 rounded-full object-cover"
-                        />
-                        <span className="text-sm text-gray-800">{agentName}</span>
+                
+                <hr className="border-gray-200 mb-4" />
+                
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#2F8EAC] to-[#1e6b7a] flex items-center justify-center text-white text-sm font-bold shadow-md">
+                            {agentName ? agentName.split(' ').map(n => n[0]).join('').substring(0, 2) : 'AG'}
+                        </div>
+                        <span className="text-sm text-gray-700 font-medium">{agentName}</span>
                     </div>
-                    <span className="text-base font-semibold text-gray-900">${price}</span>
+                    <span className="text-lg font-bold text-gray-900">${price}</span>
                 </div>
             </div>
         </div>
@@ -70,18 +91,37 @@ export const Main = () => {
 
     const toggleAdvanced = () => setShowAdvanced(!showAdvanced);
 
-    // Cargar propiedades iniciales
+    // ✅ CORREGIDO: Cargar propiedades iniciales
     useEffect(() => {
         const fetchProperties = async () => {
             setIsLoading(true);
             try {
-                const res = await fetch('http://localhost:10101/api/properties/aprobadas');
+                // ✅ CORREGIDO: Usar la ruta correcta que SÍ existe en tu backend
+                const res = await fetch('http://localhost:10101/api/properties');
+                
+                if (!res.ok) {
+                    throw new Error(`HTTP error! status: ${res.status}`);
+                }
+                
                 const data = await res.json();
-                setProperties(data);
+                console.log('Datos recibidos:', data);
+                
+                // ✅ CORREGIDO: El controlador devuelve { success: true, count: X, properties: [...] }
+                if (data.success && data.properties) {
+                    setProperties(data.properties);
+                } else if (Array.isArray(data)) {
+                    // Por si acaso devuelve directamente el array
+                    setProperties(data);
+                } else {
+                    console.warn('Formato de datos inesperado:', data);
+                    setProperties([]);
+                }
+                
                 setError(null);
             } catch (error) {
                 console.error("Error al cargar propiedades:", error);
-                setError("Error al cargar propiedades");
+                setError("Error al cargar propiedades: " + error.message);
+                setProperties([]);
             } finally {
                 setIsLoading(false);
             }
@@ -89,7 +129,7 @@ export const Main = () => {
         fetchProperties();
     }, []);
 
-    // Manejar búsqueda
+    // ✅ CORREGIDO: Manejar búsqueda
     const handleSearch = async (e) => {
         e.preventDefault();
         setIsLoading(true);
@@ -123,12 +163,29 @@ export const Main = () => {
                 }
             });
 
+            // ✅ CORREGIDO: Usar la ruta de búsqueda correcta
             const response = await fetch(`http://localhost:10101/search?${queryParams}`);
+            
+            if (!response.ok) {
+                throw new Error(`Search failed: ${response.status}`);
+            }
+            
             const data = await response.json();
-            setProperties(data);
+            console.log('Resultado de búsqueda:', data);
+            
+            // ✅ CORREGIDO: El searchRoutes devuelve array directo
+            if (Array.isArray(data)) {
+                setProperties(data);
+            } else if (data.success && data.properties) {
+                setProperties(data.properties);
+            } else {
+                setProperties([]);
+                console.warn('Resultado de búsqueda vacío o formato inesperado:', data);
+            }
         } catch (error) {
             console.error("Error en la búsqueda:", error);
-            setError("Error al realizar la búsqueda");
+            setError("Error al realizar la búsqueda: " + error.message);
+            // En caso de error, mantener las propiedades actuales en lugar de vaciar
         } finally {
             setIsLoading(false);
         }
@@ -144,7 +201,7 @@ export const Main = () => {
         setFilters(prev => ({...prev, [filterType]: value}));
     };
 
-    // Resetear filtros
+    // ✅ CORREGIDO: Resetear filtros
     const resetFilters = () => {
         setFilters({
             operation_type: '',
@@ -159,6 +216,35 @@ export const Main = () => {
         });
         setPriceRange(500000000);
         setShowAdvanced(false);
+        
+        // ✅ CORREGIDO: Recargar todas las propiedades usando la ruta correcta
+        const fetchAllProperties = async () => {
+            setIsLoading(true);
+            try {
+                // ✅ CORREGIDO: Usar la ruta que SÍ existe
+                const res = await fetch('http://localhost:10101/api/properties');
+                if (!res.ok) {
+                    throw new Error(`HTTP error! status: ${res.status}`);
+                }
+                const data = await res.json();
+                
+                if (data.success && data.properties) {
+                    setProperties(data.properties);
+                } else if (Array.isArray(data)) {
+                    setProperties(data);
+                } else {
+                    setProperties([]);
+                }
+                setError(null);
+            } catch (error) {
+                console.error("Error al cargar propiedades:", error);
+                setError("Error al cargar propiedades: " + error.message);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        
+        fetchAllProperties();
     };
 
     return (
@@ -379,23 +465,36 @@ export const Main = () => {
                 <div className='px-6 md:px-10 lg:px20 py-10'>
                     <div className='flex flex-wrap justify-center gap-8'>
                         {isLoading ? (
-                            <div className="text-center py-10">Cargando propiedades...</div>
+                            <div className="text-center py-10">
+                                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#2F8EAC] mx-auto mb-4"></div>
+                                Cargando propiedades...
+                            </div>
                         ) : properties.length > 0 ? (
                             properties.map((property) => (
                                 <PropertyCard
                                     key={property.property_id}
                                     address={`${property.address}, ${property.neighborhood}, ${property.city}`}
                                     title={property.property_title}
-                                    rooms={property.bedrooms}
-                                    bathrooms={property.bathrooms}
-                                    area={property.built_area}
-                                    price={property.price}
-                                    agentName={property.agent_name || "Jane Doe"}
+                                    rooms={property.bedrooms || 0}
+                                    bathrooms={property.bathrooms || 0}
+                                    area={property.built_area || 0}
+                                    price={property.price ? property.price.toLocaleString() : '0'}
+                                    type={property.operation_type}
+                                    agentName={property.agent_name || "Agente"}
                                     onClick={() => handlePropertyClick(property.property_id)}
                                 />
                             ))
                         ) : (
-                            <div className="text-center py-10">No se encontraron propiedades con los filtros aplicados</div>
+                            <div className="text-center py-10">
+                                <div className="text-gray-500 mb-2">📭</div>
+                                <p className="text-gray-600">No se encontraron propiedades con los filtros aplicados</p>
+                                <button 
+                                    onClick={resetFilters}
+                                    className="mt-4 text-[#2F8EAC] hover:underline"
+                                >
+                                    Ver todas las propiedades
+                                </button>
+                            </div>
                         )}
                     </div>
                 </div>

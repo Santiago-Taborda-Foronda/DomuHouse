@@ -23,12 +23,21 @@ const AgregarPropiedad = () => {
     agentWhatsapp: '',
     
     // Información adicional
-    propertyType: 'venta',
-    additionalRoomInfo: ''
+    propertyType: 'Venta', // Cambiado de 'venta' a 'Venta'
+    additionalRoomInfo: '',
+    
+    // Nuevos campos para backend
+    socioeconomic_stratum: '',
+    city: '',
+    neighborhood: '',
+    parking_spaces: '',
+    total_area: '',
+    latitude: '',
+    longitude: ''
   });
 
   const [selectedImages, setSelectedImages] = useState([]);
-  const [imageFiles, setImageFiles] = useState([]); // Para enviar archivos reales al backend
+  const [imageFiles, setImageFiles] = useState([]);
   const [precioEstimado, setPrecioEstimado] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
@@ -46,9 +55,7 @@ const AgregarPropiedad = () => {
     const files = Array.from(e.target.files);
     const imageUrls = files.map(file => URL.createObjectURL(file));
     
-    // Para mostrar preview
     setSelectedImages(prev => [...prev, ...imageUrls]);
-    // Para enviar al backend
     setImageFiles(prev => [...prev, ...files]);
   };
 
@@ -57,11 +64,34 @@ const AgregarPropiedad = () => {
     setImageFiles(prev => prev.filter((_, index) => index !== indexToRemove));
   };
 
+  // Mapeo de tipos de propiedad a IDs del backend
+  const getPropertyTypeId = (type) => {
+    const typeMap = {
+      'casa': 1,
+      'apartamento': 2,
+      'local': 3,
+      'oficina': 4,
+      'terreno': 5
+    };
+    return typeMap[type] || 1;
+  };
+
+  // Función para mapear el tipo de operación del frontend al backend
+  const mapOperationType = (frontendType) => {
+    const operationMap = {
+      'Venta': 'Venta',
+      'Arriendo': 'Arriendo',
+      'Arriendo con opción de compra': 'Arriendo con opción de compra'
+    };
+    return operationMap[frontendType] || 'Venta';
+  };
+
   // Función para validar el formulario
   const validateForm = () => {
     const requiredFields = [
       'title', 'address', 'type', 'description', 'rooms', 
-      'bathrooms', 'area', 'price', 'agentName', 'agentPhone', 'agentEmail'
+      'bathrooms', 'area', 'price', 'agentName', 'agentPhone', 'agentEmail',
+      'city', 'neighborhood'
     ];
     
     for (let field of requiredFields) {
@@ -71,7 +101,6 @@ const AgregarPropiedad = () => {
       }
     }
     
-    // Validar que rooms, bathrooms y area sean números válidos
     if (isNaN(formData.rooms) || formData.rooms < 0) {
       setSubmitError('El número de habitaciones debe ser válido');
       return false;
@@ -87,25 +116,32 @@ const AgregarPropiedad = () => {
       return false;
     }
     
-    // Validar email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formData.agentEmail)) {
       setSubmitError('El email del agente no es válido');
       return false;
     }
     
+    if (imageFiles.length === 0) {
+      setSubmitError('Debe seleccionar al menos una imagen');
+      return false;
+    }
+
+    if (imageFiles.length > 10) {
+      setSubmitError('Máximo 10 imágenes permitidas');
+      return false;
+    }
+    
     return true;
   };
 
-  // Función optimizada para envío al backend
+  // Función para envío al backend
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Resetear estados
     setSubmitError('');
     setSubmitSuccess(false);
     
-    // Validar formulario
     if (!validateForm()) {
       return;
     }
@@ -116,80 +152,52 @@ const AgregarPropiedad = () => {
       // Crear FormData para enviar archivos e información
       const formDataToSend = new FormData();
       
-      // Preparar datos de la propiedad para el backend
-      const propertyData = {
-        // Información básica
-        title: formData.title.trim(),
-        address: formData.address.trim(),
-        type: formData.type,
-        description: formData.description.trim(),
-        propertyType: formData.propertyType, // 'venta' o 'alquiler'
-        
-        // Características numéricas (convertir a números)
-        rooms: parseInt(formData.rooms),
-        bathrooms: parseInt(formData.bathrooms),
-        area: parseInt(formData.area),
-        price: formData.price.replace(/[^\d]/g, ''), // Limpiar precio de caracteres no numéricos
-        
-        // Información del agente
-        agent: {
-          name: formData.agentName.trim(),
-          phone: formData.agentPhone.trim(),
-          email: formData.agentEmail.trim().toLowerCase(),
-          whatsapp: formData.agentWhatsapp.trim() || formData.agentPhone.trim()
-        },
-        
-        // Información adicional
-        additionalRoomInfo: formData.additionalRoomInfo.trim(),
-        
-        // Metadatos
-        createdAt: new Date().toISOString(),
-        status: 'active' // o el estado que manejen en el backend
-      };
+      // Mapear campos del frontend a los que espera el backend
+      formDataToSend.append('address', formData.address.trim()); // Nota: el backend usa 'adress'
+      formDataToSend.append('property_title', formData.title.trim());
+      formDataToSend.append('description', formData.description.trim());
+      formDataToSend.append('price', formData.price.replace(/[^\d]/g, ''));
+      formDataToSend.append('status', 'Disponible');
+      formDataToSend.append('person_id', '1'); // Debes obtener esto del usuario logueado
+      formDataToSend.append('property_type_id', getPropertyTypeId(formData.type));
+      formDataToSend.append('socioeconomic_stratum', formData.socioeconomic_stratum || '3');
+      formDataToSend.append('city', formData.city.trim());
+      formDataToSend.append('neighborhood', formData.neighborhood.trim());
+      formDataToSend.append('operation_type', mapOperationType(formData.propertyType)); // Usar la función de mapeo
+      formDataToSend.append('bedrooms', parseInt(formData.rooms));
+      formDataToSend.append('bathrooms', parseInt(formData.bathrooms));
+      formDataToSend.append('parking_spaces', parseInt(formData.parking_spaces) || 0);
+      formDataToSend.append('built_area', parseInt(formData.area));
+      formDataToSend.append('total_area', parseInt(formData.total_area) || parseInt(formData.area));
+      formDataToSend.append('latitude', formData.latitude || '0');
+      formDataToSend.append('longitude', formData.longitude || '0');
       
-      // Agregar datos JSON al FormData
-      formDataToSend.append('propertyData', JSON.stringify(propertyData));
-      
-      // Agregar imágenes al FormData
-      imageFiles.forEach((file, index) => {
-        formDataToSend.append(`images`, file);
+      // Agregar imágenes
+      imageFiles.forEach((file) => {
+        formDataToSend.append('images', file);
       });
       
-      // AQUÍ ES DONDE EL DESARROLLADOR BACKEND DEBE IMPLEMENTAR LA LLAMADA
-      // Ejemplo de estructura para la llamada al API:
-      /*
-      const response = await fetch('/api/properties', {
+      // Llamada al API del backend
+      const response = await fetch('http://localhost:10101/api/properties', {
         method: 'POST',
         body: formDataToSend,
         // No agregar Content-Type header, el browser lo maneja automáticamente con FormData
       });
       
       if (!response.ok) {
-        throw new Error('Error al crear la propiedad');
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Error al crear la propiedad');
       }
       
       const result = await response.json();
-      */
+      console.log('Propiedad creada exitosamente:', result);
       
-      // SIMULACIÓN TEMPORAL (remover cuando se conecte al backend real)
-      await new Promise(resolve => setTimeout(resolve, 1500)); // Simular delay de red
-      
-      console.log('Datos preparados para backend:', {
-        propertyData,
-        imageCount: imageFiles.length,
-        formDataKeys: Array.from(formDataToSend.keys())
-      });
-      
-      // Éxito
       setSubmitSuccess(true);
       
-      // Opcional: limpiar formulario después del éxito
+      // Limpiar formulario después del éxito
       setTimeout(() => {
         resetForm();
       }, 2000);
-      
-      // AQUÍ PODRÍAN REDIRIGIR A LA LISTA DE PROPIEDADES
-      // navigate('/mi-inmobiliaria/propiedades');
       
     } catch (error) {
       console.error('Error al enviar propiedad:', error);
@@ -198,8 +206,80 @@ const AgregarPropiedad = () => {
       setIsSubmitting(false);
     }
   };
+
+// ------------------------
+
+//   const handleSubmit = async (e) => {
+//   e.preventDefault();
   
-  // Función para resetear el formulario
+//   setSubmitError('');
+//   setSubmitSuccess(false);
+  
+//   if (!validateForm()) {
+//     return;
+//   }
+  
+//   setIsSubmitting(true);
+  
+//   try {
+//     // Crear FormData para enviar archivos e información
+//     const formDataToSend = new FormData();
+    
+//     // Mapear campos del frontend a los que espera el backend
+//     formDataToSend.append('address', formData.address.trim()); // Corregido: 'address' en lugar de 'adress'
+//     formDataToSend.append('property_title', formData.title.trim());
+//     formDataToSend.append('description', formData.description.trim());
+//     formDataToSend.append('price', formData.price.replace(/[^\d]/g, ''));
+//     formDataToSend.append('status', 'Disponible');
+//     formDataToSend.append('person_id', '1'); // TODO: Obtener del usuario autenticado
+//     formDataToSend.append('property_type_id', getPropertyTypeId(formData.type));
+//     formDataToSend.append('socioeconomic_stratum', formData.socioeconomic_stratum || '3');
+//     formDataToSend.append('city', formData.city.trim());
+//     formDataToSend.append('neighborhood', formData.neighborhood.trim());
+//     formDataToSend.append('operation_type', mapOperationType(formData.propertyType));
+//     formDataToSend.append('bedrooms', parseInt(formData.rooms));
+//     formDataToSend.append('bathrooms', parseInt(formData.bathrooms));
+//     formDataToSend.append('parking_spaces', parseInt(formData.parking_spaces) || 0);
+//     formDataToSend.append('built_area', parseInt(formData.area));
+//     formDataToSend.append('total_area', parseInt(formData.total_area) || parseInt(formData.area));
+//     formDataToSend.append('latitude', formData.latitude || '0');
+//     formDataToSend.append('longitude', formData.longitude || '0');
+    
+//     // Agregar imágenes
+//     imageFiles.forEach((file) => {
+//       formDataToSend.append('images', file); // 'images' debe coincidir con el nombre en multer
+//     });
+    
+//     // Llamada al API del backend
+//     const response = await fetch('http://localhost:10101/api/properties', {
+//       method: 'POST',
+//       body: formDataToSend,
+//       credentials: 'include', // Incluir cookies para autenticación si es necesario
+//     });
+    
+//     if (!response.ok) {
+//       const errorData = await response.json();
+//       throw new Error(errorData.error || 'Error al crear la propiedad');
+//     }
+    
+//     const result = await response.json();
+//     console.log('Propiedad creada exitosamente:', result);
+    
+//     setSubmitSuccess(true);
+    
+//     // Limpiar formulario después del éxito
+//     setTimeout(() => {
+//       resetForm();
+//     }, 2000);
+    
+//   } catch (error) {
+//     console.error('Error al enviar propiedad:', error);
+//     setSubmitError(error.message || 'Error al registrar la propiedad. Intenta de nuevo.');
+//   } finally {
+//     setIsSubmitting(false);
+//   }
+// };
+  
   const resetForm = () => {
     setFormData({
       title: '',
@@ -214,8 +294,15 @@ const AgregarPropiedad = () => {
       agentPhone: '',
       agentEmail: '',
       agentWhatsapp: '',
-      propertyType: 'venta',
-      additionalRoomInfo: ''
+      propertyType: 'Venta', // Cambiado de 'venta' a 'Venta'
+      additionalRoomInfo: '',
+      socioeconomic_stratum: '',
+      city: '',
+      neighborhood: '',
+      parking_spaces: '',
+      total_area: '',
+      latitude: '',
+      longitude: ''
     });
     setSelectedImages([]);
     setImageFiles([]);
@@ -225,39 +312,17 @@ const AgregarPropiedad = () => {
   };
 
   const handleSolicitarValoracion = async () => {
-    // Validar que tengamos datos mínimos para la valoración
     if (!formData.area || !formData.type || !formData.address) {
       alert('Por favor completa el área, tipo de propiedad y dirección para solicitar valoración');
       return;
     }
     
     try {
-      // AQUÍ EL BACKEND PUEDE IMPLEMENTAR UN ENDPOINT DE VALORACIÓN
-      /*
-      const response = await fetch('/api/properties/valuation', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          area: parseInt(formData.area),
-          type: formData.type,
-          address: formData.address,
-          rooms: parseInt(formData.rooms) || 0,
-          bathrooms: parseInt(formData.bathrooms) || 0
-        })
-      });
-      
-      const result = await response.json();
-      const estimatedPrice = result.estimatedPrice;
-      */
-      
-      // Simulación temporal
+      // Simulación temporal - puedes implementar un endpoint de valoración
       const basePrice = Math.random() * 500000 + 200000;
       const formattedPrice = new Intl.NumberFormat('es-CO').format(basePrice);
       setPrecioEstimado(formattedPrice);
       
-      // Actualizar el precio en el formulario
       setFormData(prev => ({
         ...prev,
         price: formattedPrice
@@ -288,7 +353,6 @@ const AgregarPropiedad = () => {
           </button>
         </div>
 
-        {/* Mensajes de estado */}
         {submitError && (
           <div className="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl">
             {submitError}
@@ -304,7 +368,6 @@ const AgregarPropiedad = () => {
         <form onSubmit={handleSubmit}>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             
-            {/* Formulario */}
             <div className="bg-white rounded-2xl p-8 shadow-sm">
               <h1 className="text-2xl font-bold text-gray-800 mb-8 text-center">
                 Agregar Propiedad
@@ -338,6 +401,28 @@ const AgregarPropiedad = () => {
                   />
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <input
+                      type="text"
+                      name="city"
+                      placeholder="Ciudad *"
+                      value={formData.city}
+                      onChange={handleInputChange}
+                      required
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+
+                    <input
+                      type="text"
+                      name="neighborhood"
+                      placeholder="Barrio *"
+                      value={formData.neighborhood}
+                      onChange={handleInputChange}
+                      required
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <select
                       name="type"
                       value={formData.type}
@@ -359,10 +444,26 @@ const AgregarPropiedad = () => {
                       onChange={handleInputChange}
                       className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     >
-                      <option value="venta">En Venta</option>
-                      <option value="alquiler">En Alquiler</option>
+                      <option value="Venta">En Venta</option>
+                      <option value="Arriendo">En Arriendo</option>
+                      <option value="Arriendo con opción de compra">Arriendo con opción de compra</option>
                     </select>
                   </div>
+
+                  <select
+                    name="socioeconomic_stratum"
+                    value={formData.socioeconomic_stratum}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="">Estrato Socioeconómico</option>
+                    <option value="1">Estrato 1</option>
+                    <option value="2">Estrato 2</option>
+                    <option value="3">Estrato 3</option>
+                    <option value="4">Estrato 4</option>
+                    <option value="5">Estrato 5</option>
+                    <option value="6">Estrato 6</option>
+                  </select>
                 </div>
 
                 {/* Características de la propiedad */}
@@ -396,11 +497,33 @@ const AgregarPropiedad = () => {
 
                     <input
                       type="number"
+                      name="parking_spaces"
+                      placeholder="Parqueaderos"
+                      value={formData.parking_spaces}
+                      onChange={handleInputChange}
+                      min="0"
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <input
+                      type="number"
                       name="area"
-                      placeholder="Área (m²) *"
+                      placeholder="Área Construida (m²) *"
                       value={formData.area}
                       onChange={handleInputChange}
                       required
+                      min="1"
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+
+                    <input
+                      type="number"
+                      name="total_area"
+                      placeholder="Área Total (m²)"
+                      value={formData.total_area}
+                      onChange={handleInputChange}
                       min="1"
                       className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
@@ -424,6 +547,35 @@ const AgregarPropiedad = () => {
                     required
                     className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
+                </div>
+
+                {/* Ubicación GPS (opcional) */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold text-gray-700 border-b pb-2">
+                    Ubicación GPS (Opcional)
+                  </h3>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <input
+                      type="number"
+                      name="latitude"
+                      placeholder="Latitud"
+                      value={formData.latitude}
+                      onChange={handleInputChange}
+                      step="any"
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+
+                    <input
+                      type="number"
+                      name="longitude"
+                      placeholder="Longitud"
+                      value={formData.longitude}
+                      onChange={handleInputChange}
+                      step="any"
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
                 </div>
 
                 {/* Información del agente */}
@@ -506,7 +658,7 @@ const AgregarPropiedad = () => {
               {/* Sección de imágenes */}
               <div className="bg-white rounded-2xl p-6 shadow-sm">
                 <h2 className="text-lg font-semibold text-gray-800 mb-4">
-                  Imágenes de la Propiedad
+                  Imágenes de la Propiedad *
                 </h2>
                 
                 <div className="border-2 border-dashed border-gray-300 rounded-xl p-6">
@@ -531,7 +683,7 @@ const AgregarPropiedad = () => {
                         ))}
                       </div>
                       <p className="text-sm text-gray-600 text-center">
-                        {selectedImages.length} imagen(es) seleccionada(s)
+                        {selectedImages.length} imagen(es) seleccionada(s) (máximo 10)
                       </p>
                     </div>
                   ) : (
@@ -557,7 +709,7 @@ const AgregarPropiedad = () => {
                     htmlFor="imageUpload"
                     className="block w-full text-center bg-gray-100 text-gray-700 px-4 py-2 rounded-lg cursor-pointer hover:bg-gray-200 transition-colors"
                   >
-                    {selectedImages.length > 0 ? 'Agregar más imágenes' : 'Seleccionar Imágenes'}
+                    {selectedImages.length > 0 ? 'Agregar más imágenes' : 'Seleccionar Imágenes *'}
                   </label>
                 </div>
               </div>

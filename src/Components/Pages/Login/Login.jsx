@@ -33,56 +33,48 @@ export const Login = () => {
     }
 
    const handleSubmit = async (e) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setError('');
+  e.preventDefault();
+  setIsLoading(true);
+  setError('');
 
-    try {
-        const response = await fetch('http://localhost:10101/login', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(credentials)
-        });
+  try {
+    const response = await fetch('http://localhost:10101/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(credentials)
+    });
 
-        const data = await response.json();
-        console.log('Respuesta del backend:', data);
+    const data = await response.json();
+    console.log('Respuesta del backend:', data);
 
-        if (response.ok && data.token) {
-            // Decodificar el token JWT
-            const decoded = jwtDecode(data.token);
-            console.log('Token decodificado:', decoded);
+    if (response.ok && data.token) {
+      const user = {
+        id: data.user.id,
+        first_name: data.user.first_name,
+        email: data.user.email,
+        avatar: data.user.avatar ?? null,
+      };
 
-            // Extraer datos del usuario desde el token
-            const user = decoded;
+      localStorage.setItem('authToken', data.token);
+      localStorage.setItem('userData', JSON.stringify(user));
 
-            localStorage.setItem('authToken', data.token);
-           localStorage.setItem('userData', JSON.stringify({
-            id: user.id,
-            name: user.first_name,
-            email: user.correo,
-            avatar: user.foto_perfil || null
-            }));ñ
-
-
-            // Disparar evento para que el Header se actualice
-            window.dispatchEvent(new Event('storage'));
-
-            // Redirigir al home o dashboard
-            navigate('/');
-        } else {
-            // Mostrar error del servidor
-            setError(data.message || 'Error al iniciar sesión');
-        }
-
-    } catch (error) {
-        console.error('Error durante el login:', error);
-        setError('Error de conexión. Por favor, intenta de nuevo.');
-    } finally {
-        setIsLoading(false);
+      window.dispatchEvent(new Event('storage'));
+      navigate('/');
+    } else {
+      setError(data.message || 'Error al iniciar sesión');
     }
+
+  } catch (error) {
+    console.error('Error durante el login:', error);
+    setError('Error de conexión. Por favor, intenta de nuevo.');
+  } finally {
+    setIsLoading(false);
+  }
 };
+
+
     return (
         <>
             <div className='flex flex-col justify-around px-20 pr-30 w-full space-y-10 items-start'>

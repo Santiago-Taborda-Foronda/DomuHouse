@@ -69,16 +69,16 @@ export const Header = ({ toggleSidebar }) => {
     window.location.href = '/'
   }
 
-  // const simulateLogin = () => {
-  //   localStorage.setItem('authToken', 'fake-token-for-development')
-  //   localStorage.setItem('userData', JSON.stringify({
-  //     id: 1,
-  //     name: 'Juan Pérez',
-  //     email: 'juan@example.com',
-  //     avatar: null
-  //   }))
-  //   checkAuthStatus()
-  // }
+  const simulateLogin = () => {
+    localStorage.setItem('authToken', 'fake-token-for-development')
+    localStorage.setItem('userData', JSON.stringify({
+      id: 1,
+      name: 'Juan Pérez',
+      email: 'juan@example.com',
+      avatar: null
+    }))
+    checkAuthStatus()
+  }
 
   // Función temporal para simular logout (SOLO PARA DESARROLLO)
   const simulateLogout = () => {

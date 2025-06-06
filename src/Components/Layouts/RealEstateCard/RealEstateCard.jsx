@@ -7,7 +7,7 @@ import DefaultLogo from "../../../assets/images/casLujo2.png"; // Ajusta la ruta
  * @param {string} props.name - Nombre de la inmobiliaria
  * @param {string} props.address - Dirección de la inmobiliaria
  * @param {number} props.propertyCount - Cantidad de inmuebles
- * @param {string} props.administrator - Nombre del administrador a cargo
+ * @param {string} [props.administrator] - Nombre del administrador a cargo (opcional)
  * @param {string} [props.logoUrl] - URL opcional del logo (si no se proporciona, se usa el logo por defecto)
  * @param {Function} [props.onClick] - Función opcional para manejar el clic en la tarjeta
  * @returns {JSX.Element} - Componente RealEstateCard
@@ -20,6 +20,14 @@ export const RealEstateCard = ({
   logoUrl,
   onClick
 }) => {
+  // Función para obtener las iniciales del administrador de forma segura
+  const getInitials = (admin) => {
+    if (typeof admin === 'string' && admin.trim() !== '') {
+      return admin.split(' ').map(word => word.charAt(0)).join('').substring(0, 2).toUpperCase();
+    }
+    return '??'; // Valor por defecto si no hay administrador
+  };
+
   return (
     <div 
       className='bg-white flex flex-col rounded-2xl max-w-100 shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300'
@@ -55,11 +63,13 @@ export const RealEstateCard = ({
         <div className="flex items-center justify-between mt-4">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 bg-sky-500 rounded-full flex items-center justify-center text-white text-sm font-medium">
-              {administrator.split(' ').map(word => word.charAt(0)).join('').substring(0, 2).toUpperCase()}
+              {getInitials(administrator)}
             </div>
             <div className="flex flex-col">
               <span className="text-xs text-gray-500">Administrador</span>
-              <span className="text-sm text-gray-800 font-medium">{administrator}</span>
+              <span className="text-sm text-gray-800 font-medium">
+                {administrator || 'No asignado'}
+              </span>
             </div>
           </div>
           <div className="text-sky-500">

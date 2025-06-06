@@ -28,6 +28,8 @@ import EstadoInteres from './Components/Pages/Agente/EstadoInteres'
 import  UpdateProperty  from './Components/Pages/UpdateProperty/UpdateProperty'
 import { GestionAgents } from './Components/Pages/GestionAgents/GestionAgents'
 import  TokenGenerationPage  from './Components/Pages/TokenGenerationPage/TokenGenerationPage'
+import { DashboardAdmin } from './Components/Pages/DashboardAdmin/DashboardAdmin'
+import { Contract } from './Components/Pages/contract/contract'
 
 
 export const App = () => {
@@ -54,6 +56,8 @@ export const App = () => {
       <Route path="/Perfil" element={<Perfil />} />
       <Route path="/editar-propiedad/:id" element={<UpdateProperty />} />
       <Route path="/mi-inmobiliaria/gestion-agentes" element={<GestionAgents />} />
+      <Route path="/mi-inmobiliaria/dashboard" element={<DashboardAdmin />} />
+      <Route path="/mi-inmobiliaria/contratos" element={<Contract />} />
 
       {/* Rutas del Agente  */}
         <Route path="/AgentDashboard" element={<AgentDashboard />} />

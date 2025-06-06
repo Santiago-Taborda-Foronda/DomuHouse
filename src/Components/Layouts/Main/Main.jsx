@@ -1,11 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import LogoRobot from '../../../assets/images/robot.png';
-import Casa from '../../../assets/images/casLujo2.jpg';
-import { LuSettings2 } from "react-icons/lu";
-import { ChatDomu } from '../../UI/ChatDomu/ChatDomu';
-import { Button } from '../../UI/Button/Button';
-import { useNavigate } from 'react-router-dom';
-import "../../../App";
+import { useState, useEffect } from "react"
+import Casa from "../../../assets/images/casLujo2.jpg"
+import { LuSettings2 } from "react-icons/lu"
+import { ChatDomu } from "../../UI/ChatDomu/ChatDomu"
+import { Button } from "../../UI/Button/Button"
+import "../../../App"
 
 const PropertyCard = ({ address, title, rooms, bathrooms, area, price, type, agentName, onClick }) => {
     // Función para obtener el color y texto de la etiqueta según el tipo
@@ -24,29 +22,6 @@ const PropertyCard = ({ address, title, rooms, bathrooms, area, price, type, age
     const operationStyle = getOperationStyle(type);
 
     return (
-
-        <div className='bg-white flex flex-col rounded-2xl w-80 shadow-lg overflow-hidden cursor-pointer hover:shadow-xl transition-shadow duration-300' onClick={onClick}>
-            <div className="relative w-full h-48">
-                <img
-                    src={Casa}
-                    alt="Propiedad"
-                    className="w-full h-full object-cover"
-                />
-                {/* Etiqueta de tipo de operación */}
-                <div className={`absolute top-3 right-3 ${operationStyle.bg} text-white px-4 py-1 rounded-full text-sm font-medium`}>
-                    {operationStyle.text}
-                </div>
-                {/* Overlay con dirección */}
-                <div className="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/70 to-transparent text-white text-sm px-4 py-3">
-                    <span className="font-medium">{address}</span>
-                </div>
-            </div>
-
-            <div className="px-5 py-4">
-                <h2 className="text-xl font-semibold text-gray-800 mb-4">{title}</h2>
-                
-                <div className="flex items-center text-gray-600 text-sm gap-6 mb-4">
-
         <div
             className="bg-white flex flex-col rounded-2xl w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg xl:max-w-xl 2xl:max-w-100 shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden cursor-pointer"
             onClick={onClick}
@@ -70,7 +45,6 @@ const PropertyCard = ({ address, title, rooms, bathrooms, area, price, type, age
 
                 <div
                     className="flex flex-col sm:flex-row sm:items-center text-gray-600 text-xs sm:text-sm gap-1 sm:gap-4 mb-3 sm:mb-4">
-
                     <span className="flex items-center gap-1">
                         Cuartos: <strong className="text-gray-800">{rooms}</strong>
                     </span>
@@ -81,19 +55,6 @@ const PropertyCard = ({ address, title, rooms, bathrooms, area, price, type, age
                         m²: <strong className="text-gray-800">{area}</strong>
                     </span>
                 </div>
-
-                
-                <hr className="border-gray-200 mb-4" />
-                
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#2F8EAC] to-[#1e6b7a] flex items-center justify-center text-white text-sm font-bold shadow-md">
-                            {agentName ? agentName.split(' ').map(n => n[0]).join('').substring(0, 2) : 'AG'}
-                        </div>
-                        <span className="text-sm text-gray-700 font-medium">{agentName}</span>
-                    </div>
-                    <span className="text-lg font-bold text-gray-900">${price}</span>
-
 
                 <hr className="my-2" />
 
@@ -113,38 +74,36 @@ const PropertyCard = ({ address, title, rooms, bathrooms, area, price, type, age
                     >
                         ${price}
                     </span>
-
                 </div>
             </div>
         </div>
-    );
-};
+    )
+}
 
 export const Main = () => {
-    const [showAdvanced, setShowAdvanced] = useState(false);
-    const [priceRange, setPriceRange] = useState(250000000);
-    const [properties, setProperties] = useState([]);
-    const navigate = useNavigate();
+    const [showAdvanced, setShowAdvanced] = useState(false)
+    const [priceRange, setPriceRange] = useState(250000000)
+    const [properties, setProperties] = useState([])
     const [filters, setFilters] = useState({
-        operation_type: '',
-        property_type: '',
-        city: '',
-        neighborhood: '',
-        keyword: '',
-        bedrooms_min: '',
-        bathrooms_min: '',
-        parking_spaces: '',
-        socioeconomic_stratum: ''
-    });
-    const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState(null);
+        operation_type: "",
+        property_type: "",
+        city: "",
+        neighborhood: "",
+        keyword: "",
+        bedrooms_min: "",
+        bathrooms_min: "",
+        parking_spaces: "",
+        socioeconomic_stratum: "",
+    })
+    const [isLoading, setIsLoading] = useState(false)
+    const [error, setError] = useState(null)
 
-    const toggleAdvanced = () => setShowAdvanced(!showAdvanced);
+    const toggleAdvanced = () => setShowAdvanced(!showAdvanced)
 
     // ✅ CORREGIDO: Cargar propiedades iniciales
     useEffect(() => {
         const fetchProperties = async () => {
-            setIsLoading(true);
+            setIsLoading(true)
             try {
                 // ✅ CORREGIDO: Usar la ruta correcta que SÍ existe en tu backend
                 const res = await fetch('http://localhost:10101/api/properties');
@@ -169,362 +128,114 @@ export const Main = () => {
                 
                 setError(null);
             } catch (error) {
-
-                console.error("Error al cargar propiedades:", error);
-                setError("Error al cargar propiedades: " + error.message);
-                setProperties([]);
                 console.error("Error al cargar propiedades:", error)
                 setError("Error al cargar propiedades")
             } finally {
-                setIsLoading(false);
+                setIsLoading(false)
             }
-        };
-        fetchProperties();
-    }, []);
-
-
-   const handleSearch = async (e) => {
-  e.preventDefault();
-  setIsLoading(true);
-  setError(null);
-
-  try {
-    const formData = new FormData(e.target);
-    const searchParams = {
-      ...filters,
-      price_max: priceRange
-    };
+        }
+        fetchProperties()
+    }, [])
 
     // Manejar búsqueda
     const handleSearch = async (e) => {
-        e.preventDefault();
-        setIsLoading(true);
-        setError(null);
+        e.preventDefault()
+        setIsLoading(true)
+        setError(null)
 
         try {
-            const formData = new FormData(e.target);
-            
-            // ✅ Construir parámetros de búsqueda usando filtros en memoria
-            const searchParams = new URLSearchParams();
-            
-            // Agregar operation_type desde filtros
-            if (filters.operation_type) {
-                searchParams.append('operation_type', filters.operation_type);
+            const formData = new FormData(e.target)
+            const searchParams = {
+                ...filters,
+                price_max: priceRange,
             }
-            
-            // Agregar property_type desde filtros
-            if (filters.property_type) {
-                searchParams.append('property_type', filters.property_type);
-            }
-            
-            // Agregar campos del formulario
-            const city = formData.get('city') || filters.city;
-            if (city) searchParams.append('city', city);
-            
-            const neighborhood = formData.get('neighborhood') || filters.neighborhood;
-            if (neighborhood) searchParams.append('neighborhood', neighborhood);
-            
-            // Agregar precio máximo
-            if (priceRange && priceRange > 0) {
-                searchParams.append('price_max', priceRange.toString());
-            }
-            
+
+            // Agregar campos del formulario básico
+            if (formData.get("property_type")) searchParams.property_type = formData.get("property_type")
+            if (formData.get("city")) searchParams.city = formData.get("city")
+            if (formData.get("neighborhood")) searchParams.neighborhood = formData.get("neighborhood")
+
             // Agregar campos avanzados si están visibles
             if (showAdvanced) {
-                const bedrooms = formData.get('bedrooms_min') || filters.bedrooms_min;
-                if (bedrooms) searchParams.append('bedrooms_min', bedrooms);
-                
-                const bathrooms = formData.get('bathrooms_min') || filters.bathrooms_min;
-                if (bathrooms) searchParams.append('bathrooms_min', bathrooms);
-                
-                const parking = formData.get('parking_spaces') || filters.parking_spaces;
-                if (parking) searchParams.append('parking_spaces', parking);
-                
-                const stratum = formData.get('socioeconomic_stratum') || filters.socioeconomic_stratum;
-                if (stratum) searchParams.append('socioeconomic_stratum', stratum);
+                if (formData.get("bedrooms_min")) searchParams.bedrooms_min = formData.get("bedrooms_min")
+                if (formData.get("socioeconomic_stratum")) searchParams.socioeconomic_stratum = formData.get("socioeconomic_stratum")
+                if (formData.get("bathrooms_min")) searchParams.bathrooms_min = formData.get("bathrooms_min")
+                if (formData.get("parking_spaces")) searchParams.parking_spaces = formData.get("parking_spaces")
             }
 
-            console.log('🔍 Parámetros de búsqueda:', searchParams.toString());
+            // Construir query params
+            const queryParams = new URLSearchParams()
+            Object.entries(searchParams).forEach(([key, value]) => {
+                if (value && value !== "") {
+                    queryParams.append(key, value.toString())
+                }
+            })
 
-            // ✅ PROBLEMA PRINCIPAL CORREGIDO: Usar ruta que existe
-            let searchUrl = 'http://localhost:10101/api/properties';
-            
-            // Si hay parámetros de búsqueda, intentar filtrar del lado del cliente
-            // O usar la ruta de propiedades por tipo si solo se busca por tipo
-            if (filters.property_type && !city && !neighborhood && !priceRange) {
-                searchUrl = `http://localhost:10101/api/properties/type/${filters.property_type}`;
-            } else if (searchParams.toString()) {
-                // Si tienes búsqueda avanzada, usar todas las propiedades y filtrar del lado del cliente
-                searchUrl = 'http://localhost:10101/api/properties';
-            }
-
-            const response = await fetch(searchUrl);
-            
-            if (!response.ok) {
-                throw new Error(`Search failed: ${response.status}`);
-            }
-            
-            const data = await response.json();
-            console.log('📊 Respuesta de búsqueda:', data);
-            
-            let filteredProperties = [];
-            
-            if (data.success && data.properties) {
-                filteredProperties = data.properties;
-            } else if (Array.isArray(data)) {
-                filteredProperties = data;
-            } else {
-                filteredProperties = [];
-            }
-
-            // ✅ FILTRADO DEL LADO DEL CLIENTE (temporal hasta que tengas búsqueda avanzada en backend)
-            if (searchParams.toString() && searchUrl.includes('/api/properties') && !searchUrl.includes('/type/')) {
-                filteredProperties = filteredProperties.filter(property => {
-                    let matches = true;
-                    
-                    // Filtrar por operation_type
-                    if (filters.operation_type && property.operation_type !== filters.operation_type) {
-                        matches = false;
-                    }
-                    
-                    // Filtrar por city
-                    const searchCity = city || filters.city;
-                    if (searchCity && !property.city?.toLowerCase().includes(searchCity.toLowerCase())) {
-                        matches = false;
-                    }
-                    
-                    // Filtrar por neighborhood
-                    const searchNeighborhood = neighborhood || filters.neighborhood;
-                    if (searchNeighborhood && !property.neighborhood?.toLowerCase().includes(searchNeighborhood.toLowerCase())) {
-                        matches = false;
-                    }
-                    
-                    // Filtrar por precio máximo
-                    if (priceRange && property.price > priceRange) {
-                        matches = false;
-                    }
-                    
-                    // Filtros avanzados
-                    if (showAdvanced) {
-                        const bedroomsMin = parseInt(formData.get('bedrooms_min') || filters.bedrooms_min || '0');
-                        if (bedroomsMin > 0 && property.bedrooms < bedroomsMin) {
-                            matches = false;
-                        }
-                        
-                        const bathroomsMin = parseInt(formData.get('bathrooms_min') || filters.bathrooms_min || '0');
-                        if (bathroomsMin > 0 && property.bathrooms < bathroomsMin) {
-                            matches = false;
-                        }
-                        
-                        const parkingMin = parseInt(formData.get('parking_spaces') || filters.parking_spaces || '0');
-                        if (parkingMin > 0 && property.parking_spaces < parkingMin) {
-                            matches = false;
-                        }
-                        
-                        const stratumFilter = parseInt(formData.get('socioeconomic_stratum') || filters.socioeconomic_stratum || '0');
-                        if (stratumFilter > 0 && property.socioeconomic_stratum !== stratumFilter) {
-                            matches = false;
-                        }
-                    }
-                    
-                    return matches;
-                });
-            }
-            
-            console.log(`✅ Propiedades filtradas: ${filteredProperties.length}`);
-            setProperties(filteredProperties);
-            
+            const response = await fetch(`http://localhost:10101/search?${queryParams}`)
+            const data = await response.json()
+            setProperties(data)
         } catch (error) {
-            console.error("❌ Error en la búsqueda:", error);
-            setError("Error al realizar la búsqueda: " + error.message);
+            console.error("Error en la búsqueda:", error)
+            setError("Error al realizar la búsqueda")
         } finally {
-            setIsLoading(false);
+            setIsLoading(false)
         }
     }
-
-
-    // Agregar campos del formulario
-    if (formData.get('property_type')) searchParams.property_type = formData.get('property_type');
-    if (formData.get('city')) searchParams.city = formData.get('city');
-    if (formData.get('neighborhood')) searchParams.neighborhood = formData.get('neighborhood');
-    if (showAdvanced) {
-      if (formData.get('bedrooms_min')) searchParams.bedrooms_min = Number(formData.get('bedrooms_min'));
-      if (formData.get('socioeconomic_stratum')) searchParams.socioeconomic_stratum = formData.get('socioeconomic_stratum');
-      if (formData.get('bathrooms_min')) searchParams.bathrooms_min = Number(formData.get('bathrooms_min'));
-      if (formData.get('parking_spaces')) searchParams.parking_spaces = Number(formData.get('parking_spaces'));
-    }
-
-    const queryParams = new URLSearchParams();
-    Object.entries(searchParams).forEach(([key, value]) => {
-      if (value && value !== '') {
-        queryParams.append(key, value);
-      }
-    });
-
-    console.log('Enviando búsqueda con parámetros:', queryParams.toString());
-
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 10000);
-    const response = await fetch(`http://localhost:10101/search?${queryParams}`, {
-      signal: controller.signal
-    });
-    clearTimeout(timeoutId);
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || `Search failed: ${response.status}`);
-    }
-
-    const data = await response.json();
-    console.log('Resultado de búsqueda:', data);
-
-    if (Array.isArray(data)) {
-      setProperties(data);
-    } else if (data.success && data.properties) {
-      setProperties(data.properties);
-    } else {
-      setProperties([]);
-      setError('No se encontraron propiedades con los filtros aplicados');
-    }
-  } catch (error) {
-    console.error('Error en la búsqueda:', error);
-    setError(`Error al realizar la búsqueda: ${error.message}`);
-  } finally {
-    setIsLoading(false);
-  }
-};
 
     // Manejar clic en propiedad
-    const handlePropertyClick = (property) => {
-    // Transformar los datos de la API al formato que espera PropiedadSeleccionada
-    const transformedProperty = {
-        id: property.property_id,
-        property_id: property.property_id,
-        title: property.property_title || property.title,
-        property_title: property.property_title,
-        address: property.address,
-        city: property.city,
-        neighborhood: property.neighborhood,
-        bedrooms: property.bedrooms,
-        bathrooms: property.bathrooms,
-        built_area: property.built_area,
-        total_area: property.total_area || property.built_area,
-        price: property.price,
-        operation_type: property.operation_type,
-        property_type: property.property_type_name || property.property_type,
-        socioeconomic_stratum: property.socioeconomic_stratum,
-        parking_spaces: property.parking_spaces || 0,
-        description: property.description || `Hermosa ${property.property_type_name || 'propiedad'} ubicada en ${property.neighborhood}, ${property.city}. Esta propiedad cuenta con ${property.bedrooms} habitaciones, ${property.bathrooms} baños y ${property.built_area}m² construidos.`,
-        status: property.status || 'Disponible',
-        images: property.images || [], // Si tu API devuelve imágenes
-        agentInfo: {
-            name: property.agent_name || 'Agente Inmobiliario',
-            phone: property.agent_phone || '+57 300 000 0000',
-            email: property.agent_email || 'agente@inmobiliaria.com',
-            initials: property.agent_name ? 
-                property.agent_name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() : 
-                'AG',
-            whatsapp: property.agent_phone || property.agent_whatsapp || '+57 300 000 0000'
-        }
-    };
-    
-    console.log('Navegando a propiedad:', transformedProperty);
-    navigate('/propiedad-seleccionada', { state: { property: transformedProperty } });
-};
+    const handlePropertyClick = (propertyId) => {
+        console.log("Propiedad seleccionada:", propertyId)
+    }
 
     // Manejar filtros de botones
     const handleFilterClick = (filterType, value) => {
-
-        setFilters(prev => ({...prev, [filterType]: value}));
-    };
-
-    // ✅ CORREGIDO: Resetear filtros
-    const resetFilters = () => {
-        setFilters({
-            operation_type: '',
-            property_type: '',
-            city: '',
-            neighborhood: '',
-            keyword: '',
-            bedrooms_min: '',
-            bathrooms_min: '',
-            parking_spaces: '',
-            socioeconomic_stratum: ''
-        });
-        setPriceRange(500000000);
-        setShowAdvanced(false);
-        
-        // ✅ CORREGIDO: Recargar todas las propiedades usando la ruta correcta
-        const fetchAllProperties = async () => {
-            setIsLoading(true);
-            try {
-                // ✅ CORREGIDO: Usar la ruta que SÍ existe
-                const res = await fetch('http://localhost:10101/api/properties');
-                if (!res.ok) {
-                    throw new Error(`HTTP error! status: ${res.status}`);
-                }
-                const data = await res.json();
-                
-                if (data.success && data.properties) {
-                    setProperties(data.properties);
-                } else if (Array.isArray(data)) {
-                    setProperties(data);
-                } else {
-                    setProperties([]);
-                }
-                setError(null);
-            } catch (error) {
-                console.error("Error al cargar propiedades:", error);
-                setError("Error al cargar propiedades: " + error.message);
-            } finally {
-                setIsLoading(false);
-            }
-        };
-        
-        fetchAllProperties();
-    };
         setFilters((prev) => ({ ...prev, [filterType]: value }))
     }
 
-
     return (
         <>
-            <div className="relative h-[800px] bg-cover bg-center flex flex-col justify-center items-center text-white text-center" style={{ backgroundImage: "url('/src/assets/images/Casa2.jpg')" }}>
+            <div
+                className="relative h-[500px] sm:h-[600px] md:h-[700px] lg:h-[800px] bg-cover bg-center flex flex-col justify-center items-center text-white text-center px-4 sm:px-6 md:px-8 lg:px-12"
+                style={{ backgroundImage: "url('/src/assets/images/Casa2.jpg')" }}
+            >
                 <div className="absolute inset-0 bg-black/30 z-0"></div>
 
                 <div className="relative z-10 w-full flex flex-col justify-center items-center">
-                    <h1 className="font-bold text-5xl mb-10">Encuentra Tu Lugar Ideal</h1>
+                    <h1
+                        className="font-bold text-2xl sm:text-3xl md:text-4xl lg:text-5xl mb-6 sm:mb-8 lg:mb-10 leading-tight">
+                        Encuentra Tu Lugar Ideal
+                    </h1>
 
-                    <div className="flex gap-4 mb-6">
-                        <Button 
-                            name="Venta" 
-                            className={`rounded-2xl px-10 p-2 ${
-                                filters.operation_type === 'Venta' 
-                                    ? 'bg-[#2F8EAC] text-white' 
-                                    : 'bg-transparent border border-white text-white'
-                            }`}
-                            onClick={() => handleFilterClick('operation_type', 'Venta')}
+                    <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-4 sm:mb-6">
+                        <Button
+                            name="Venta"
+                            className={`rounded-2xl px-6 sm:px-8 lg:px-10 py-2 text-sm sm:text-base transition-all duration-300" ${filters.operation_type === "Venta" 
+                                        ? 'bg-[#2F8EAC] text-white' 
+                                        : 'bg-transparent border border-white text-white'
+                                }`}
+                            onClick={() => handleFilterClick("operation_type", "Venta")}
                         />
-                        <Button 
-                            name="Arriendo" 
-                            className={`rounded-2xl px-10 p-2 ${
-                                filters.operation_type === 'Arriendo' 
-                                    ? 'bg-[#2F8EAC] text-white' 
-                                    : 'bg-transparent border border-white text-white'
-                            }`}
-                            onClick={() => handleFilterClick('operation_type', 'Arriendo')}
+                        <Button
+                            name="Arriendo"
+                            className={`rounded-2xl px-6 sm:px-8 lg:px-10 py-2 text-sm sm:text-base transition-all duration-300 ${filters.operation_type === "Arriendo"
+                                        ? 'bg-[#2F8EAC] text-white' 
+                                        : 'bg-transparent border border-white text-white'
+                                }`}
+                            onClick={() => handleFilterClick("operation_type", "Arriendo")}
                         />
                     </div>
 
-                    <form onSubmit={handleSearch} className="flex bg-white rounded-full shadow-lg px-10 py-6 gap-6 items-center w-[85%] max-w-7xl mx-auto">
-                        <div className="flex flex-col w-55">
+                    <form
+                        onSubmit={handleSearch}
+                        className="flex flex-col lg:flex-row bg-white rounded-2xl lg:rounded-full shadow-xl px-3 xs:px-4 sm:px-6 md:px-8 lg:px-10 py-3 xs:py-4 sm:px-5 md:py-6 gap-3 xs:gap-4 md:gap-5 lg:gap-6 items-stretch lg:items-center w-[90%] max-w-[1100px] mx-auto">
+                        <div className="flex flex-col w-full lg:w-auto lg:min-w-[200px]">
                             <label className="text-xs text-gray-800 text-left ml-2 mb-1">Tipo</label>
-                            <select 
-                                name="property_type" 
+                            <select
+                                name="property_type"
                                 className="border-none bg-transparent focus:outline-none text-sm text-gray-800 px-2"
                                 defaultValue=""
                                 value={filters.property_type}
-                                onChange={(e) => handleFilterClick('property_type', e.target.value)}
+                                onChange={(e) => handleFilterClick("property_type", e.target.value)}
                             >
                                 <option value="">Todos</option>
                                 <option value="1">Casa</option>
@@ -534,7 +245,7 @@ export const Main = () => {
                             </select>
                         </div>
 
-                        <div className="flex flex-col w-70">
+                        <div className="flex flex-col w-full lg:w-auto lg:min-w-[150px]">
                             <label className="text-xs text-gray-800 text-left ml-2 mb-1">Ciudad</label>
                             <input
                                 type="text"
@@ -542,11 +253,11 @@ export const Main = () => {
                                 placeholder="Ingrese la Ciudad"
                                 className="border-none bg-transparent focus:outline-none focus:placeholder-gray-400 text-sm text-gray-800 px-2"
                                 value={filters.city}
-                                onChange={(e) => handleFilterClick('city', e.target.value)}
+                                onChange={(e) => handleFilterClick("city", e.target.value)}
                             />
                         </div>
 
-                        <div className="flex flex-col w-70">
+                        <div className="flex flex-col w-full lg:w-auto lg:min-w-[150px]">
                             <label className="text-xs text-gray-800 text-left ml-2 mb-1">Barrio</label>
                             <input
                                 type="text"
@@ -554,92 +265,95 @@ export const Main = () => {
                                 placeholder="Ingrese el Barrio"
                                 className="border-none bg-transparent focus:outline-none focus:placeholder-gray-400 text-sm text-gray-800 px-2"
                                 value={filters.neighborhood}
-                                onChange={(e) => handleFilterClick('neighborhood', e.target.value)}
+                                onChange={(e) => handleFilterClick("neighborhood", e.target.value)}
                             />
                         </div>
 
-                        <button
-                            type="button"
-                            onClick={toggleAdvanced}
-                            className="flex items-center gap-8 border border-[#2F8EAC] text-[#2F8EAC] rounded-full px-10 py-2 text-sm"
-                        >
-                            Búsqueda avanzada
-                            <LuSettings2 className='text-[#2F8EAC] text-xl'/>
-                        </button>
+                        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 w-full lg:w-auto">
+                            <button
+                                type="button"
+                                onClick={toggleAdvanced}
+                                className="flex items-center justify-center gap-2 lg:gap-8 border border-[#2F8EAC] text-[#2F8EAC] whitespace-nowrap rounded-full px-4 sm:px-6 lg:px-10 py-2 text-sm hover:bg-[#2F8EAC] hover:text-white transition-all duration-300"
+                            >
+                                <span className="hidden sm:inline">Búsqueda avanzada</span>
+                                <span className="sm:hidden">Búsqueda Avanzada</span>
+                                <LuSettings2 className="text-lg lg:text-xl" />
+                            </button>
 
-                        <button
-                            type="submit"
-                            className="bg-[#2F8EAC] text-white rounded-full px-8 py-2 text-sm"
-                            disabled={isLoading}
-                        >
-                            {isLoading ? 'Buscando...' : 'Buscar'}
-                        </button>
+                            <button
+                                type="submit"
+                                className="bg-[#2F8EAC] text-white rounded-full px-4 sm:px-6 lg:px-8 py-2 text-sm hover:bg-[#2F8EAC]/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300"
+                                disabled={isLoading}
+                            >
+                                {isLoading ? "Buscando..." : "Buscar"}
+                            </button>
+                        </div>
                     </form>
                 </div>
 
                 {/* Panel de Búsqueda Avanzada */}
                 {showAdvanced && (
-                    <div className="bg-white shadow-lg rounded-2xl p-6 mb-4 z-10 mt-4 w-[85%] max-w-7xl">
-                        <div className="mb-6">
+                    <div
+                        className="bg-white shadow-xl rounded-2xl p-4 sm:p-6 mb-4 z-10 mt-4 w-full max-w-sm sm:max-w-2xl lg:max-w-7xl mx-4 sm:mx-6 lg:mx-auto"
+                    >
+                        <div className="mb-4 sm:mb-6">
                             <div className="flex justify-between items-center mb-3">
-                                <span className="text-sm text-gray-700 font-medium">
-                                    Precio máximo: ${priceRange.toLocaleString()}
-                                </span>
+                                <span className="text-sm text-gray-700 font-medium">Precio máximo: ${priceRange.toLocaleString()}</span>
                             </div>
                             <input
                                 type="range"
                                 min="650"
                                 max="500000000"
                                 value={priceRange}
-                                onChange={(e) => setPriceRange(parseInt(e.target.value))}
-                                className="w-full h-2 appearance-none bg-gray-200 rounded-lg accent-teal-600 cursor-pointer"
+                                onChange={(e) => setPriceRange(Number.parseInt(e.target.value))}
+                                className="w-full h-2 appearance-none bg-gray-200 rounded-lg cursor-pointer"
                             />
                         </div>
 
-                        <div className="flex flex-wrap gap-4 mb-6">
-                            <div className="flex flex-col flex-1 min-w-48">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-4 sm:mb-6">
+                            <div className="flex flex-col">
                                 <label className="text-xs text-gray-600 mb-2">Habitaciones</label>
                                 <input
                                     type="number"
                                     name="bedrooms_min"
                                     placeholder="Mínimo"
-                                    className="text-sm px-3 py-2 border border-gray-300 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                                    className="text-sm px-3 py-2 border border-gray-300 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-[#2F8EAC]"
                                     value={filters.bedrooms_min}
-                                    onChange={(e) => handleFilterClick('bedrooms_min', e.target.value)}
+                                    onChange={(e) => handleFilterClick("bedrooms_min", e.target.value)}
                                 />
                             </div>
 
-                            <div className="flex flex-col flex-1 min-w-48">
+                            <div className="flex flex-col">
                                 <label className="text-xs text-gray-600 mb-2">Baños</label>
                                 <input
                                     type="number"
                                     name="bathrooms_min"
                                     placeholder="Mínimo"
-                                    className="text-sm px-3 py-2 border border-gray-300 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                                    className="text-sm px-3 py-2 border border-gray-300 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-[#2F8EAC]"
                                     value={filters.bathrooms_min}
-                                    onChange={(e) => handleFilterClick('bathrooms_min', e.target.value)}
+                                    onChange={(e) => handleFilterClick("bathrooms_min", e.target.value)}
                                 />
                             </div>
 
-                            <div className="flex flex-col flex-1 min-w-48">
+                            <div className="flex flex-col">
                                 <label className="text-xs text-gray-600 mb-2">Parqueaderos</label>
                                 <input
                                     type="number"
                                     name="parking_spaces"
                                     placeholder="Mínimo"
-                                    className="text-sm px-3 py-2 border border-gray-300 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                                    className="text-sm px-3 py-2 border border-gray-300 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-[#2F8EAC]"
                                     value={filters.parking_spaces}
-                                    onChange={(e) => handleFilterClick('parking_spaces', e.target.value)}
+                                    onChange={(e) => handleFilterClick("parking_spaces", e.target.value)}
                                 />
                             </div>
 
-                            <div className="flex flex-col flex-1 min-w-48">
+                            <div className="flex flex-col">
                                 <label className="text-xs text-gray-600 mb-2">Estrato</label>
-                                <select 
+                                <select
                                     name="socioeconomic_stratum"
-                                    className="text-sm px-3 py-2 border border-gray-300 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                                    className="text-sm px-3 py-2 border border-gray-300 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-[#2F8EAC]"
                                     value={filters.socioeconomic_stratum}
-                                    onChange={(e) => handleFilterClick('socioeconomic_stratum', e.target.value)}
+                                    onChange={(e) => handleFilterClick("socioeconomic_stratum", e.target.value)}
                                 >
                                     <option value="">Todos</option>
                                     <option value="1">1</option>
@@ -656,7 +370,8 @@ export const Main = () => {
             </div>
 
             {error && (
-                <div className="fixed top-20 left-1/2 transform -translate-x-1/2 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded z-50">
+                <div
+                    className="fixed top-16 sm:top-20 left-1/2 transform -translate-x-1/2 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg shadow-lg z-50 mx-4 sm:mx-6 text-sm max-w-sm sm:max-w-md">
                     {error}
                 </div>
             )}
@@ -674,13 +389,8 @@ export const Main = () => {
                 <div className="px-4 sm:px-6 lg:px-10 xl:px-20 py-6 sm:py-8 lg:py-10 w-full">
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 sm:gap-6 lg:gap-8 justify-items-center">
                         {isLoading ? (
-
-                            <div className="text-center py-10">
-                                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#2F8EAC] mx-auto mb-4"></div>
-
                             <div
                                 className="col-span-full text-center py-8 sm:py-10 lg:py-12 text-sm sm:text-base lg:text-lg">
-
                                 Cargando propiedades...
                             </div>
                         ) : properties.length > 0 ? (
@@ -699,16 +409,6 @@ export const Main = () => {
                                 />
                             ))
                         ) : (
-
-                            <div className="text-center py-10">
-                                <div className="text-gray-500 mb-2">📭</div>
-                                <p className="text-gray-600">No se encontraron propiedades con los filtros aplicados</p>
-                                <button 
-                                    onClick={resetFilters}
-                                    className="mt-4 text-[#2F8EAC] hover:underline"
-                                >
-                                    Ver todas las propiedades
-                                </button>
                             <div className="col-span-full text-center py-8 sm:py-10 lg:py-12 text-sm sm:text-base lg:text-lg px-4 sm:px-6 lg:px-8">
                                 No se encontraron propiedades con los filtros aplicados
                             </div>
@@ -722,6 +422,5 @@ export const Main = () => {
                 />
             </section>
         </>
-
-    );
-};
+    )
+}

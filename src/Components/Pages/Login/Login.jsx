@@ -53,14 +53,13 @@ export const Login = () => {
     if (response.ok && data.token) {
       const user = {
         id: data.user.id,
-        first_name: data.user.nombre,
-        email: data.user.correo,
+        first_name: data.user.first_name,
+        email: data.user.email,
         avatar: data.user.avatar ?? null,
       };
 
       localStorage.setItem('authToken', data.token);
       localStorage.setItem('userData', JSON.stringify(user));
-
       window.dispatchEvent(new Event('storage'));
       navigate('/');
     } else {

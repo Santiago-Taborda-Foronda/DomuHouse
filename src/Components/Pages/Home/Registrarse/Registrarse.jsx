@@ -4,7 +4,6 @@ import { useState } from "react"
 import { Eye, EyeOff, Building, User, UserCheck, ArrowLeft, ArrowRight } from "lucide-react"
 import LogoDomuHouse from "../../../../assets/images/Logo-DomuHouse.png"
 
-
 export const Registrarse = () => {
   const [currentStep, setCurrentStep] = useState(1)
   const [showPassword, setShowPassword] = useState(false)
@@ -24,7 +23,7 @@ export const Registrarse = () => {
     token: "",
   })
 
-  // State for real estate form
+  // State for real estate form, including logo
   const [inmobiliariaData, setInmobiliariaData] = useState({
     nombre_inmobiliaria: "",
     descripcion_inmobiliaria: "",
@@ -35,6 +34,8 @@ export const Registrarse = () => {
     phone_inmobiliaria: "",
     email_inmobiliaria: "",
     num_properties: "",
+    logo: null, // Store the logo file
+    logoPreview: null, // Store the logo preview URL
   })
 
   const userTypeOptions = [
@@ -51,8 +52,19 @@ export const Registrarse = () => {
   }
 
   const handleInmobiliariaDataChange = (e) => {
-    const { name, value } = e.target
-    setInmobiliariaData({ ...inmobiliariaData, [name]: value })
+    const { name, value, files } = e.target
+    if (name === "logo") {
+      const file = files[0]
+      if (file) {
+        // Create a preview URL for the selected image
+        const previewUrl = URL.createObjectURL(file)
+        setInmobiliariaData({ ...inmobiliariaData, logo: file, logoPreview: previewUrl })
+      } else {
+        setInmobiliariaData({ ...inmobiliariaData, logo: null, logoPreview: null })
+      }
+    } else {
+      setInmobiliariaData({ ...inmobiliariaData, [name]: value })
+    }
   }
 
   const togglePasswordVisibility = () => setShowPassword(!showPassword)
@@ -120,6 +132,10 @@ export const Registrarse = () => {
       setError("El número de propiedades es requerido y debe ser un número")
       return false
     }
+    if (!inmobiliariaData.logo) {
+      setError("El logo de la inmobiliaria es requerido")
+      return false
+    }
     if (!registeredPersonId) {
       setError("No se ha registrado un usuario válido. Por favor, completa el paso 1.")
       return false
@@ -131,7 +147,7 @@ export const Registrarse = () => {
     setError("")
     if (currentStep === 1 && validateStep1()) {
       if (userType === "administrador") {
-        handleSubmit() // Primero registrar usuario
+        handleSubmit()
       } else {
         handleSubmit()
       }
@@ -145,22 +161,10 @@ export const Registrarse = () => {
     setError("")
   }
 
-  // Función para redirigir al login
   const redirectToLogin = () => {
-    // Opción 1: Si tienes una página de login en tu aplicación
     window.location.href = "/login"
-
-
-    // Opción 2: Si quieres redirigir a una URL específica
-    // window.location.href = "http://localhost:3000/login"
-
-    // Opción 3: Si estás usando React Router, descomenta esto y comenta lo de arriba
-    // navigate('/login', {
-    //   state: { message: 'Registro exitoso. Ahora puedes iniciar sesión.' }
-    // });
   }
 
-  // User registration (step 1)
   const handleSubmit = async () => {
     setIsLoading(true)
     setError("")
@@ -168,6 +172,7 @@ export const Registrarse = () => {
 
     try {
       const payload = { ...userData, role: userType }
+      console.log("Payload sent to /api/admin/registro:", payload)
 
       const response = await fetch("http://localhost:10101/api/admin/registro", {
         method: "POST",
@@ -176,20 +181,18 @@ export const Registrarse = () => {
       })
 
       const data = await response.json()
-      console.log("Register response:", data)
+      console.log("Full register response:", data)
 
       if (response.ok) {
         if (userType === "administrador") {
-          // El ID está en data.insertId según tu respuesta
-          const personId =
-            data.data?.insertId || data.insertId || data.person_id || data.id || data.user_id || data.userId
-          console.log("Person ID obtenido:", personId)
+          const personId = data.data?.insertId || data.insertId || data.person_id || data.id || data.user_id || data.userId
+          console.log("Extracted personId:", personId)
 
-          if (!personId || isNaN(personId)) {
+          if (!personId || isNaN(Number(personId))) {
             setError("El servidor no devolvió un ID de usuario válido. Respuesta: " + JSON.stringify(data))
             return
           }
-          setRegisteredPersonId(personId)
+          setRegisteredPersonId(Number(personId))
           setSuccess("Usuario registrado exitosamente. Ahora registra tu inmobiliaria.")
           setCurrentStep(2)
         } else {
@@ -199,17 +202,16 @@ export const Registrarse = () => {
           }, 2000)
         }
       } else {
-        setError(data.message || "Error al crear la cuenta")
+        setError(data.message || "Error al crear la cuenta. Respuesta: " + JSON.stringify(data))
       }
     } catch (error) {
-      console.error("Error durante el registro:", error)
-      setError("Error de conexión. Por favor, intenta de nuevo.")
+      console.error("Error during registration:", error)
+      setError("Error de conexión. Por favor, intenta de nuevo. Detalles: " + error.message)
     } finally {
       setIsLoading(false)
     }
   }
 
-  // Real estate registration (step 2)
   const handleSubmitInmobiliaria = async () => {
     setIsLoading(true)
     setError("")
@@ -217,29 +219,30 @@ export const Registrarse = () => {
 
     try {
       const endpoint = "http://localhost:10101/api/inmobiliarias"
-      const payload = {
-        name: inmobiliariaData.nombre_inmobiliaria,
-        nit: inmobiliariaData.nit,
-        phone: inmobiliariaData.phone_inmobiliaria || userData.phone,
-        email: inmobiliariaData.email_inmobiliaria || userData.email,
-        num_properties: Number.parseInt(inmobiliariaData.num_properties, 10),
-        department: inmobiliariaData.department,
-        city: inmobiliariaData.city,
-        adress: inmobiliariaData.address, // Nota: tu backend espera "adress" no "address"
-        description: inmobiliariaData.descripcion_inmobiliaria,
-        person_id: registeredPersonId,
+      const formData = new FormData()
+      formData.append("name", inmobiliariaData.nombre_inmobiliaria)
+      formData.append("nit", inmobiliariaData.nit)
+      formData.append("phone", inmobiliariaData.phone_inmobiliaria || userData.phone)
+      formData.append("email", inmobiliariaData.email_inmobiliaria || userData.email)
+      formData.append("num_properties", Number.parseInt(inmobiliariaData.num_properties, 10))
+      formData.append("department", inmobiliariaData.department)
+      formData.append("city", inmobiliariaData.city)
+      formData.append("adress", inmobiliariaData.address)
+      formData.append("description", inmobiliariaData.descripcion_inmobiliaria)
+      formData.append("person_id", registeredPersonId)
+      if (inmobiliariaData.logo) {
+        formData.append("logo", inmobiliariaData.logo)
       }
 
-      console.log("Payload enviado:", payload)
+      console.log("Payload sent to /api/inmobiliarias:", Object.fromEntries(formData))
 
       const response = await fetch(endpoint, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: formData,
       })
 
       const data = await response.json()
-      console.log("Respuesta inmobiliaria:", data)
+      console.log("Real estate response:", data)
 
       if (response.ok) {
         setSuccess("¡Inmobiliaria registrada exitosamente! Redirigiendo al login...")
@@ -247,11 +250,11 @@ export const Registrarse = () => {
           redirectToLogin()
         }, 2000)
       } else {
-        setError(data.message || "Error al registrar la inmobiliaria")
+        setError(data.message || "Error al registrar la inmobiliaria. Respuesta: " + JSON.stringify(data))
       }
     } catch (error) {
-      console.error("Error durante el registro:", error)
-      setError("Error de conexión. Por favor, intenta de nuevo.")
+      console.error("Error during real estate registration:", error)
+      setError("Error de conexión. Por favor, intenta de nuevo. Detalles: " + error.message)
     } finally {
       setIsLoading(false)
     }
@@ -259,7 +262,6 @@ export const Registrarse = () => {
 
   const renderStep1 = () => (
     <div className="space-y-6">
-      {/* User type selection */}
       <div className="space-y-4">
         <h3 className="text-lg font-medium text-gray-800 text-center">¿Qué tipo de cuenta necesitas?</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -285,7 +287,6 @@ export const Registrarse = () => {
         </div>
       </div>
 
-      {/* User data form */}
       <div className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
@@ -379,12 +380,11 @@ export const Registrarse = () => {
               className="absolute right-3 top-3.5 text-gray-500 hover:text-gray-700"
               disabled={isLoading}
             >
-              {showPassword ? < Eye  size={20} /> : <EyeOff size={20} />}
+              {showPassword ? <Eye size={20} /> : <EyeOff size={20} />}
             </button>
           </div>
         </div>
 
-        {/* Additional field for agent */}
         {userType === "agente" && (
           <div className="bg-blue-50 p-4 rounded-lg">
             <label htmlFor="token" className="block text-sm font-medium text-gray-700 mb-1">
@@ -452,6 +452,49 @@ export const Registrarse = () => {
             required
           />
         </div>
+      </div>
+
+      {/* Aesthetically styled logo upload section */}
+      <div>
+        <label htmlFor="logo" className="block text-sm font-medium text-gray-700 mb-1">
+          Logo de la inmobiliaria *
+        </label>
+        <div className="flex items-center space-x-4">
+          <label
+            htmlFor="logo"
+            className="inline-flex items-center px-4 py-2 bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <span>Seleccionar Logo</span>
+            <input
+              type="file"
+              id="logo"
+              name="logo"
+              accept="image/*"
+              onChange={handleInmobiliariaDataChange}
+              className="hidden"
+              disabled={isLoading}
+              required
+            />
+          </label>
+          {inmobiliariaData.logo && (
+            <span className="text-sm text-gray-600">
+              {inmobiliariaData.logo.name}
+            </span>
+          )}
+        </div>
+        {inmobiliariaData.logoPreview && (
+          <div className="mt-4">
+            <p className="text-sm font-medium text-gray-700 mb-2">Vista previa:</p>
+            <div className="w-32 h-32 border-2 border-gray-200 rounded-lg overflow-hidden flex items-center justify-center bg-gray-50">
+              <img
+                src={inmobiliariaData.logoPreview}
+                alt="Vista previa del logo"
+                className="max-w-full max-h-full object-contain"
+              />
+            </div>
+          </div>
+        )}
+        <p className="text-xs text-gray-500 mt-1">Sube una imagen en formato PNG o JPG (máximo 2MB)</p>
       </div>
 
       <div>
@@ -569,7 +612,6 @@ export const Registrarse = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-white to-blue-50 py-8 px-4">
       <div className="max-w-4xl mx-auto">
-        {/* Header */}
         <div className="text-center mb-8">
           <div className="flex items-center justify-center mb-4">
             <div className="w-32 h-30 rounded-xl flex items-center justify-center mr-3">
@@ -582,7 +624,6 @@ export const Registrarse = () => {
           <p className="text-gray-600">{currentStep === 1 ? "Crea tu cuenta" : "Registra tu inmobiliaria"}</p>
         </div>
 
-        {/* Progress indicator */}
         {userType === "administrador" && (
           <div className="flex items-center justify-center mb-8">
             <div className="flex items-center space-x-4">
@@ -605,9 +646,7 @@ export const Registrarse = () => {
           </div>
         )}
 
-        {/* Main form */}
         <div className="bg-white rounded-2xl shadow-xl p-8 md:p-12">
-          {/* Messages */}
           {error && (
             <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">{error}</div>
           )}
@@ -620,7 +659,6 @@ export const Registrarse = () => {
           <div>
             {currentStep === 1 ? renderStep1() : renderStep2()}
 
-            {/* Action buttons */}
             <div className="flex justify-between pt-8 mt-8 border-t border-gray-200">
               {currentStep === 2 && (
                 <button
@@ -659,7 +697,6 @@ export const Registrarse = () => {
             </div>
           </div>
 
-          {/* Login link */}
           <div className="text-center mt-6 pt-6 border-t border-gray-200">
             <p className="text-gray-600">
               ¿Ya tienes cuenta?{" "}

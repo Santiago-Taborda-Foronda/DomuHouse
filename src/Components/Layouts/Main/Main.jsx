@@ -4,6 +4,7 @@ import Casa from '../../../assets/images/casLujo2.jpg';
 import { LuSettings2 } from "react-icons/lu";
 import { ChatDomu } from '../../UI/ChatDomu/ChatDomu';
 import { Button } from '../../UI/Button/Button';
+import { useNavigate } from 'react-router-dom';
 import "../../../App";
 
 const PropertyCard = ({ address, title, rooms, bathrooms, area, price, type, agentName, onClick }) => {
@@ -75,6 +76,7 @@ export const Main = () => {
     const [showAdvanced, setShowAdvanced] = useState(false);
     const [priceRange, setPriceRange] = useState(250000000);
     const [properties, setProperties] = useState([]);
+    const navigate = useNavigate();
     const [filters, setFilters] = useState({
         operation_type: '',
         property_type: '',
@@ -91,12 +93,12 @@ export const Main = () => {
 
     const toggleAdvanced = () => setShowAdvanced(!showAdvanced);
 
-    // ✅ CORREGIDO: Cargar propiedades iniciales
+    // Cargar propiedades iniciales
     useEffect(() => {
         const fetchProperties = async () => {
             setIsLoading(true);
             try {
-                // ✅ CORREGIDO: Usar la ruta correcta que SÍ existe en tu backend
+                // ✅ CORREGIDO: Usando la ruta que SÍ existe
                 const res = await fetch('http://localhost:10101/api/properties');
                 
                 if (!res.ok) {
@@ -106,7 +108,7 @@ export const Main = () => {
                 const data = await res.json();
                 console.log('Datos recibidos:', data);
                 
-                // ✅ CORREGIDO: El controlador devuelve { success: true, count: X, properties: [...] }
+                // El controlador devuelve { success: true, count: X, properties: [...] }
                 if (data.success && data.properties) {
                     setProperties(data.properties);
                 } else if (Array.isArray(data)) {
@@ -129,80 +131,197 @@ export const Main = () => {
         fetchProperties();
     }, []);
 
-   const handleSearch = async (e) => {
-  e.preventDefault();
-  setIsLoading(true);
-  setError(null);
+    // ✅ FUNCIÓN DE BÚSQUEDA COMPLETAMENTE CORREGIDA
+    const handleSearch = async (e) => {
+        e.preventDefault();
+        setIsLoading(true);
+        setError(null);
 
-  try {
-    const formData = new FormData(e.target);
-    const searchParams = {
-      ...filters,
-      price_max: priceRange
+        try {
+            const formData = new FormData(e.target);
+            
+            // ✅ Construir parámetros de búsqueda usando filtros en memoria
+            const searchParams = new URLSearchParams();
+            
+            // Agregar operation_type desde filtros
+            if (filters.operation_type) {
+                searchParams.append('operation_type', filters.operation_type);
+            }
+            
+            // Agregar property_type desde filtros
+            if (filters.property_type) {
+                searchParams.append('property_type', filters.property_type);
+            }
+            
+            // Agregar campos del formulario
+            const city = formData.get('city') || filters.city;
+            if (city) searchParams.append('city', city);
+            
+            const neighborhood = formData.get('neighborhood') || filters.neighborhood;
+            if (neighborhood) searchParams.append('neighborhood', neighborhood);
+            
+            // Agregar precio máximo
+            if (priceRange && priceRange > 0) {
+                searchParams.append('price_max', priceRange.toString());
+            }
+            
+            // Agregar campos avanzados si están visibles
+            if (showAdvanced) {
+                const bedrooms = formData.get('bedrooms_min') || filters.bedrooms_min;
+                if (bedrooms) searchParams.append('bedrooms_min', bedrooms);
+                
+                const bathrooms = formData.get('bathrooms_min') || filters.bathrooms_min;
+                if (bathrooms) searchParams.append('bathrooms_min', bathrooms);
+                
+                const parking = formData.get('parking_spaces') || filters.parking_spaces;
+                if (parking) searchParams.append('parking_spaces', parking);
+                
+                const stratum = formData.get('socioeconomic_stratum') || filters.socioeconomic_stratum;
+                if (stratum) searchParams.append('socioeconomic_stratum', stratum);
+            }
+
+            console.log('🔍 Parámetros de búsqueda:', searchParams.toString());
+
+            // ✅ PROBLEMA PRINCIPAL CORREGIDO: Usar ruta que existe
+            let searchUrl = 'http://localhost:10101/api/properties';
+            
+            // Si hay parámetros de búsqueda, intentar filtrar del lado del cliente
+            // O usar la ruta de propiedades por tipo si solo se busca por tipo
+            if (filters.property_type && !city && !neighborhood && !priceRange) {
+                searchUrl = `http://localhost:10101/api/properties/type/${filters.property_type}`;
+            } else if (searchParams.toString()) {
+                // Si tienes búsqueda avanzada, usar todas las propiedades y filtrar del lado del cliente
+                searchUrl = 'http://localhost:10101/api/properties';
+            }
+
+            const response = await fetch(searchUrl);
+            
+            if (!response.ok) {
+                throw new Error(`Search failed: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            console.log('📊 Respuesta de búsqueda:', data);
+            
+            let filteredProperties = [];
+            
+            if (data.success && data.properties) {
+                filteredProperties = data.properties;
+            } else if (Array.isArray(data)) {
+                filteredProperties = data;
+            } else {
+                filteredProperties = [];
+            }
+
+            // ✅ FILTRADO DEL LADO DEL CLIENTE (temporal hasta que tengas búsqueda avanzada en backend)
+            if (searchParams.toString() && searchUrl.includes('/api/properties') && !searchUrl.includes('/type/')) {
+                filteredProperties = filteredProperties.filter(property => {
+                    let matches = true;
+                    
+                    // Filtrar por operation_type
+                    if (filters.operation_type && property.operation_type !== filters.operation_type) {
+                        matches = false;
+                    }
+                    
+                    // Filtrar por city
+                    const searchCity = city || filters.city;
+                    if (searchCity && !property.city?.toLowerCase().includes(searchCity.toLowerCase())) {
+                        matches = false;
+                    }
+                    
+                    // Filtrar por neighborhood
+                    const searchNeighborhood = neighborhood || filters.neighborhood;
+                    if (searchNeighborhood && !property.neighborhood?.toLowerCase().includes(searchNeighborhood.toLowerCase())) {
+                        matches = false;
+                    }
+                    
+                    // Filtrar por precio máximo
+                    if (priceRange && property.price > priceRange) {
+                        matches = false;
+                    }
+                    
+                    // Filtros avanzados
+                    if (showAdvanced) {
+                        const bedroomsMin = parseInt(formData.get('bedrooms_min') || filters.bedrooms_min || '0');
+                        if (bedroomsMin > 0 && property.bedrooms < bedroomsMin) {
+                            matches = false;
+                        }
+                        
+                        const bathroomsMin = parseInt(formData.get('bathrooms_min') || filters.bathrooms_min || '0');
+                        if (bathroomsMin > 0 && property.bathrooms < bathroomsMin) {
+                            matches = false;
+                        }
+                        
+                        const parkingMin = parseInt(formData.get('parking_spaces') || filters.parking_spaces || '0');
+                        if (parkingMin > 0 && property.parking_spaces < parkingMin) {
+                            matches = false;
+                        }
+                        
+                        const stratumFilter = parseInt(formData.get('socioeconomic_stratum') || filters.socioeconomic_stratum || '0');
+                        if (stratumFilter > 0 && property.socioeconomic_stratum !== stratumFilter) {
+                            matches = false;
+                        }
+                    }
+                    
+                    return matches;
+                });
+            }
+            
+            console.log(`✅ Propiedades filtradas: ${filteredProperties.length}`);
+            setProperties(filteredProperties);
+            
+        } catch (error) {
+            console.error("❌ Error en la búsqueda:", error);
+            setError("Error al realizar la búsqueda: " + error.message);
+        } finally {
+            setIsLoading(false);
+        }
     };
-
-    // Agregar campos del formulario
-    if (formData.get('property_type')) searchParams.property_type = formData.get('property_type');
-    if (formData.get('city')) searchParams.city = formData.get('city');
-    if (formData.get('neighborhood')) searchParams.neighborhood = formData.get('neighborhood');
-    if (showAdvanced) {
-      if (formData.get('bedrooms_min')) searchParams.bedrooms_min = Number(formData.get('bedrooms_min'));
-      if (formData.get('socioeconomic_stratum')) searchParams.socioeconomic_stratum = formData.get('socioeconomic_stratum');
-      if (formData.get('bathrooms_min')) searchParams.bathrooms_min = Number(formData.get('bathrooms_min'));
-      if (formData.get('parking_spaces')) searchParams.parking_spaces = Number(formData.get('parking_spaces'));
-    }
-
-    const queryParams = new URLSearchParams();
-    Object.entries(searchParams).forEach(([key, value]) => {
-      if (value && value !== '') {
-        queryParams.append(key, value);
-      }
-    });
-
-    console.log('Enviando búsqueda con parámetros:', queryParams.toString());
-
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 10000);
-    const response = await fetch(`http://localhost:10101/search?${queryParams}`, {
-      signal: controller.signal
-    });
-    clearTimeout(timeoutId);
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || `Search failed: ${response.status}`);
-    }
-
-    const data = await response.json();
-    console.log('Resultado de búsqueda:', data);
-
-    if (Array.isArray(data)) {
-      setProperties(data);
-    } else if (data.success && data.properties) {
-      setProperties(data.properties);
-    } else {
-      setProperties([]);
-      setError('No se encontraron propiedades con los filtros aplicados');
-    }
-  } catch (error) {
-    console.error('Error en la búsqueda:', error);
-    setError(`Error al realizar la búsqueda: ${error.message}`);
-  } finally {
-    setIsLoading(false);
-  }
-};
 
     // Manejar clic en propiedad
-    const handlePropertyClick = (propertyId) => {
-        console.log("Propiedad seleccionada:", propertyId);
+    const handlePropertyClick = (property) => {
+    // Transformar los datos de la API al formato que espera PropiedadSeleccionada
+    const transformedProperty = {
+        id: property.property_id,
+        property_id: property.property_id,
+        title: property.property_title || property.title,
+        property_title: property.property_title,
+        address: property.address,
+        city: property.city,
+        neighborhood: property.neighborhood,
+        bedrooms: property.bedrooms,
+        bathrooms: property.bathrooms,
+        built_area: property.built_area,
+        total_area: property.total_area || property.built_area,
+        price: property.price,
+        operation_type: property.operation_type,
+        property_type: property.property_type_name || property.property_type,
+        socioeconomic_stratum: property.socioeconomic_stratum,
+        parking_spaces: property.parking_spaces || 0,
+        description: property.description || `Hermosa ${property.property_type_name || 'propiedad'} ubicada en ${property.neighborhood}, ${property.city}. Esta propiedad cuenta con ${property.bedrooms} habitaciones, ${property.bathrooms} baños y ${property.built_area}m² construidos.`,
+        status: property.status || 'Disponible',
+        images: property.images || [], // Si tu API devuelve imágenes
+        agentInfo: {
+            name: property.agent_name || 'Agente Inmobiliario',
+            phone: property.agent_phone || '+57 300 000 0000',
+            email: property.agent_email || 'agente@inmobiliaria.com',
+            initials: property.agent_name ? 
+                property.agent_name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() : 
+                'AG',
+            whatsapp: property.agent_phone || property.agent_whatsapp || '+57 300 000 0000'
+        }
     };
+    
+    console.log('Navegando a propiedad:', transformedProperty);
+    navigate('/propiedad-seleccionada', { state: { property: transformedProperty } });
+};
 
     // Manejar filtros de botones
     const handleFilterClick = (filterType, value) => {
         setFilters(prev => ({...prev, [filterType]: value}));
     };
 
-    // ✅ CORREGIDO: Resetear filtros
+    // Resetear filtros
     const resetFilters = () => {
         setFilters({
             operation_type: '',
@@ -218,11 +337,10 @@ export const Main = () => {
         setPriceRange(500000000);
         setShowAdvanced(false);
         
-        // ✅ CORREGIDO: Recargar todas las propiedades usando la ruta correcta
+        // ✅ CORREGIDO: Usar la ruta correcta
         const fetchAllProperties = async () => {
             setIsLoading(true);
             try {
-                // ✅ CORREGIDO: Usar la ruta que SÍ existe
                 const res = await fetch('http://localhost:10101/api/properties');
                 if (!res.ok) {
                     throw new Error(`HTTP error! status: ${res.status}`);
@@ -463,43 +581,46 @@ export const Main = () => {
                     />
                 </div>
 
-                <div className='px-6 md:px-10 lg:px20 py-10'>
-                    <div className='flex flex-wrap justify-center gap-8'>
-                        {isLoading ? (
-                            <div className="text-center py-10">
-                                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#2F8EAC] mx-auto mb-4"></div>
-                                Cargando propiedades...
-                            </div>
-                        ) : properties.length > 0 ? (
-                            properties.map((property) => (
-                                <PropertyCard
-                                    key={property.property_id}
-                                    address={`${property.address}, ${property.neighborhood}, ${property.city}`}
-                                    title={property.property_title}
-                                    rooms={property.bedrooms || 0}
-                                    bathrooms={property.bathrooms || 0}
-                                    area={property.built_area || 0}
-                                    price={property.price ? property.price.toLocaleString() : '0'}
-                                    type={property.operation_type}
-                                    agentName={property.agent_name || "Agente"}
-                                    onClick={() => handlePropertyClick(property.property_id)}
-                                />
-                            ))
-                        ) : (
-                            <div className="text-center py-10">
-                                <div className="text-gray-500 mb-2">📭</div>
-                                <p className="text-gray-600">No se encontraron propiedades con los filtros aplicados</p>
-                                <button 
-                                    onClick={resetFilters}
-                                    className="mt-4 text-[#2F8EAC] hover:underline"
-                                >
-                                    Ver todas las propiedades
-                                </button>
-                            </div>
-                        )}
-                    </div>
-                </div>
-
+                <div className='flex flex-wrap justify-center gap-8'>
+    {isLoading ? (
+        <div className="text-center py-10">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#2F8EAC] mx-auto mb-4"></div>
+            Cargando propiedades...
+        </div>
+    ) : properties.length > 0 ? (
+        properties.map((property) => (
+            <PropertyCard
+                key={property.property_id}
+                address={(() => {
+                    const parts = [property.address, property.neighborhood, property.city]
+                        .filter(part => part && part.trim())
+                        .map(part => part.trim());
+                    return parts.join(', ');
+                })()}
+                title={property.property_title}
+                rooms={property.bedrooms || 0}
+                bathrooms={property.bathrooms || 0}
+                area={property.built_area || 0}
+                price={property.price ? property.price.toLocaleString() : '0'}
+                type={property.operation_type}
+                agentName={property.agent_name || "Agente"}
+                // ✅ CORRECCIÓN PRINCIPAL: Pasar el objeto completo de la propiedad
+                onClick={() => handlePropertyClick(property)}
+            />
+        ))
+    ) : (
+        <div className="text-center py-10">
+            <div className="text-gray-500 mb-2">📭</div>
+            <p className="text-gray-600">No se encontraron propiedades con los filtros aplicados</p>
+            <button 
+                onClick={resetFilters}
+                className="mt-4 text-[#2F8EAC] hover:underline"
+            >
+                Ver todas las propiedades
+            </button>
+        </div>
+    )}
+</div>
                 <Button
                     name="➡ Ver Más"
                     className="bg-[#2F8EAC] border border-[#2F8EAC] text-white rounded-3xl px-6 py-2 flex items-center gap-2"

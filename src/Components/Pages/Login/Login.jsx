@@ -60,7 +60,6 @@ export const Login = () => {
 
       localStorage.setItem('authToken', data.token);
       localStorage.setItem('userData', JSON.stringify(user));
-
       window.dispatchEvent(new Event('storage'));
       navigate('/');
     } else {

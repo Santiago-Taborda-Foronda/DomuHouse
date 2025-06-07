@@ -107,7 +107,7 @@ export const Main = () => {
     const fetchProperties = async () => {
       setIsLoading(true)
       try {
-        const res = await fetch("http://localhost:10101/api/properties")
+        const res = await fetch("https://domuhouse.onrender.com/api/propiedades/properties")
 
         if (!res.ok) {
           throw new Error(`HTTP error! status: ${res.status}`)
@@ -169,7 +169,7 @@ export const Main = () => {
         }
       })
 
-      const response = await fetch(`http://localhost:10101/api/search/search?${queryParams}`)
+      const response = await fetch(`https://domuhouse.onrender.com/busqueda/search?${queryParams}`)
 
       if (!response.ok) {
         throw new Error(`Search failed: ${response.status}`)
@@ -250,7 +250,7 @@ export const Main = () => {
     const fetchAllProperties = async () => {
       setIsLoading(true)
       try {
-        const res = await fetch("http://localhost:10101/api/properties")
+        const res = await fetch("https://domuhouse.onrender.com/api/properties")
         if (!res.ok) {
           throw new Error(`HTTP error! status: ${res.status}`)
         }

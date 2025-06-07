@@ -68,19 +68,47 @@ export const Header = ({ toggleSidebar }) => {
     window.location.href = '/'
   }
 
+  const simulateLogin = () => {
+    localStorage.setItem('authToken', 'fake-token-for-development')
+    localStorage.setItem('userData', JSON.stringify({
+      id: 1,
+      name: 'Juan Pérez',
+      email: 'juan@example.com',
+      avatar: null
+    }))
+    checkAuthStatus()
+  }
+
+  // Función temporal para simular logout (SOLO PARA DESARROLLO)
+  const simulateLogout = () => {
+    localStorage.removeItem('authToken')
+    localStorage.removeItem('userData')
+    checkAuthStatus()
+  }
+
   // Verificar si estamos en la página de Mi Inmobiliaria
   const isInInmobiliariaPage = currentPath.includes('/mi-inmobiliaria') || 
-                              currentPath.includes('/MiInmobiliaria')
+                               currentPath.includes('/MiInmobiliaria')
 
+  // Verificar si estamos en la página de Agente (AGREGADO)
+  const isInAgentPage = currentPath.includes('/AgentDashboard') ||
+                        currentPath.includes('/MisPropiedades') ||
+                        currentPath.includes('/CrearPropiedad') ||
+                        currentPath.includes('/VisitasAgendadas') ||
+                        currentPath.includes('/ProgramarVisita') ||
+                        currentPath.includes('/ContactarCliente') ||
+                        currentPath.includes('/EstadoInteres')                    
+  
   return (
     <>
       <header className="flex items-center justify-between px-4 py-2 bg-white fixed top-0 left-0 right-0 z-50 shadow-sm h-16">
-        <div className="flex items-center gap-4">
-          {!isInInmobiliariaPage && (
-            <button onClick={toggleMenu} className="focus:outline-none">
-              <Menu className="w-6 h-6 text-gray-700" />
-            </button>
-          )}
+          <div className="flex items-center gap-4">
+            {/* Botón hamburguesa - Solo se muestra si NO estamos en Mi Inmobiliaria Y NO estamos en páginas de Agente */}
+            {!isInInmobiliariaPage && !isInAgentPage && (
+              <button onClick={toggleMenu} className="focus:outline-none">
+                <Menu className="w-6 h-6 text-gray-700" />
+              </button>
+            )}
 
           {isInInmobiliariaPage && toggleSidebar && (
             <button onClick={() => toggleSidebar()} className="focus:outline-none lg:hidden">
@@ -92,12 +120,36 @@ export const Header = ({ toggleSidebar }) => {
           <h1 className='text-base sm:text-lg title-montserrat'>DOMU<span className='text-[#2F8EAC]'>HOUSE</span></h1>
         </div>
 
-        <div className="flex items-center space-x-2">
-          <Button 
-            name="Mi Inmobiliaria" 
-            Route="/MiInmobiliaria" 
-            className="bg-[#2F8EAC] hover:bg-sky-600 active:bg-sky-700 transition duration-150 ease-in-out text-white px-3 py-2 rounded-xl text-sm"
-          />
+          {/* Botones del header o perfil de usuario */}
+          <div className="flex items-center space-x-2">
+            {/* <div className="flex items-center space-x-2 mr-4 p-2 bg-yellow-100 rounded border-yellow-300 border"> 
+              <span className="text-xs text-yellow-800">DEV:</span>
+               <button 
+                onClick={simulateLogin}
+                className="text-xs bg-green-500 text-white px-2 py-1 rounded hover:bg-green-600"
+              >
+                Simular Login
+              </button>
+              <button 
+                onClick={simulateLogout}
+                className="text-xs bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600"
+              >
+                Simular Logout
+              </button> 
+             </div> */}
+
+            {/* Botón Mi Inmobiliaria - Siempre presente */}
+            <Button 
+              name="Mi Inmobiliaria" 
+              Route="/mi-inmobiliaria/propiedades" 
+              className="bg-[#2F8EAC] hover:bg-sky-600 active:bg-sky-700 transition duration-150 ease-in-out text-white px-3 py-2 rounded-xl text-sm"
+            />
+
+             <Button 
+              name="Mi Agente" 
+              Route="/AgentDashboard" 
+              className="bg-[#2F8EAC] hover:bg-sky-600 active:bg-sky-700 transition duration-150 ease-in-out text-white px-3 py-2 rounded-xl text-sm"
+            />
 
           {isAuthenticated && userInfo ? (
             <div className="relative">
@@ -178,7 +230,8 @@ export const Header = ({ toggleSidebar }) => {
         ></div>
       )} 
 
-      {!isInInmobiliariaPage && (
+      {/* Componente del menú lateral - Solo se muestra si NO estamos en Mi Inmobiliaria Y NO estamos en páginas de Agente */}
+      {!isInInmobiliariaPage && !isInAgentPage && (
         <SidebarMenu 
           isOpen={isOpen}
           toggleMenu={toggleMenu}

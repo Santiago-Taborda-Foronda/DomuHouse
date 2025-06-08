@@ -26,7 +26,7 @@ export const PropiedadSeleccionada = () => {
       setError(null)
 
       // Obtener datos de la propiedad
-      const response = await fetch(`http://localhost:10101/api/properties/${propertyId}`)
+      const response = await fetch(`https://domuhouse.onrender.com/api/properties/${propertyId}`)
 
       if (!response.ok) {
         throw new Error(`Error ${response.status}: Propiedad no encontrada`)
@@ -49,7 +49,7 @@ export const PropiedadSeleccionada = () => {
   // Función para obtener imágenes de la propiedad
   const fetchPropertyImages = async (propertyId) => {
     try {
-      const response = await fetch(`http://localhost:10101/api/properties/${propertyId}/images`)
+      const response = await fetch(`https://domuhouse.onrender.com/api/properties/${propertyId}/images`)
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`)
@@ -86,7 +86,7 @@ export const PropiedadSeleccionada = () => {
   // Función para obtener propiedades relacionadas
   const fetchRelatedProperties = async (propertyId) => {
     try {
-      const response = await fetch(`http://localhost:10101/api/properties/related/${propertyId}`)
+      const response = await fetch(`https://domuhouse.onrender.com/api/properties/related/${propertyId}`)
 
       if (!response.ok) {
         throw new Error(`Error ${response.status}: No se pudieron cargar propiedades relacionadas`)

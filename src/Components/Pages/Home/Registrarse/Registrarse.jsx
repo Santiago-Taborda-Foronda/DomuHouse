@@ -218,7 +218,7 @@ export const Registrarse = () => {
     setSuccess("")
 
     try {
-      const endpoint = "http://localhost:10101/api/inmobiliarias"
+      const endpoint = "https://domuhouse.onrender.com/api/inmobiliarias"
       const formData = new FormData()
       formData.append("name", inmobiliariaData.nombre_inmobiliaria)
       formData.append("nit", inmobiliariaData.nit)

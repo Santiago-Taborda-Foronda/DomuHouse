@@ -30,6 +30,8 @@ import { GestionAgents } from './Components/Pages/GestionAgents/GestionAgents'
 import  TokenGenerationPage  from './Components/Pages/TokenGenerationPage/TokenGenerationPage'
 import { DashboardAdmin } from './Components/Pages/DashboardAdmin/DashboardAdmin'
 import { Contract } from './Components/Pages/contract/contract'
+import { VentasAlquileresAdmin } from './Components/Pages/VentasAlquileresAdmin/VentasAlquileresAdmin'
+import { ClientesAdmin } from './Components/Pages/ClientesAdmin/ClientesAdmin'
 
 
 export const App = () => {
@@ -58,6 +60,8 @@ export const App = () => {
       <Route path="/mi-inmobiliaria/gestion-agentes" element={<GestionAgents />} />
       <Route path="/mi-inmobiliaria/dashboard" element={<DashboardAdmin />} />
       <Route path="/mi-inmobiliaria/contratos" element={<Contract />} />
+      <Route path="/mi-inmobiliaria/ventas-alquileres" element={<VentasAlquileresAdmin />} />
+      <Route path="/mi-inmobiliaria/clientes" element={<ClientesAdmin />} />
 
       {/* Rutas del Agente  */}
         <Route path="/AgentDashboard" element={<AgentDashboard />} />

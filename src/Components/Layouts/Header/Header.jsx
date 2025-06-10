@@ -145,7 +145,7 @@ export const Header = ({ toggleSidebar }) => {
             {/* Botón Mi Inmobiliaria - Siempre presente */}
             <Button 
               name="Mi Inmobiliaria" 
-              Route="/mi-inmobiliaria/propiedades" 
+              Route="/mi-inmobiliaria/dashboard" 
               className="bg-[#2F8EAC] hover:bg-sky-600 active:bg-sky-700 transition duration-150 ease-in-out text-white px-3 py-2 rounded-xl text-sm"
             />
 

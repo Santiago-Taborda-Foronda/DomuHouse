@@ -32,6 +32,8 @@ import { DashboardAdmin } from './Components/Pages/DashboardAdmin/DashboardAdmin
 import { Contract } from './Components/Pages/contract/contract'
 import { VentasAlquileresAdmin } from './Components/Pages/VentasAlquileresAdmin/VentasAlquileresAdmin'
 import { ClientesAdmin } from './Components/Pages/ClientesAdmin/ClientesAdmin'
+import { AgendaAdmin } from './Components/Pages/AgendaAdmin/AgendaAdmin'
+import { ReportesInmobiliaria } from "./components/Pages/ReportesInmobiliaria/ReportesInmobiliaria";
 
 
 export const App = () => {
@@ -62,7 +64,8 @@ export const App = () => {
       <Route path="/mi-inmobiliaria/contratos" element={<Contract />} />
       <Route path="/mi-inmobiliaria/ventas-alquileres" element={<VentasAlquileresAdmin />} />
       <Route path="/mi-inmobiliaria/clientes" element={<ClientesAdmin />} />
-
+      <Route path="/mi-inmobiliaria/agenda" element={<AgendaAdmin />} />
+      <Route path="/mi-inmobiliaria/reportes" element={<ReportesInmobiliaria />} />
       {/* Rutas del Agente  */}
         <Route path="/AgentDashboard" element={<AgentDashboard />} />
         <Route path="MisPropiedades" element={<MisPropiedades />} />

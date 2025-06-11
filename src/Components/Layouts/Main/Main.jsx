@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react"
 import Casa from "../../../assets/images/casLujo2.jpg"
+import Casa2 from "../../../assets/images/Casa2.jpg"
 import { LuSettings2 } from "react-icons/lu"
 import { ChatDomu } from "../../UI/ChatDomu/ChatDomu"
 import { Button } from "../../UI/Button/Button"
@@ -163,7 +164,8 @@ export const Main = () => {
         <>
             <div
                 className="relative h-[500px] sm:h-[600px] md:h-[700px] lg:h-[800px] bg-cover bg-center flex flex-col justify-center items-center text-white text-center px-4 sm:px-6 md:px-8 lg:px-12"
-                style={{ backgroundImage: "url('/src/assets/images/Casa2.jpg')" }}
+                style={{ backgroundImage: `url(${Casa2})` }}
+
             >
                 <div className="absolute inset-0 bg-black/30 z-0"></div>
 

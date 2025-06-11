@@ -1,5 +1,3 @@
-"use client"
-
 import { useState, useEffect } from "react"
 import { useLocation, useParams } from "react-router-dom"
 import { ChevronLeft, ChevronRight } from "lucide-react"
@@ -19,27 +17,67 @@ export const PropiedadSeleccionada = () => {
   const [error, setError] = useState(null)
   const [images, setImages] = useState([])
 
+  // ✅ Función para obtener propiedades relacionadas
+  const fetchRelatedProperties = async (propertyId) => {
+    try {
+      console.log('🔗 Fetching related properties for:', propertyId);
+      
+      const response = await fetch(`http://localhost:10101/api/properties/approved`)
+      
+      if (!response.ok) {
+        console.warn('❌ Could not fetch related properties');
+        return;
+      }
+
+      const data = await response.json()
+      
+      if (data.success && Array.isArray(data.properties)) {
+        // Filtrar propiedades similares (excluyendo la actual)
+        const related = data.properties
+          .filter(prop => 
+            prop.property_id !== parseInt(propertyId) && 
+            prop.approved === true
+          )
+          .slice(0, 3); // Limitar a 3 propiedades relacionadas
+        
+        console.log(`✅ Found ${related.length} related properties`);
+        setRelatedProperties(related);
+      }
+    } catch (error) {
+      console.error('❌ Error fetching related properties:', error);
+      setRelatedProperties([]);
+    }
+  }
+
   // Función para obtener la propiedad
   const fetchProperty = async (propertyId) => {
     try {
       setLoading(true)
       setError(null)
 
-      // Obtener datos de la propiedad
-      const response = await fetch(`https://domuhouse.onrender.com/api/properties/${propertyId}`)
+      console.log('🔍 Fetching property with ID:', propertyId);
+
+      // ✅ NUEVA RUTA
+      const response = await fetch(`http://localhost:10101/api/properties/details/${propertyId}`)
 
       if (!response.ok) {
         throw new Error(`Error ${response.status}: Propiedad no encontrada`)
       }
 
       const data = await response.json()
+      console.log('✅ Property data received:', data);
 
-      // Usar los datos tal como vienen de la API
-      setProperty(data.property)
-      await fetchPropertyImages(propertyId)
-      fetchRelatedProperties(propertyId)
+      if (data.success && data.property) {
+        setProperty(data.property)
+        
+        // ✅ CARGAR IMÁGENES SEPARADAMENTE
+        await fetchPropertyImages(propertyId)
+        fetchRelatedProperties(propertyId)
+      } else {
+        throw new Error('No se pudo obtener la información de la propiedad')
+      }
     } catch (error) {
-      console.error("Error fetching property:", error)
+      console.error("❌ Error fetching property:", error)
       setError(error.message)
     } finally {
       setLoading(false)
@@ -49,98 +87,97 @@ export const PropiedadSeleccionada = () => {
   // Función para obtener imágenes de la propiedad
   const fetchPropertyImages = async (propertyId) => {
     try {
-      const response = await fetch(`https://domuhouse.onrender.com/api/properties/${propertyId}/images`)
+      console.log('🖼️ Fetching images for property:', propertyId);
+      
+      // ✅ NUEVA RUTA PARA IMÁGENES
+      const response = await fetch(`http://localhost:10101/api/properties/details/${propertyId}/images`)
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
+        console.warn(`❌ Images not available for property ${propertyId}: ${response.status}`)
+        setImages([])
+        return
       }
 
       const data = await response.json()
+      console.log('📸 Images response:', data)
 
-      // Procesar las imágenes
-      const processedImages = data.images
-        .map((img) => {
-          let imageUrl = img.url || img.image_url || img.path
-
-          // Si la URL no es absoluta, construir la URL completa
-          if (imageUrl && !imageUrl.startsWith("http")) {
-            imageUrl = `http://localhost:10101${imageUrl.startsWith("/") ? "" : "/"}${imageUrl}`
-          }
-
-          return {
-            id: img.id || `img-${Math.random().toString(36).substr(2, 9)}`,
-            url: imageUrl,
-            description: img.description || `Property image`,
-            is_main: img.is_main || false,
-          }
-        })
-        .filter((img) => img.url) // Filtra imágenes sin URL
-
-      setImages(processedImages)
-    } catch (error) {
-      console.error("Error fetching images:", error)
-      setImages([])
-    }
-  }
-
-  // Función para obtener propiedades relacionadas
-  const fetchRelatedProperties = async (propertyId) => {
-    try {
-      const response = await fetch(`https://domuhouse.onrender.com/api/properties/related/${propertyId}`)
-
-      if (!response.ok) {
-        throw new Error(`Error ${response.status}: No se pudieron cargar propiedades relacionadas`)
+      if (data.success && Array.isArray(data.images)) {
+        console.log(`✅ ${data.images.length} images loaded successfully`);
+        setImages(data.images);
+      } else {
+        console.warn('⚠️ No valid images found in response');
+        setImages([]);
       }
-
-      const data = await response.json()
-      setRelatedProperties(data.properties || [])
     } catch (error) {
-      console.error("Error fetching related properties:", error)
-      setRelatedProperties([])
+      console.error('❌ Error fetching images:', error);
+      setImages([]);
     }
   }
 
+  // ✅ Hook useEffect para cargar la propiedad
   useEffect(() => {
-    console.log("PropiedadSeleccionada - state:", state)
-    console.log("PropiedadSeleccionada - id:", id)
-
-    // Si tenemos la propiedad del estado de navegación, usarla
-    if (state?.property) {
-      console.log("Usando propiedad del state:", state.property)
-      setProperty(state.property)
-      setLoading(false)
-
-      // Cargar imágenes para la propiedad del estado
-      const propId = state.property.property_id || state.property.id
-      if (propId) {
-        fetchPropertyImages(propId)
-        fetchRelatedProperties(propId)
-      }
-    } else if (id) {
-      // Si no tenemos la propiedad en el estado, cargarla desde la API
-      console.log("Cargando propiedad desde API con ID:", id)
-      fetchProperty(id)
+    if (id) {
+      fetchProperty(id);
     } else {
-      setError("No se pudo identificar la propiedad")
-      setLoading(false)
+      setError('ID de propiedad no válido');
+      setLoading(false);
     }
-  }, [id, state])
+  }, [id]);
 
   // Función para obtener las imágenes a mostrar
   const getDisplayImages = () => {
-    // Si tenemos imágenes de la base de datos, usarlas
-    if (images.length > 0) {
-      return images.map((img) => img.url)
+    console.log('🖼️ getDisplayImages called');
+    console.log('📊 Current images state:', images);
+    console.log('📊 Current property state:', property);
+    
+    // ✅ PRIORIDAD 1: Imágenes del endpoint específico
+    if (images && images.length > 0) {
+      const imageUrls = images
+        .map((img) => {
+          console.log('🔍 Processing image:', img);
+          return img.url;
+        })
+        .filter(url => {
+          if (!url || url.trim() === '') {
+            console.warn('❌ Empty URL found');
+            return false;
+          }
+          
+          try {
+            new URL(url);
+            console.log('✅ Valid URL:', url);
+            return true;
+          } catch {
+            const isValidPath = url.startsWith('/') || url.includes('cloudinary.com') || url.includes('res.cloudinary.com');
+            console.log(isValidPath ? '✅ Valid path:' : '❌ Invalid URL:', url);
+            return isValidPath;
+          }
+        });
+
+      console.log('🎯 Final URLs to display:', imageUrls);
+      return imageUrls;
     }
 
-    // Si no hay imágenes de BD, usar fallback
+    // ✅ PRIORIDAD 2: Imágenes directas de la propiedad
+    if (property && property.images && Array.isArray(property.images) && property.images.length > 0) {
+      console.log('📸 Using property.images:', property.images);
+      return property.images.filter(url => url && url.trim() !== '');
+    }
+
+    // ✅ PRIORIDAD 3: URLs de imágenes de la propiedad
+    if (property && property.image_urls && Array.isArray(property.image_urls) && property.image_urls.length > 0) {
+      console.log('📸 Using property.image_urls:', property.image_urls);
+      return property.image_urls.filter(url => url && url.trim() !== '');
+    }
+
+    console.log('⚠️ No images available, using fallback');
+    // ✅ FALLBACK: Imágenes por defecto
     return [
       "https://images.unsplash.com/photo-1560518883-ce09059eeffa?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
       "https://images.unsplash.com/photo-1484154218962-a197022b5858?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-      "https://images.unsplash.com/photo-1583608205776-bfd35f0d9f83?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-      "https://images.unsplash.com/photo-1570129477492-45c003edd2be?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-    ]
-  }
+      "https://images.unsplash.com/photo-1583608205776-bfd35f0d9f83?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
+    ];
+  };
 
   // Funciones para el carrusel
   const displayImages = getDisplayImages()
@@ -158,19 +195,31 @@ export const PropiedadSeleccionada = () => {
     setCurrentSlide(index)
   }
 
-  // Función para manejar errores de carga de imágenes
+  // ✅ Función mejorada para manejar errores de carga de imágenes
   const handleImageError = (e, imageUrl, index) => {
+    console.error(`❌ Error loading image: ${imageUrl}`);
+    
+    // Prevenir loops infinitos
+    if (e.target.dataset.fallbackAttempt) {
+      console.log('🔄 Using final placeholder');
+      e.target.src = "data:image/svg+xml,%3csvg width='800' height='600' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='%23f3f4f6'/%3e%3ctext x='50%25' y='50%25' font-size='24' text-anchor='middle' dy='.3em' fill='%239ca3af'%3eImagen no disponible%3c/text%3e%3c/svg%3e";
+      return;
+    }
+    
+    // Marcar que ya intentamos el fallback
+    e.target.dataset.fallbackAttempt = "true";
+    
+    // Intentar con diferentes fallbacks
     const fallbackImages = [
       "https://images.unsplash.com/photo-1560518883-ce09059eeffa?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
       "https://images.unsplash.com/photo-1484154218962-a197022b5858?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-      "https://images.unsplash.com/photo-1583608205776-bfd35f0d9f83?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-      "https://images.unsplash.com/photo-1570129477492-45c003edd2be?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-    ]
+      "https://images.unsplash.com/photo-1583608205776-bfd35f0d9f83?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
+    ];
 
-    const fallbackIndex = index % fallbackImages.length
-    e.target.src = fallbackImages[fallbackIndex]
-    e.target.onerror = null // Evitar loops infinitos
-  }
+    const fallbackIndex = index % fallbackImages.length;
+    console.log(`🔄 Trying fallback ${fallbackIndex + 1}:`, fallbackImages[fallbackIndex]);
+    e.target.src = fallbackImages[fallbackIndex];
+  };
 
   // Función para formatear precio
   const formatPrice = (price) => {
@@ -236,6 +285,7 @@ export const PropiedadSeleccionada = () => {
           .toUpperCase()
       : "AG",
   }
+
 
   return (
     <>
@@ -337,12 +387,21 @@ export const PropiedadSeleccionada = () => {
                     const globalIndex = slideIndex * 3 + imageIndex
                     return (
                       <div key={globalIndex} className="flex-1 h-full relative">
-                        <img
+                       <img
                           src={imageUrl || "/placeholder.svg"}
                           alt={`Imagen ${globalIndex + 1} de la propiedad`}
                           className="w-full h-full object-cover rounded-lg"
                           onError={(e) => handleImageError(e, imageUrl, globalIndex)}
+                          onLoad={(e) => {
+                            console.log(`✅ Image loaded successfully: ${imageUrl}`);
+                            e.target.style.opacity = '1';
+                          }}
                           loading={globalIndex < 3 ? "eager" : "lazy"}
+                          style={{ 
+                            opacity: 1, // Remove the initial opacity: 0
+                            transition: 'opacity 0.3s ease-in-out'
+                          }}
+                          // Remove crossOrigin="anonymous" as it can cause CORS issues
                         />
 
                         {/* Overlay con información de la imagen */}

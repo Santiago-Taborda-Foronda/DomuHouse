@@ -71,6 +71,11 @@ const propiedadesIniciales = [
 export default function MiInmobiliaria() {
   const navigate = useNavigate();
   const location = useLocation();
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
+
+  const toggleSidebar = () => {
+  setIsSidebarOpen(!isSidebarOpen)
+}
   // Removemos el estado sidebarOpen ya que siempre estará visible
   const [propiedades, setPropiedades] = useState(propiedadesIniciales)
   const [filtros, setFiltros] = useState({
@@ -219,23 +224,31 @@ export default function MiInmobiliaria() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header sin el botón de hamburguesa */}
-      <Header hasSidebar={true} />
+      <Header toggleSidebar={toggleSidebar} />
       
       {/* Layout principal con sidebar fijo */}
       <div className="flex pt-16">
         {/* Sidebar fijo siempre visible */}
-        <div className="fixed left-0 top-16 h-[calc(100vh-4rem)] w-72 bg-white shadow-lg border-r border-gray-200 overflow-y-auto z-30">
+        <div className="hidden lg:block fixed left-0 top-16 h-[calc(100vh-4rem)] w-72 bg-white shadow-lg border-r border-gray-200 overflow-y-auto z-30">
           <SidebarInmobiliaria 
-            isOpen={true} // Siempre abierto
-            toggleMenu={() => {}} // Función vacía ya que no se necesita toggle
+            isOpen={true}
+            toggleMenu={() => {}}
             isAuthenticated={isAuthenticated}
             handleLogout={handleLogout}
-            isFixedLayout={true} // Nueva prop para indicar que es layout fijo
+            isFixedLayout={true}
           />
         </div>
 
+        <SidebarInmobiliaria 
+          isOpen={isSidebarOpen}   
+          toggleMenu={toggleSidebar}
+          isAuthenticated={isAuthenticated}
+          handleLogout={handleLogout}
+          isFixedLayout={false}
+        />
+
         {/* Contenido principal con margen izquierdo para el sidebar */}
-        <main className="flex-1 ml-72">
+        <main className="flex-1 lg:ml-72 transition-all duration-300">
           <div className="p-6">
             {/* Header de la página */}
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">

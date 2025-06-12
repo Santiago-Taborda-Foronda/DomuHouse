@@ -74,9 +74,10 @@ export default function MiInmobiliaria() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
 
   const toggleSidebar = () => {
-  setIsSidebarOpen(!isSidebarOpen)
-}
-  // Removemos el estado sidebarOpen ya que siempre estará visible
+    setIsSidebarOpen(!isSidebarOpen)
+  }
+
+  // Estados existentes
   const [propiedades, setPropiedades] = useState(propiedadesIniciales)
   const [filtros, setFiltros] = useState({
     estado: '',
@@ -223,12 +224,12 @@ export default function MiInmobiliaria() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header sin el botón de hamburguesa */}
+      {/* Header con botón hamburguesa */}
       <Header toggleSidebar={toggleSidebar} />
       
-      {/* Layout principal con sidebar fijo */}
+      {/* Layout principal con sidebar responsivo */}
       <div className="flex pt-16">
-        {/* Sidebar fijo siempre visible */}
+        {/* Sidebar fijo para desktop (lg y superiores) */}
         <div className="hidden lg:block fixed left-0 top-16 h-[calc(100vh-4rem)] w-72 bg-white shadow-lg border-r border-gray-200 overflow-y-auto z-30">
           <SidebarInmobiliaria 
             isOpen={true}
@@ -239,6 +240,7 @@ export default function MiInmobiliaria() {
           />
         </div>
 
+        {/* Sidebar overlay para móviles y tablets */}
         <SidebarInmobiliaria 
           isOpen={isSidebarOpen}   
           toggleMenu={toggleSidebar}
@@ -247,38 +249,42 @@ export default function MiInmobiliaria() {
           isFixedLayout={false}
         />
 
-        {/* Contenido principal con margen izquierdo para el sidebar */}
+        {/* Contenido principal con margen responsivo */}
         <main className="flex-1 lg:ml-72 transition-all duration-300">
-          <div className="p-6">
-            {/* Header de la página */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
-              <div>
-                <h1 className="text-3xl font-bold text-gray-900">Gestión de Propiedades</h1>
-                <p className="text-gray-600 text-sm mt-1">
-                  Administra y gestiona todas tus propiedades ({propiedadesFiltradas.length} propiedades)
-                </p>
+          <div className="p-3 sm:p-4 lg:p-6">
+            {/* Header de la página - Responsivo */}
+            <div className="flex flex-col gap-4 mb-6 lg:mb-8">
+              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                <div className="flex-1">
+                  <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1">
+                    Gestión de Propiedades
+                  </h1>
+                  <p className="text-gray-600 text-sm">
+                    Administra y gestiona todas tus propiedades ({propiedadesFiltradas.length} propiedades)
+                  </p>
+                </div>
+                <button 
+                  onClick={() => navigate('/agregar-propiedad')}
+                  className="flex items-center justify-center gap-2 bg-[#2F8EAC] text-white px-4 sm:px-6 py-3 rounded-xl hover:bg-[#267a95] transition-colors font-medium shadow-sm w-full sm:w-auto"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span className="whitespace-nowrap">Nueva Propiedad</span>
+                </button>
               </div>
-              <button 
-                onClick={() => navigate('/agregar-propiedad')}
-                className="flex items-center gap-2 bg-[#2F8EAC] text-white px-6 py-3 rounded-xl hover:bg-[#267a95] transition-colors font-medium shadow-sm"
-              >
-                <Plus className="w-4 h-4" />
-                Nueva Propiedad
-              </button>
             </div>
 
-            {/* Panel de filtros */}
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
+            {/* Panel de filtros - Completamente responsivo */}
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6 mb-4 sm:mb-6">
               <div className="flex items-center gap-2 mb-4">
                 <Filter className="w-5 h-5 text-gray-400" />
                 <h3 className="font-semibold text-gray-800">Filtros de búsqueda</h3>
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Estado</label>
                   <select 
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#2F8EAC] focus:border-[#2F8EAC] transition-colors"
+                    className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#2F8EAC] focus:border-[#2F8EAC] transition-colors text-sm"
                     value={filtros.estado}
                     onChange={(e) => handleFiltroChange('estado', e.target.value)}
                   >
@@ -293,7 +299,7 @@ export default function MiInmobiliaria() {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Tipo</label>
                   <select 
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#2F8EAC] focus:border-[#2F8EAC] transition-colors"
+                    className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#2F8EAC] focus:border-[#2F8EAC] transition-colors text-sm"
                     value={filtros.tipo}
                     onChange={(e) => handleFiltroChange('tipo', e.target.value)}
                   >
@@ -309,7 +315,7 @@ export default function MiInmobiliaria() {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Agente</label>
                   <select 
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#2F8EAC] focus:border-[#2F8EAC] transition-colors"
+                    className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#2F8EAC] focus:border-[#2F8EAC] transition-colors text-sm"
                     value={filtros.agente}
                     onChange={(e) => handleFiltroChange('agente', e.target.value)}
                   >
@@ -320,14 +326,14 @@ export default function MiInmobiliaria() {
                   </select>
                 </div>
                 
-                <div>
+                <div className="sm:col-span-2 lg:col-span-1">
                   <label className="block text-sm font-medium text-gray-700 mb-2">Búsqueda</label>
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                     <input 
                       type="text"
                       placeholder="Buscar propiedades..."
-                      className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#2F8EAC] focus:border-[#2F8EAC] transition-colors"
+                      className="w-full pl-10 pr-3 sm:pr-4 py-2.5 sm:py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#2F8EAC] focus:border-[#2F8EAC] transition-colors text-sm"
                       value={filtros.busqueda}
                       onChange={(e) => handleFiltroChange('busqueda', e.target.value)}
                     />
@@ -336,18 +342,18 @@ export default function MiInmobiliaria() {
               </div>
             </div>
 
-            {/* Tabla de propiedades */}
+            {/* Contenedor de propiedades - Vista adaptativa */}
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-              <div className="px-6 py-4 border-b border-gray-100">
+              <div className="px-4 sm:px-6 py-4 border-b border-gray-100">
                 <h3 className="font-semibold text-gray-800">Lista de Propiedades</h3>
                 <p className="text-sm text-gray-500">Gestiona y edita tus propiedades</p>
               </div>
               
               {propiedadesFiltradas.length === 0 ? (
-                <div className="text-center py-12">
-                  <Building2 className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                <div className="text-center py-8 sm:py-12 px-4">
+                  <Building2 className="w-12 sm:w-16 h-12 sm:h-16 text-gray-300 mx-auto mb-4" />
                   <h3 className="text-lg font-medium text-gray-900 mb-2">No hay propiedades</h3>
-                  <p className="text-gray-500 mb-4">
+                  <p className="text-gray-500 mb-4 text-sm sm:text-base">
                     {propiedades.length === 0 
                       ? 'Aún no has agregado ninguna propiedad.' 
                       : 'No se encontraron propiedades con los filtros seleccionados.'
@@ -363,36 +369,116 @@ export default function MiInmobiliaria() {
                   )}
                 </div>
               ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                          Propiedad
-                        </th>
-                        <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                          Detalles
-                        </th>
-                        <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                          Precio
-                        </th>
-                        <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                          Estado
-                        </th>
-                        <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                          Agente
-                        </th>
-                        <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                          Acciones
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-100">
+                <>
+                  {/* Vista de tabla para desktop */}
+                  <div className="hidden lg:block overflow-x-auto">
+                    <table className="w-full">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                            Propiedad
+                          </th>
+                          <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                            Detalles
+                          </th>
+                          <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                            Precio
+                          </th>
+                          <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                            Estado
+                          </th>
+                          <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                            Agente
+                          </th>
+                          <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                            Acciones
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-100">
+                        {propiedadesFiltradas.map((propiedad) => (
+                          <tr key={propiedad.id} className="hover:bg-gray-50 transition-colors">
+                            <td className="px-6 py-4">
+                              <div className="flex items-center gap-4">
+                                <div className="w-16 h-12 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden">
+                                  {propiedad.images && propiedad.images.length > 0 ? (
+                                    <img 
+                                      src={propiedad.images[0]} 
+                                      alt={propiedad.title}
+                                      className="w-full h-full object-cover"
+                                    />
+                                  ) : (
+                                    <Building2 className="w-6 h-6 text-gray-400" />
+                                  )}
+                                </div>
+                                <div>
+                                  <div className="text-sm font-semibold text-gray-900">{propiedad.title}</div>
+                                  <div className="text-xs text-gray-500">{formatearTipo(propiedad.type)}</div>
+                                  <div className="text-xs text-gray-400">{propiedad.address}</div>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="px-6 py-4">
+                              <div className="text-sm text-gray-600">
+                                <div>{propiedad.rooms} hab • {propiedad.bathrooms} baños</div>
+                                <div className="text-xs text-gray-500">{propiedad.area} m²</div>
+                                <div className="text-xs text-blue-600 capitalize">{propiedad.propertyType}</div>
+                              </div>
+                            </td>
+                            <td className="px-6 py-4">
+                              <div className="text-sm font-semibold text-gray-900">
+                                {formatearPrecio(propiedad.price)}
+                              </div>
+                            </td>
+                            <td className="px-6 py-4">
+                              <span className={`inline-flex px-3 py-1 text-xs font-medium rounded-full ${getEstadoColor(propiedad.status)}`}>
+                                {propiedad.status}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4">
+                              <div className="text-sm text-gray-900">{propiedad.agent.name}</div>
+                              <div className="text-xs text-gray-500">{propiedad.agent.phone}</div>
+                            </td>
+                            <td className="px-6 py-4">
+                              <div className="flex items-center gap-2">
+                                <button 
+                                  onClick={() => verPropiedad(propiedad.id)}
+                                  className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                  title="Ver detalles"
+                                >
+                                  <Eye className="w-4 h-4" />
+                                </button>
+                                <button 
+                                  onClick={() => editarPropiedad(propiedad.id)}
+                                  className="p-2 text-sky-600 hover:bg-green-50 rounded-lg transition-colors"
+                                  title="Editar propiedad"
+                                >
+                                  <Edit className="w-4 h-4" />
+                                </button>
+                                <button 
+                                  onClick={() => eliminarPropiedad(propiedad.id)}
+                                  className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                  title="Eliminar propiedad"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Vista de tarjetas para móvil y tablet */}
+                  <div className="lg:hidden">
+                    <div className="divide-y divide-gray-100">
                       {propiedadesFiltradas.map((propiedad) => (
-                        <tr key={propiedad.id} className="hover:bg-gray-50 transition-colors">
-                          <td className="px-6 py-4">
-                            <div className="flex items-center gap-4">
-                              <div className="w-16 h-12 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden">
+                        <div key={propiedad.id} className="p-4 sm:p-6 hover:bg-gray-50 transition-colors">
+                          <div className="flex flex-col space-y-3">
+                            {/* Header de la tarjeta */}
+                            <div className="flex items-start gap-3">
+                              <div className="w-16 h-12 sm:w-20 sm:h-16 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden flex-shrink-0">
                                 {propiedad.images && propiedad.images.length > 0 ? (
                                   <img 
                                     src={propiedad.images[0]} 
@@ -403,64 +489,75 @@ export default function MiInmobiliaria() {
                                   <Building2 className="w-6 h-6 text-gray-400" />
                                 )}
                               </div>
-                              <div>
-                                <div className="text-sm font-semibold text-gray-900">{propiedad.title}</div>
-                                <div className="text-xs text-gray-500">{formatearTipo(propiedad.type)}</div>
-                                <div className="text-xs text-gray-400">{propiedad.address}</div>
+                              <div className="flex-1 min-w-0">
+                                <h3 className="text-base sm:text-lg font-semibold text-gray-900 truncate">
+                                  {propiedad.title}
+                                </h3>
+                                <p className="text-sm text-gray-500">{formatearTipo(propiedad.type)}</p>
+                                <p className="text-xs text-gray-400 truncate">{propiedad.address}</p>
+                              </div>
+                              <div className="flex-shrink-0 text-right">
+                                <div className="text-base sm:text-lg font-bold text-gray-900">
+                                  {formatearPrecio(propiedad.price)}
+                                </div>
+                                <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${getEstadoColor(propiedad.status)}`}>
+                                  {propiedad.status}
+                                </span>
                               </div>
                             </div>
-                          </td>
-                          <td className="px-6 py-4">
-                            <div className="text-sm text-gray-600">
-                              <div>{propiedad.rooms} hab • {propiedad.bathrooms} baños</div>
-                              <div className="text-xs text-gray-500">{propiedad.area} m²</div>
-                              <div className="text-xs text-blue-600 capitalize">{propiedad.propertyType}</div>
+
+                            {/* Detalles de la propiedad */}
+                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-sm">
+                              <div className="text-gray-600">
+                                <span className="font-medium">{propiedad.rooms}</span> habitaciones
+                              </div>
+                              <div className="text-gray-600">
+                                <span className="font-medium">{propiedad.bathrooms}</span> baños
+                              </div>
+                              <div className="text-gray-600">
+                                <span className="font-medium">{propiedad.area}</span> m²
+                              </div>
                             </div>
-                          </td>
-                          <td className="px-6 py-4">
-                            <div className="text-sm font-semibold text-gray-900">
-                              {formatearPrecio(propiedad.price)}
+
+                            {/* Información del agente */}
+                            <div className="bg-gray-50 rounded-lg p-3">
+                              <div className="text-sm">
+                                <div className="font-medium text-gray-900">{propiedad.agent.name}</div>
+                                <div className="text-gray-600">{propiedad.agent.phone}</div>
+                                <div className="text-xs text-blue-600 capitalize mt-1">{propiedad.propertyType}</div>
+                              </div>
                             </div>
-                          </td>
-                          <td className="px-6 py-4">
-                            <span className={`inline-flex px-3 py-1 text-xs font-medium rounded-full ${getEstadoColor(propiedad.status)}`}>
-                              {propiedad.status}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4">
-                            <div className="text-sm text-gray-900">{propiedad.agent.name}</div>
-                            <div className="text-xs text-gray-500">{propiedad.agent.phone}</div>
-                          </td>
-                          <td className="px-6 py-4">
-                            <div className="flex items-center gap-2">
+
+                            {/* Botones de acción */}
+                            <div className="flex items-center justify-center gap-2 pt-2">
                               <button 
                                 onClick={() => verPropiedad(propiedad.id)}
-                                className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                                title="Ver detalles"
+                                className="flex-1 flex items-center justify-center gap-2 p-3 text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
                               >
                                 <Eye className="w-4 h-4" />
+                                <span className="text-sm font-medium">Ver</span>
                               </button>
                               <button 
                                 onClick={() => editarPropiedad(propiedad.id)}
-                                className="p-2 text-sky-600 hover:bg-green-50 rounded-lg transition-colors"
-                                title="Editar propiedad"
+                                className="flex-1 flex items-center justify-center gap-2 p-3 text-green-600 bg-green-50 hover:bg-green-100 rounded-lg transition-colors"
                               >
                                 <Edit className="w-4 h-4" />
+                                <span className="text-sm font-medium">Editar</span>
                               </button>
                               <button 
                                 onClick={() => eliminarPropiedad(propiedad.id)}
-                                className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                                title="Eliminar propiedad"
+                                className="flex-1 flex items-center justify-center gap-2 p-3 text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors"
                               >
                                 <Trash2 className="w-4 h-4" />
+                                <span className="text-sm font-medium">Eliminar</span>
                               </button>
                             </div>
-                          </td>
-                        </tr>
+                          </div>
+                        </div>
                       ))}
-                    </tbody>
-                  </table>
-                </div>
+                    </div>
+                  </div>
+                </>
               )}
             </div>
           </div>

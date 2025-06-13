@@ -71,10 +71,10 @@ const PropertyCard = ({ address, title, rooms, bathrooms, area, price, type, age
             <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-[#2F8EAC] to-[#1e6b7a] flex items-center justify-center text-white text-xs sm:text-sm font-bold shadow-md">
               {agentName
                 ? agentName
-                  .split(" ")
-                  .map((n) => n[0])
-                  .join("")
-                  .substring(0, 2)
+                    .split(" ")
+                    .map((n) => n[0])
+                    .join("")
+                    .substring(0, 2)
                 : "AG"}
             </div>
             <span className="text-xs sm:text-sm text-gray-700 font-medium">{agentName}</span>
@@ -108,12 +108,14 @@ export const Main = () => {
 
   const toggleAdvanced = () => setShowAdvanced(!showAdvanced)
 
+  const API_BASE_URL = "http://localhost:10101"
+
   // Cargar propiedades iniciales
   useEffect(() => {
     const fetchProperties = async () => {
       setIsLoading(true)
       try {
-        const res = await fetch("http://localhost:10101/api/properties/approved")
+        const res = await fetch(`${API_BASE_URL}/api/properties/approved`)
 
         if (!res.ok) {
           throw new Error(`HTTP error! status: ${res.status}`)
@@ -143,50 +145,109 @@ export const Main = () => {
     fetchProperties()
   }, [])
 
-  // 🔧 FUNCIÓN DE BÚSQUEDA AUTOMÁTICA CORREGIDA
-  const handleAutoSearch = async (newFilters) => {
-    setIsLoading(true)
-    setError(null)
+  // ✅ FUNCIÓN MEJORADA PARA MANEJAR CLICKS DE TIPO DE OPERACIÓN
+ const handleOperationTypeClick = async (operationType) => {
+  console.log(`🏠 Filtro seleccionado: ${operationType}`)
 
-    try {
-      const searchParams = {
-        ...newFilters,
-        price_max: priceRange,
-      }
-
-      console.log('🔍 Búsqueda automática con parámetros:', searchParams)
-
-      const queryParams = new URLSearchParams()
-      Object.entries(searchParams).forEach(([key, value]) => {
-        if (value && value !== "") {
-          queryParams.append(key, value.toString())
-        }
-      })
-
-      const response = await fetch(`http://localhost:10101/busqueda/search?${queryParams}`)
-
-      if (!response.ok) {
-        throw new Error(`Search failed: ${response.status}`)
-      }
-
-      const data = await response.json()
-      console.log("Resultado de búsqueda automática:", data)
-
-      if (Array.isArray(data)) {
-        setProperties(data)
-      } else if (data.success && Array.isArray(data.properties)) {
-        setProperties(data.properties)
-      } else {
-        setProperties([])
-      }
-    } catch (error) {
-      console.error("Error en la búsqueda automática:", error)
-      setError("Error al filtrar propiedades: " + error.message)
-    } finally {
-      setIsLoading(false)
-    }
+  // Prevenir múltiples clicks mientras se carga
+  if (isLoading) {
+    console.log("⏳ Ya hay una búsqueda en progreso...")
+    return
   }
 
+  setIsLoading(true)
+  setError(null)
+
+  try {
+    // ✅ FIX: Actualizar los filtros correctamente
+    const newFilters = { ...filters, operation_type: operationType }
+    setFilters(newFilters)
+
+    // ✅ FIX: Construir la URL correctamente
+    const queryParams = new URLSearchParams()
+    queryParams.append("operation_type", operationType)
+
+    const url = `${API_BASE_URL}/api/search/search?${queryParams.toString()}`
+    console.log(`🔗 Fetching: ${url}`)
+
+    // ✅ FIX: Hacer la petición correctamente
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 15000) // Aumentar timeout
+
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        // ✅ Agregar headers adicionales si es necesario
+        "Accept": "application/json",
+      },
+      signal: controller.signal,
+    })
+
+    clearTimeout(timeoutId)
+
+    console.log(`📊 Response status: ${response.status}`)
+    console.log(`📊 Response headers:`, response.headers)
+
+    if (!response.ok) {
+      // ✅ FIX: Manejo de errores más específico
+      const errorText = await response.text()
+      console.error(`❌ Error response: ${errorText}`)
+      throw new Error(`HTTP Error: ${response.status} - ${response.statusText}. Details: ${errorText}`)
+    }
+
+    const data = await response.json()
+    console.log(`📊 Datos recibidos para ${operationType}:`, data)
+
+    // ✅ FIX: Procesamiento de respuesta más robusto
+    let propertiesToSet = []
+
+    if (Array.isArray(data)) {
+      propertiesToSet = data
+    } else if (data && data.success && Array.isArray(data.properties)) {
+      propertiesToSet = data.properties
+    } else if (data && data.properties && Array.isArray(data.properties)) {
+      propertiesToSet = data.properties
+    } else if (data && data.data && Array.isArray(data.data)) {
+      propertiesToSet = data.data
+    } else if (data && data.results && Array.isArray(data.results)) {
+      propertiesToSet = data.results
+    } else {
+      console.warn("❌ Formato de datos inesperado:", data)
+      propertiesToSet = []
+    }
+
+    setProperties(propertiesToSet)
+
+    if (propertiesToSet.length === 0) {
+      console.warn(`⚠️ No se encontraron propiedades para ${operationType}`)
+      setError(`No se encontraron propiedades en ${operationType.toLowerCase()}`)
+    } else {
+      console.log(`✅ ${propertiesToSet.length} propiedades encontradas para ${operationType}`)
+      setError(null)
+    }
+
+  } catch (error) {
+    console.error(`❌ Error al filtrar por ${operationType}:`, error)
+
+    if (error.name === "AbortError") {
+      setError("La búsqueda tardó demasiado tiempo. Intenta nuevamente.")
+    } else if (error.message.includes("Failed to fetch")) {
+      setError("Error de conexión. Verifica que el servidor esté funcionando en el puerto 10101.")
+    } else if (error.message.includes("NetworkError")) {
+      setError("Error de red. Verifica tu conexión a internet.")
+    } else {
+      setError(`Error al filtrar propiedades: ${error.message}`)
+    }
+
+    // ✅ FIX: No limpiar las propiedades si hay error, mantener las anteriores
+    // setProperties([]) // Comentado para mantener propiedades anteriores
+  } finally {
+    setIsLoading(false)
+  }
+}
+
+  // ✅ FUNCIÓN DE BÚSQUEDA PRINCIPAL MEJORADA
   const handleSearch = async (e) => {
     e.preventDefault()
     setIsLoading(true)
@@ -212,7 +273,7 @@ export const Main = () => {
         if (formData.get("parking_spaces")) searchParams.parking_spaces = formData.get("parking_spaces")
       }
 
-      console.log('🔍 Parámetros de búsqueda:', searchParams)
+      console.log("🔍 Parámetros de búsqueda:", searchParams)
 
       const queryParams = new URLSearchParams()
       Object.entries(searchParams).forEach(([key, value]) => {
@@ -221,9 +282,9 @@ export const Main = () => {
         }
       })
 
-      console.log('🔗 Query string:', queryParams.toString())
+      console.log("🔗 Query string:", queryParams.toString())
 
-      const response = await fetch(`http://localhost:10101/busqueda/search?${queryParams}`)
+      const response = await fetch(`${API_BASE_URL}/api/search/search?${queryParams}`)
 
       if (!response.ok) {
         throw new Error(`Search failed: ${response.status}`)
@@ -248,7 +309,6 @@ export const Main = () => {
     }
   }
 
-  // ✅ FUNCIÓN SIMPLIFICADA Y CORREGIDA
   const handlePropertyClick = (property) => {
     console.log("Propiedad seleccionada:", property)
 
@@ -257,7 +317,6 @@ export const Main = () => {
       return
     }
 
-    // Obtener el ID de la propiedad
     const propId = property.property_id || property.id
 
     if (!propId) {
@@ -266,7 +325,6 @@ export const Main = () => {
     }
 
     try {
-      // Navegar con la propiedad completa en el state
       navigate(`/propiedad/${propId}`, {
         state: {
           property: property,
@@ -280,41 +338,15 @@ export const Main = () => {
     }
   }
 
-  // 🔧 FUNCIÓN PARA MANEJAR FILTROS DE BOTONES CORREGIDA
   const handleFilterClick = (filterType, value) => {
     console.log(`🔧 Aplicando filtro: ${filterType} = ${value}`)
-    
-    // Crear los nuevos filtros
     const newFilters = { ...filters, [filterType]: value }
-    
-    // Actualizar el estado
     setFilters(newFilters)
-    
-    // Si es un filtro de operation_type, aplicar búsqueda automáticamente
-    if (filterType === 'operation_type') {
-      // Ejecutar búsqueda con los nuevos filtros
-      handleAutoSearch(newFilters)
-    }
   }
 
-  // 🔧 FUNCIÓN PARA MANEJAR LOS BOTONES DE VENTA/ARRIENDO
-  const handleOperationTypeClick = (operationType) => {
-    console.log(`🏠 Filtro de operación seleccionado: ${operationType}`)
-    
-    // Actualizar los filtros con el tipo de operación
-    const newFilters = { 
-      ...filters, 
-      operation_type: operationType 
-    }
-    
-    // Actualizar el estado inmediatamente
-    setFilters(newFilters)
-    
-    // Ejecutar la búsqueda automática
-    handleAutoSearch(newFilters)
-  }
+  const resetFilters = async () => {
+    console.log("🔄 Reseteando filtros...")
 
-  const resetFilters = () => {
     setFilters({
       operation_type: "",
       property_type: "",
@@ -330,32 +362,28 @@ export const Main = () => {
     setShowAdvanced(false)
 
     // Recargar todas las propiedades
-    const fetchAllProperties = async () => {
-      setIsLoading(true)
-      try {
-        const res = await fetch("http://localhost:10101/api/properties/approved")
-        if (!res.ok) {
-          throw new Error(`HTTP error! status: ${res.status}`)
-        }
-        const data = await res.json()
-
-        if (data.success && Array.isArray(data.properties)) {
-          setProperties(data.properties)
-        } else if (Array.isArray(data)) {
-          setProperties(data)
-        } else {
-          setProperties([])
-        }
-        setError(null)
-      } catch (error) {
-        console.error("Error al cargar propiedades:", error)
-        setError("Error al cargar propiedades: " + error.message)
-      } finally {
-        setIsLoading(false)
+    setIsLoading(true)
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/properties/approved`)
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`)
       }
-    }
+      const data = await res.json()
 
-    fetchAllProperties()
+      if (data.success && Array.isArray(data.properties)) {
+        setProperties(data.properties)
+      } else if (Array.isArray(data)) {
+        setProperties(data)
+      } else {
+        setProperties([])
+      }
+      setError(null)
+    } catch (error) {
+      console.error("Error al cargar propiedades:", error)
+      setError("Error al cargar propiedades: " + error.message)
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -373,25 +401,48 @@ export const Main = () => {
             Encuentra Tu Lugar Ideal
           </h1>
 
-          {/* Botones de tipo de operación */}
-           <div className="flex flex-row gap-3 sm:gap-4 mb-4 sm:mb-6">
-            <Button
-              name="Venta"
-              className={`rounded-2xl px-4 xs:px-6 sm:px-8 lg:px-10 py-1.5 xs:py-2 text-xs xs:text-sm sm:text-base transition-all duration-300 ${filters.operation_type === "Venta"
-                ? "bg-[#2F8EAC] text-white border-2 border-[#2F8EAC]"
-                : "bg-transparent border-2 border-white text-white hover:bg-white hover:text-[#2F8EAC]"
-                }`}
-              onClick={() => handleOperationTypeClick("Venta")}
-            />
-            <Button
-              name="Arriendo"
-              className={`rounded-2xl px-4 xs:px-6 sm:px-8 lg:px-10 py-1.5 xs:py-2 text-xs xs:text-sm sm:text-base transition-all duration-300 ${filters.operation_type === "Arriendo"
-                ? "bg-[#2F8EAC] text-white border-2 border-[#2F8EAC]"
-                : "bg-transparent border-2 border-white text-white hover:bg-white hover:text-[#2F8EAC]"
-                }`}
-              onClick={() => handleOperationTypeClick("Arriendo")}
-            />
-          </div>
+          {/* Botones de tipo de operación - MEJORADOS */}
+          <div className="flex flex-row gap-3 sm:gap-4 mb-4 sm:mb-6">
+  <button
+    type="button" // ✅ FIX: Especificar type="button" para evitar submit del form
+    onClick={(e) => {
+      e.preventDefault() // ✅ FIX: Prevenir comportamiento por defecto
+      e.stopPropagation() // ✅ FIX: Evitar propagación del evento
+      if (!isLoading) {
+        console.log("🔥 Botón Venta clickado")
+        handleOperationTypeClick("Venta")
+      }
+    }}
+    disabled={isLoading}
+    className={`rounded-2xl px-4 xs:px-6 sm:px-8 lg:px-10 py-1.5 xs:py-2 text-xs xs:text-sm sm:text-base transition-all duration-300 ${
+      filters.operation_type === "Venta"
+        ? "bg-[#2F8EAC] text-white border-2 border-[#2F8EAC] shadow-lg transform scale-105"
+        : "bg-transparent border-2 border-white text-white hover:bg-white hover:text-[#2F8EAC] hover:scale-105"
+    } ${isLoading ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:shadow-lg"}`}
+  >
+    {isLoading && filters.operation_type === "Venta" ? "Buscando..." : "Venta"}
+  </button>
+  
+  <button
+    type="button" // ✅ FIX: Especificar type="button"
+    onClick={(e) => {
+      e.preventDefault() // ✅ FIX: Prevenir comportamiento por defecto
+      e.stopPropagation() // ✅ FIX: Evitar propagación del evento
+      if (!isLoading) {
+        console.log("🔥 Botón Arriendo clickado")
+        handleOperationTypeClick("Arriendo")
+      }
+    }}
+    disabled={isLoading}
+    className={`rounded-2xl px-4 xs:px-6 sm:px-8 lg:px-10 py-1.5 xs:py-2 text-xs xs:text-sm sm:text-base transition-all duration-300 ${
+      filters.operation_type === "Arriendo"
+        ? "bg-[#2F8EAC] text-white border-2 border-[#2F8EAC] shadow-lg transform scale-105"
+        : "bg-transparent border-2 border-white text-white hover:bg-white hover:text-[#2F8EAC] hover:scale-105"
+    } ${isLoading ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:shadow-lg"}`}
+  >
+    {isLoading && filters.operation_type === "Arriendo" ? "Buscando..." : "Arriendo"}
+  </button>
+</div>
 
           {/* Formulario de búsqueda */}
           <form
@@ -470,11 +521,8 @@ export const Main = () => {
         </div>
 
         {/* Panel de Búsqueda Avanzada */}
-        {/* Panel de Búsqueda Avanzada */}
         {showAdvanced && (
-          <div
-            className="bg-white shadow-xl rounded-2xl p-4 sm:p-6 mb-4 z-10 mt-4 w-full max-w-sm sm:max-w-2xl lg:max-w-7xl mx-4 sm:mx-6 lg:mx-auto"
-          >
+          <div className="bg-white shadow-xl rounded-2xl p-4 sm:p-6 mb-4 z-10 mt-4 w-full max-w-sm sm:max-w-2xl lg:max-w-7xl mx-4 sm:mx-6 lg:mx-auto">
             <div className="mb-4 sm:mb-6">
               <div className="flex justify-between items-center mb-3">
                 <span className="text-sm text-gray-700 font-medium">Precio máximo: ${priceRange.toLocaleString()}</span>
@@ -571,32 +619,18 @@ export const Main = () => {
           Recomendaciones Para Ti
         </h2>
 
-        {/* Filtros de tipo de propiedad - Versión móvil
-        <div className="flex flex-wrap justify-center gap-2 xs:gap-3 sm:gap-4 px-3 xs:px-4 sm:px-6 mb-4 xs:mb-6 sm:mb-8">
-          <Button
-            name="Ver Todo"
-            className="bg-[#2F8EAC] border border-[#2F8EAC] text-white rounded-full text-xs xs:text-sm px-3 xs:px-4 sm:px-6 py-1.5 xs:py-2 flex items-center gap-1 xs:gap-2"
-            onClick={resetFilters}
-          />
-          <Button
-            name="Apartamento"
-            className={`rounded-full text-xs xs:text-sm px-3 xs:px-4 sm:px-6 py-1.5 xs:py-2 ${filters.property_type === "2" ? "bg-[#2F8EAC] text-white" : "bg-[#F4F4F4] text-black"
-              }`}
-            onClick={() => handleFilterClick("property_type", "2")}
-          />
-          <Button
-            name="Casa"
-            className={`rounded-full text-xs xs:text-sm px-3 xs:px-4 sm:px-6 py-1.5 xs:py-2 ${filters.property_type === "1" ? "bg-[#2F8EAC] text-white" : "bg-[#F4F4F4] text-black"
-              }`}
-            onClick={() => handleFilterClick("property_type", "1")}
-          />
-          <Button
-            name="Finca"
-            className={`rounded-full text-xs xs:text-sm px-3 xs:px-4 sm:px-6 py-1.5 xs:py-2 ${filters.property_type === "3" ? "bg-[#2F8EAC] text-white" : "bg-[#F4F4F4] text-black"
-              }`}
-            onClick={() => handleFilterClick("property_type", "3")}
-          />
-        </div> */}
+        {/* Indicador de filtro activo */}
+        {filters.operation_type && (
+          <div className="flex items-center gap-2 mb-4">
+            <span className="text-sm text-gray-600">Mostrando propiedades en:</span>
+            <span className="bg-[#2F8EAC] text-white px-3 py-1 rounded-full text-sm font-medium">
+              {filters.operation_type}
+            </span>
+            <button onClick={resetFilters} className="text-sm text-[#2F8EAC] hover:underline ml-2">
+              Ver todas
+            </button>
+          </div>
+        )}
 
         {/* Listado de propiedades */}
         <div className="w-full px-3 xs:px-4 sm:px-6 md:px-8 lg:px-10 xl:px-12">
@@ -604,18 +638,22 @@ export const Main = () => {
             {isLoading ? (
               <div className="text-center py-10 col-span-full">
                 <div className="animate-spin rounded-full h-8 w-8 xs:h-10 xs:w-10 sm:h-12 sm:w-12 border-b-2 border-[#2F8EAC] mx-auto mb-3 xs:mb-4"></div>
-                <p className="text-sm xs:text-base text-gray-600">Cargando propiedades...</p>
+                <p className="text-sm xs:text-base text-gray-600">
+                  {filters.operation_type
+                    ? `Buscando propiedades en ${filters.operation_type.toLowerCase()}...`
+                    : "Cargando propiedades..."}
+                </p>
               </div>
             ) : properties.length > 0 ? (
               properties.map((property, index) => {
-                // Obtener un ID único para cada propiedad
                 const uniqueId = property.property_id || property.id || property.ID || `property-${index}`
 
                 return (
                   <PropertyCard
                     key={uniqueId}
-                    address={`${property.address || "Sin dirección"}, ${property.neighborhood || "Sin barrio"}, ${property.city || "Sin ciudad"
-                      }`}
+                    address={`${property.address || "Sin dirección"}, ${property.neighborhood || "Sin barrio"}, ${
+                      property.city || "Sin ciudad"
+                    }`}
                     title={property.property_title || property.title || "Sin título"}
                     rooms={property.bedrooms || property.habitaciones || 0}
                     bathrooms={property.bathrooms || property.banos || 0}
@@ -631,7 +669,9 @@ export const Main = () => {
               <div className="text-center py-8 xs:py-10 sm:py-12 col-span-full">
                 <div className="text-gray-500 mb-2 text-3xl xs:text-4xl">📭</div>
                 <p className="text-sm xs:text-base text-gray-600 mb-3 xs:mb-4">
-                  No se encontraron propiedades con los filtros aplicados
+                  {filters.operation_type
+                    ? `No se encontraron propiedades en ${filters.operation_type.toLowerCase()}`
+                    : "No se encontraron propiedades con los filtros aplicados"}
                 </p>
                 <button
                   onClick={resetFilters}

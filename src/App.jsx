@@ -34,6 +34,7 @@ import { VentasAlquileresAdmin } from './Components/Pages/VentasAlquileresAdmin/
 import { ClientesAdmin } from './Components/Pages/ClientesAdmin/ClientesAdmin'
 import { AgendaAdmin } from './Components/Pages/AgendaAdmin/AgendaAdmin'
 import { ReportesInmobiliaria } from "./components/Pages/ReportesInmobiliaria/ReportesInmobiliaria";
+import { GenerarTokenAgente } from './Components/Pages/GenerarTokenAgente/GenerarTokenAgente'
 
 
 export const App = () => {
@@ -60,6 +61,7 @@ export const App = () => {
       <Route path="/Perfil" element={<Perfil />} />
       <Route path="/editar-propiedad/:id" element={<UpdateProperty />} />
       <Route path="/mi-inmobiliaria/gestion-agentes" element={<GestionAgents />} />
+      <Route path="/invitar-agente" element={<GenerarTokenAgente />} />
       <Route path="/mi-inmobiliaria/dashboard" element={<DashboardAdmin />} />
       <Route path="/mi-inmobiliaria/contratos" element={<Contract />} />
       <Route path="/mi-inmobiliaria/ventas-alquileres" element={<VentasAlquileresAdmin />} />

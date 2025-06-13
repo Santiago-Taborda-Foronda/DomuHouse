@@ -216,10 +216,16 @@ const visitasData = [
 
 export const AgendaAdmin = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(true)
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const [fechaSeleccionada, setFechaSeleccionada] = useState(new Date().toISOString().split('T')[0])
   const [agenteSeleccionado, setAgenteSeleccionado] = useState('todos')
   const [estadoFiltro, setEstadoFiltro] = useState('todos')
   const [busqueda, setBusqueda] = useState('')
+
+  // Función para alternar sidebar móvil
+  const toggleSidebar = () => {
+    setIsSidebarOpen(!isSidebarOpen)
+  }
 
   // Función para manejar logout
   const handleLogout = () => {
@@ -284,12 +290,12 @@ export const AgendaAdmin = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <Header hasSidebar={true} />
+      <Header hasSidebar={true} toggleSidebar={toggleSidebar} />
       
-      {/* Layout principal con sidebar fijo */}
+      {/* Layout principal con sidebar */}
       <div className="flex pt-16">
-        {/* Sidebar fijo siempre visible */}
-        <div className="fixed left-0 top-16 h-[calc(100vh-4rem)] w-72 bg-white shadow-lg border-r border-gray-200 overflow-y-auto z-30">
+        {/* Sidebar fijo para desktop */}
+        <div className="hidden lg:block fixed left-0 top-16 h-[calc(100vh-4rem)] w-72 bg-white shadow-lg border-r border-gray-200 overflow-y-auto z-30">
           <SidebarInmobiliaria 
             isOpen={true}
             toggleMenu={() => {}}
@@ -299,26 +305,37 @@ export const AgendaAdmin = () => {
           />
         </div>
 
-        {/* Contenido principal con margen izquierdo para el sidebar */}
-        <main className="flex-1 ml-72">
-          <div className="p-6">
+        {/* Sidebar overlay para móviles */}
+        <div className="lg:hidden">
+          <SidebarInmobiliaria 
+            isOpen={isSidebarOpen}
+            toggleMenu={toggleSidebar}
+            isAuthenticated={isAuthenticated}
+            handleLogout={handleLogout}
+            isFixedLayout={false}
+          />
+        </div>
+
+        {/* Contenido principal con margen responsivo */}
+        <main className="flex-1 lg:ml-72 transition-all duration-300">
+          <div className="p-3 sm:p-6">
             {/* Header de la página */}
-            <div className="mb-8">
-              <h1 className="text-3xl font-bold text-gray-900">Agenda de Visitas</h1>
+            <div className="mb-6 sm:mb-8">
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Agenda de Visitas</h1>
               <p className="text-gray-600 text-sm mt-1">
                 Gestiona y supervisa todas las visitas programadas de tus agentes
               </p>
             </div>
 
             {/* Filtros y búsqueda */}
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6 mb-4 sm:mb-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {/* Selector de fecha */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Fecha</label>
                   <input 
                     type="date" 
-                    className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#2F8EAC] focus:border-[#2F8EAC] transition-colors"
+                    className="w-full px-3 sm:px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#2F8EAC] focus:border-[#2F8EAC] transition-colors text-sm sm:text-base"
                     value={fechaSeleccionada}
                     onChange={(e) => setFechaSeleccionada(e.target.value)}
                   />
@@ -328,7 +345,7 @@ export const AgendaAdmin = () => {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Agente</label>
                   <select 
-                    className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#2F8EAC] focus:border-[#2F8EAC] transition-colors"
+                    className="w-full px-3 sm:px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#2F8EAC] focus:border-[#2F8EAC] transition-colors text-sm sm:text-base"
                     value={agenteSeleccionado}
                     onChange={(e) => setAgenteSeleccionado(e.target.value)}
                   >
@@ -343,7 +360,7 @@ export const AgendaAdmin = () => {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Estado</label>
                   <select 
-                    className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#2F8EAC] focus:border-[#2F8EAC] transition-colors"
+                    className="w-full px-3 sm:px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#2F8EAC] focus:border-[#2F8EAC] transition-colors text-sm sm:text-base"
                     value={estadoFiltro}
                     onChange={(e) => setEstadoFiltro(e.target.value)}
                   >
@@ -362,7 +379,7 @@ export const AgendaAdmin = () => {
                     <input 
                       type="text"
                       placeholder="Cliente o propiedad..."
-                      className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#2F8EAC] focus:border-[#2F8EAC] transition-colors"
+                      className="w-full pl-10 pr-3 sm:pr-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#2F8EAC] focus:border-[#2F8EAC] transition-colors text-sm sm:text-base"
                       value={busqueda}
                       onChange={(e) => setBusqueda(e.target.value)}
                     />
@@ -372,43 +389,43 @@ export const AgendaAdmin = () => {
             </div>
 
             {/* Estadísticas del día */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-                <div className="flex items-center gap-3">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 mb-6 sm:mb-8">
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
                   <Calendar className="w-5 h-5 text-[#2F8EAC]" />
                   <div>
-                    <div className="text-2xl font-bold text-gray-900">{estadisticasDia.totalVisitas}</div>
-                    <p className="text-sm text-gray-600">Total Visitas</p>
+                    <div className="text-xl sm:text-2xl font-bold text-gray-900">{estadisticasDia.totalVisitas}</div>
+                    <p className="text-xs sm:text-sm text-gray-600">Total Visitas</p>
                   </div>
                 </div>
               </div>
 
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-                <div className="flex items-center gap-3">
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
                   <CheckCircle className="w-5 h-5 text-green-600" />
                   <div>
-                    <div className="text-2xl font-bold text-green-600">{estadisticasDia.confirmadas}</div>
-                    <p className="text-sm text-gray-600">Confirmadas</p>
+                    <div className="text-xl sm:text-2xl font-bold text-green-600">{estadisticasDia.confirmadas}</div>
+                    <p className="text-xs sm:text-sm text-gray-600">Confirmadas</p>
                   </div>
                 </div>
               </div>
 
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-                <div className="flex items-center gap-3">
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
                   <Clock className="w-5 h-5 text-yellow-600" />
                   <div>
-                    <div className="text-2xl font-bold text-yellow-600">{estadisticasDia.pendientes}</div>
-                    <p className="text-sm text-gray-600">Pendientes</p>
+                    <div className="text-xl sm:text-2xl font-bold text-yellow-600">{estadisticasDia.pendientes}</div>
+                    <p className="text-xs sm:text-sm text-gray-600">Pendientes</p>
                   </div>
                 </div>
               </div>
 
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-                <div className="flex items-center gap-3">
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
                   <XCircle className="w-5 h-5 text-red-600" />
                   <div>
-                    <div className="text-2xl font-bold text-red-600">{estadisticasDia.canceladas}</div>
-                    <p className="text-sm text-gray-600">Canceladas</p>
+                    <div className="text-xl sm:text-2xl font-bold text-red-600">{estadisticasDia.canceladas}</div>
+                    <p className="text-xs sm:text-sm text-gray-600">Canceladas</p>
                   </div>
                 </div>
               </div>
@@ -416,12 +433,12 @@ export const AgendaAdmin = () => {
 
             {/* Lista de visitas */}
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100">
-              <div className="p-6 border-b border-gray-100">
-                <h2 className="text-lg font-semibold text-gray-800">
-                  Visitas programadas para {new Date(fechaSeleccionada).toLocaleDateString('es-ES', { 
-                    weekday: 'long', 
+              <div className="p-4 sm:p-6 border-b border-gray-100">
+                <h2 className="text-base sm:text-lg font-semibold text-gray-800">
+                  Visitas para {new Date(fechaSeleccionada).toLocaleDateString('es-ES', { 
+                    weekday: window.innerWidth < 640 ? 'short' : 'long', 
                     year: 'numeric', 
-                    month: 'long', 
+                    month: window.innerWidth < 640 ? 'short' : 'long', 
                     day: 'numeric' 
                   })}
                 </h2>
@@ -429,9 +446,9 @@ export const AgendaAdmin = () => {
 
               <div className="divide-y divide-gray-100">
                 {visitasFiltradas.length === 0 ? (
-                  <div className="p-8 text-center">
-                    <Calendar className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                    <p className="text-gray-500">No hay visitas programadas para los filtros seleccionados</p>
+                  <div className="p-6 sm:p-8 text-center">
+                    <Calendar className="w-10 sm:w-12 h-10 sm:h-12 text-gray-300 mx-auto mb-4" />
+                    <p className="text-gray-500 text-sm sm:text-base">No hay visitas programadas para los filtros seleccionados</p>
                   </div>
                 ) : (
                   visitasFiltradas
@@ -439,41 +456,41 @@ export const AgendaAdmin = () => {
                     .map((visita) => {
                       const agente = obtenerAgente(visita.agenteId)
                       return (
-                        <div key={visita.id} className="p-6 hover:bg-gray-50 transition-colors">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-4">
+                        <div key={visita.id} className="p-4 sm:p-6 hover:bg-gray-50 transition-colors">
+                          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                            <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 flex-1">
                               {/* Hora */}
-                              <div className="text-center">
-                                <div className="text-lg font-bold text-[#2F8EAC]">{visita.hora}</div>
+                              <div className="text-center sm:text-left flex-shrink-0">
+                                <div className="text-base sm:text-lg font-bold text-[#2F8EAC]">{visita.hora}</div>
                                 <div className="text-xs text-gray-500">{visita.duracion}min</div>
                               </div>
 
                               {/* Información principal */}
-                              <div className="flex-1">
-                                <div className="flex items-center gap-2 mb-1">
-                                  <h3 className="font-semibold text-gray-900">{visita.cliente}</h3>
-                                  <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${obtenerColorEstado(visita.estado)}`}>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-2">
+                                  <h3 className="font-semibold text-gray-900 text-sm sm:text-base truncate">{visita.cliente}</h3>
+                                  <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${obtenerColorEstado(visita.estado)} self-start sm:self-auto`}>
                                     {obtenerIconoEstado(visita.estado)}
                                     {visita.estado.charAt(0).toUpperCase() + visita.estado.slice(1)}
                                   </span>
                                 </div>
                                 
-                                <div className="text-sm text-gray-600 mb-2">
-                                  <div className="flex items-center gap-4">
+                                <div className="text-xs sm:text-sm text-gray-600 mb-2 space-y-1 sm:space-y-0">
+                                  <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4">
                                     <div className="flex items-center gap-1">
-                                      <MapPin className="w-4 h-4" />
-                                      {visita.propiedad} - {visita.direccion}
+                                      <MapPin className="w-3 sm:w-4 h-3 sm:h-4 flex-shrink-0" />
+                                      <span className="truncate">{visita.propiedad} - {visita.direccion}</span>
                                     </div>
                                     <div className="flex items-center gap-1">
-                                      <Phone className="w-4 h-4" />
-                                      {visita.telefono}
+                                      <Phone className="w-3 sm:w-4 h-3 sm:h-4 flex-shrink-0" />
+                                      <span>{visita.telefono}</span>
                                     </div>
                                   </div>
                                 </div>
 
-                                <div className="flex items-center gap-4 text-sm">
+                                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-xs sm:text-sm">
                                   <div className="flex items-center gap-1">
-                                    <User className="w-4 h-4 text-gray-400" />
+                                    <User className="w-3 sm:w-4 h-3 sm:h-4 text-gray-400 flex-shrink-0" />
                                     <span className="text-gray-600">Agente: <span className="font-medium">{agente?.nombre}</span></span>
                                   </div>
                                   <div className="text-[#2F8EAC] font-semibold">
@@ -484,7 +501,7 @@ export const AgendaAdmin = () => {
                             </div>
 
                             {/* Acciones */}
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-2 self-end sm:self-auto">
                               <button className="p-2 text-gray-400 hover:text-[#2F8EAC] hover:bg-gray-100 rounded-lg transition-colors">
                                 <Eye className="w-4 h-4" />
                               </button>

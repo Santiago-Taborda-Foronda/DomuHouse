@@ -5,7 +5,7 @@ import '../../../index.css'
 import { Button } from '../../UI/Button/Button'
 import { SidebarMenu } from '../SidebarMenu/SidebarMenu'
 
-export const Header = ({ toggleSidebar }) => {
+export const Header = ({ toggleSidebar, toggleAgentSidebar }) => {
   const [isOpen, setIsOpen] = useState(false)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [userInfo, setUserInfo] = useState(null)
@@ -17,17 +17,17 @@ export const Header = ({ toggleSidebar }) => {
 
   // Función para verificar el estado de autenticación
   const checkAuthStatus = () => {
-  const token = localStorage.getItem('authToken')
-  const userData = localStorage.getItem('userData')
+    const token = localStorage.getItem('authToken')
+    const userData = localStorage.getItem('userData')
 
-  if (token && userData) {
-    setIsAuthenticated(true)
-    setUserInfo(JSON.parse(userData)) // <== AQUÍ
-  } else {
-    setIsAuthenticated(false)
-    setUserInfo(null)
+    if (token && userData) {
+      setIsAuthenticated(true)
+      setUserInfo(JSON.parse(userData))
+    } else {
+      setIsAuthenticated(false)
+      setUserInfo(null)
+    }
   }
-}
 
   // Verificar la ruta actual
   const checkCurrentPath = () => {
@@ -91,7 +91,7 @@ export const Header = ({ toggleSidebar }) => {
   const isInInmobiliariaPage = currentPath.includes('/mi-inmobiliaria') || 
                                currentPath.includes('/MiInmobiliaria')
 
-  // Verificar si estamos en la página de Agente (AGREGADO)
+  // Verificar si estamos en la página de Agente (ACTUALIZADA)
   const isInAgentPage = currentPath.includes('/AgentDashboard') ||
                         currentPath.includes('/MisPropiedades') ||
                         currentPath.includes('/CrearPropiedad') ||
@@ -115,6 +115,13 @@ export const Header = ({ toggleSidebar }) => {
             {/* Botón hamburguesa para Mi Inmobiliaria - Solo se muestra EN Mi Inmobiliaria */}
             {isInInmobiliariaPage && toggleSidebar && (
               <button onClick={toggleSidebar} className="focus:outline-none lg:hidden">
+                <Menu className="w-6 h-6 text-gray-700" />
+              </button>
+            )}
+
+            {/* Botón hamburguesa para Agente - Solo se muestra EN páginas de Agente */}
+            {isInAgentPage && toggleAgentSidebar && (
+              <button onClick={toggleAgentSidebar} className="focus:outline-none lg:hidden">
                 <Menu className="w-6 h-6 text-gray-700" />
               </button>
             )}

@@ -110,6 +110,7 @@ const estadisticas = {
 export const VentasAlquileresAdmin = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(true)
   const [propiedades, setPropiedades] = useState(propiedadesData)
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false) // Estado para el sidebar móvil
   const [filtros, setFiltros] = useState({
     busqueda: '',
     tipo: 'Todos',
@@ -120,6 +121,11 @@ export const VentasAlquileresAdmin = () => {
   })
   const [mostrarFiltros, setMostrarFiltros] = useState(false)
   const [vista, setVista] = useState('lista') // 'lista' o 'tarjetas'
+
+  // Función para toggle del sidebar móvil
+  const toggleSidebar = () => {
+    setIsSidebarOpen(!isSidebarOpen)
+  }
 
   // Función para manejar logout
   const handleLogout = () => {
@@ -159,13 +165,13 @@ export const VentasAlquileresAdmin = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <Header hasSidebar={true} />
+      {/* Header con toggle del sidebar */}
+      <Header hasSidebar={true} toggleSidebar={toggleSidebar} />
       
-      {/* Layout principal con sidebar fijo */}
+      {/* Layout principal */}
       <div className="flex pt-16">
-        {/* Sidebar fijo siempre visible */}
-        <div className="fixed left-0 top-16 h-[calc(100vh-4rem)] w-72 bg-white shadow-lg border-r border-gray-200 overflow-y-auto z-30">
+        {/* Sidebar fijo para desktop */}
+        <div className="hidden lg:block fixed left-0 top-16 h-[calc(100vh-4rem)] w-72 bg-white shadow-lg border-r border-gray-200 overflow-y-auto z-30">
           <SidebarInmobiliaria 
             isOpen={true}
             toggleMenu={() => {}}
@@ -175,28 +181,38 @@ export const VentasAlquileresAdmin = () => {
           />
         </div>
 
-        {/* Contenido principal con margen izquierdo para el sidebar */}
-        <main className="flex-1 ml-72">
-          <div className="p-6">
+        {/* Sidebar overlay para móviles */}
+        <SidebarInmobiliaria 
+          isOpen={isSidebarOpen}
+          toggleMenu={toggleSidebar}
+          isAuthenticated={isAuthenticated}
+          handleLogout={handleLogout}
+          isFixedLayout={false}
+        />
+
+        {/* Contenido principal con margen responsivo */}
+        <main className="flex-1 lg:ml-72 transition-all duration-300">
+          <div className="p-4 sm:p-6">
             {/* Header de la página */}
-            <div className="mb-8">
-              <div className="flex items-center justify-between">
+            <div className="mb-6 sm:mb-8">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
-                  <h1 className="text-3xl font-bold text-gray-900">Ventas y Alquileres</h1>
+                  <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Ventas y Alquileres</h1>
                   <p className="text-gray-600 text-sm mt-1">
                     Gestiona todas las propiedades de tu inmobiliaria
                   </p>
                 </div>
-                <button className="bg-[#2F8EAC] text-white px-6 py-3 rounded-xl font-medium hover:bg-[#256b82] transition-colors flex items-center gap-2">
+                <button className="bg-[#2F8EAC] text-white px-4 sm:px-6 py-3 rounded-xl font-medium hover:bg-[#256b82] transition-colors flex items-center justify-center gap-2 w-full sm:w-auto">
                   <Plus className="w-5 h-5" />
-                  Nueva Propiedad
+                  <span className="hidden sm:inline">Nueva Propiedad</span>
+                  <span className="sm:hidden">Nueva</span>
                 </button>
               </div>
             </div>
 
-            {/* Estadísticas rápidas */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4 mb-8">
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
+            {/* Estadísticas rápidas - Grid responsivo */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4 mb-6 sm:mb-8">
+              <div className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-100 p-3 sm:p-4">
                 <div className="flex items-center gap-2 mb-1">
                   <TrendingUp className="w-4 h-4 text-[#2F8EAC]" />
                   <span className="text-lg font-bold text-gray-900">{estadisticas.totalVentas}</span>
@@ -204,7 +220,7 @@ export const VentasAlquileresAdmin = () => {
                 <p className="text-xs text-gray-600">Ventas este mes</p>
               </div>
               
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
+              <div className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-100 p-3 sm:p-4">
                 <div className="flex items-center gap-2 mb-1">
                   <Home className="w-4 h-4 text-[#2F8EAC]" />
                   <span className="text-lg font-bold text-gray-900">{estadisticas.totalAlquileres}</span>
@@ -212,23 +228,23 @@ export const VentasAlquileresAdmin = () => {
                 <p className="text-xs text-gray-600">Alquileres activos</p>
               </div>
 
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
+              <div className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-100 p-3 sm:p-4 col-span-2 sm:col-span-1">
                 <div className="flex items-center gap-2 mb-1">
                   <DollarSign className="w-4 h-4 text-[#2F8EAC]" />
-                  <span className="text-sm font-bold text-gray-900">{formatearPrecio(estadisticas.ingresosMesVentas)}</span>
+                  <span className="text-xs sm:text-sm font-bold text-gray-900">{formatearPrecio(estadisticas.ingresosMesVentas)}</span>
                 </div>
                 <p className="text-xs text-gray-600">Ingresos ventas</p>
               </div>
 
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
+              <div className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-100 p-3 sm:p-4 col-span-2 sm:col-span-1">
                 <div className="flex items-center gap-2 mb-1">
                   <Building2 className="w-4 h-4 text-[#2F8EAC]" />
-                  <span className="text-sm font-bold text-gray-900">{formatearPrecio(estadisticas.ingresosMesAlquileres)}</span>
+                  <span className="text-xs sm:text-sm font-bold text-gray-900">{formatearPrecio(estadisticas.ingresosMesAlquileres)}</span>
                 </div>
                 <p className="text-xs text-gray-600">Ingresos alquileres</p>
               </div>
 
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
+              <div className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-100 p-3 sm:p-4">
                 <div className="flex items-center gap-2 mb-1">
                   <Users className="w-4 h-4 text-green-600" />
                   <span className="text-lg font-bold text-gray-900">{estadisticas.propiedadesDisponibles}</span>
@@ -236,7 +252,7 @@ export const VentasAlquileresAdmin = () => {
                 <p className="text-xs text-gray-600">Disponibles</p>
               </div>
 
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
+              <div className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-100 p-3 sm:p-4">
                 <div className="flex items-center gap-2 mb-1">
                   <Users className="w-4 h-4 text-red-600" />
                   <span className="text-lg font-bold text-gray-900">{estadisticas.propiedadesOcupadas}</span>
@@ -246,8 +262,8 @@ export const VentasAlquileresAdmin = () => {
             </div>
 
             {/* Barra de búsqueda y filtros */}
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
-              <div className="flex flex-col lg:flex-row gap-4">
+            <div className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6 mb-6">
+              <div className="flex flex-col gap-4">
                 {/* Barra de búsqueda */}
                 <div className="flex-1 relative">
                   <Search className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
@@ -263,7 +279,7 @@ export const VentasAlquileresAdmin = () => {
                 {/* Botón de filtros */}
                 <button
                   onClick={() => setMostrarFiltros(!mostrarFiltros)}
-                  className="px-6 py-3 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors flex items-center gap-2"
+                  className="px-6 py-3 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors flex items-center justify-center gap-2 w-full sm:w-auto sm:self-start"
                 >
                   <Filter className="w-5 h-5" />
                   Filtros
@@ -274,7 +290,7 @@ export const VentasAlquileresAdmin = () => {
               {/* Panel de filtros expandible */}
               {mostrarFiltros && (
                 <div className="mt-6 pt-6 border-t border-gray-200">
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">Tipo</label>
                       <select 
@@ -344,12 +360,12 @@ export const VentasAlquileresAdmin = () => {
             </div>
 
             {/* Resultados y lista de propiedades */}
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100">
+            <div className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-100">
               {/* Header de resultados */}
-              <div className="p-6 border-b border-gray-200">
+              <div className="p-4 sm:p-6 border-b border-gray-200">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h2 className="text-xl font-semibold text-gray-900">Propiedades</h2>
+                    <h2 className="text-lg sm:text-xl font-semibold text-gray-900">Propiedades</h2>
                     <p className="text-sm text-gray-600 mt-1">
                       {propiedadesFiltradas.length} propiedades encontradas
                     </p>
@@ -358,67 +374,70 @@ export const VentasAlquileresAdmin = () => {
               </div>
 
               {/* Lista de propiedades */}
-              <div className="p-6">
+              <div className="p-4 sm:p-6">
                 <div className="space-y-4">
                   {propiedadesFiltradas.map((propiedad) => (
-                    <div key={propiedad.id} className="border border-gray-200 rounded-xl p-6 hover:shadow-md transition-shadow">
-                      <div className="flex flex-col lg:flex-row gap-6">
-                        {/* Imagen */}
-                        <div className="lg:w-48 h-32 bg-gray-200 rounded-xl flex items-center justify-center">
-                          <Home className="w-8 h-8 text-gray-400" />
-                        </div>
+                    <div key={propiedad.id} className="border border-gray-200 rounded-xl p-4 sm:p-6 hover:shadow-md transition-shadow">
+                      <div className="flex flex-col gap-4 sm:gap-6">
+                        {/* Imagen y información principal en móvil */}
+                        <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
+                          {/* Imagen */}
+                          <div className="w-full sm:w-48 h-32 bg-gray-200 rounded-xl flex items-center justify-center flex-shrink-0">
+                            <Home className="w-8 h-8 text-gray-400" />
+                          </div>
 
-                        {/* Información principal */}
-                        <div className="flex-1 space-y-3">
-                          <div className="flex items-start justify-between">
-                            <div>
-                              <h3 className="text-lg font-semibold text-gray-900">{propiedad.titulo}</h3>
-                              <div className="flex items-center gap-2 mt-1">
-                                <MapPin className="w-4 h-4 text-gray-400" />
-                                <span className="text-sm text-gray-600">{propiedad.ubicacion}</span>
+                          {/* Información principal */}
+                          <div className="flex-1 space-y-3">
+                            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 sm:gap-0">
+                              <div className="flex-1">
+                                <h3 className="text-lg font-semibold text-gray-900 leading-tight">{propiedad.titulo}</h3>
+                                <div className="flex items-center gap-2 mt-1">
+                                  <MapPin className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                                  <span className="text-sm text-gray-600">{propiedad.ubicacion}</span>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span className={`px-3 py-1 rounded-full text-xs font-medium ${getEstadoColor(propiedad.estado)}`}>
+                                  {propiedad.estado}
+                                </span>
+                                <span className="px-3 py-1 bg-[#2F8EAC] text-white rounded-full text-xs font-medium">
+                                  {propiedad.operacion}
+                                </span>
                               </div>
                             </div>
-                            <div className="flex items-center gap-2">
-                              <span className={`px-3 py-1 rounded-full text-xs font-medium ${getEstadoColor(propiedad.estado)}`}>
-                                {propiedad.estado}
-                              </span>
-                              <span className="px-3 py-1 bg-[#2F8EAC] text-white rounded-full text-xs font-medium">
-                                {propiedad.operacion}
-                              </span>
-                            </div>
-                          </div>
 
-                          <div className="flex items-center gap-6 text-sm text-gray-600">
-                            <span>{propiedad.habitaciones} hab.</span>
-                            <span>{propiedad.banos} baños</span>
-                            <span>{propiedad.area} m²</span>
-                            <span>{propiedad.tipo}</span>
-                            <div className="flex items-center gap-1">
-                              <Eye className="w-4 h-4" />
-                              <span>{propiedad.visitas} visitas</span>
+                            <div className="flex flex-wrap items-center gap-3 sm:gap-6 text-sm text-gray-600">
+                              <span>{propiedad.habitaciones} hab.</span>
+                              <span>{propiedad.banos} baños</span>
+                              <span>{propiedad.area} m²</span>
+                              <span>{propiedad.tipo}</span>
+                              <div className="flex items-center gap-1">
+                                <Eye className="w-4 h-4" />
+                                <span>{propiedad.visitas} visitas</span>
+                              </div>
                             </div>
-                          </div>
 
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <span className="text-2xl font-bold text-[#2F8EAC]">
-                                {formatearPrecio(propiedad.precio)}
-                              </span>
-                              {propiedad.operacion === 'Alquiler' && (
-                                <span className="text-sm text-gray-600">/mes</span>
-                              )}
-                            </div>
-                            
-                            <div className="flex items-center gap-2">
-                              <button className="p-2 text-gray-600 hover:text-[#2F8EAC] hover:bg-gray-100 rounded-lg transition-colors">
-                                <Eye className="w-5 h-5" />
-                              </button>
-                              <button className="p-2 text-gray-600 hover:text-[#2F8EAC] hover:bg-gray-100 rounded-lg transition-colors">
-                                <Edit className="w-5 h-5" />
-                              </button>
-                              <button className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
-                                <Trash2 className="w-5 h-5" />
-                              </button>
+                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                              <div>
+                                <span className="text-xl sm:text-2xl font-bold text-[#2F8EAC]">
+                                  {formatearPrecio(propiedad.precio)}
+                                </span>
+                                {propiedad.operacion === 'Alquiler' && (
+                                  <span className="text-sm text-gray-600">/mes</span>
+                                )}
+                              </div>
+                              
+                              <div className="flex items-center gap-2">
+                                <button className="p-2 text-gray-600 hover:text-[#2F8EAC] hover:bg-gray-100 rounded-lg transition-colors">
+                                  <Eye className="w-5 h-5" />
+                                </button>
+                                <button className="p-2 text-gray-600 hover:text-[#2F8EAC] hover:bg-gray-100 rounded-lg transition-colors">
+                                  <Edit className="w-5 h-5" />
+                                </button>
+                                <button className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+                                  <Trash2 className="w-5 h-5" />
+                                </button>
+                              </div>
                             </div>
                           </div>
                         </div>

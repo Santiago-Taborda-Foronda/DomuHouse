@@ -58,6 +58,12 @@ export const ReportesInmobiliaria = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(true)
   const [filtroTiempo, setFiltroTiempo] = useState('mensual')
   const [tipoReporte, setTipoReporte] = useState('ventas')
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
+
+  // Función para manejar el toggle del sidebar
+  const toggleSidebar = () => {
+    setIsSidebarOpen(!isSidebarOpen)
+  }
 
   // Función para manejar logout
   const handleLogout = () => {
@@ -85,12 +91,12 @@ export const ReportesInmobiliaria = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <Header hasSidebar={true} />
+      <Header hasSidebar={true} toggleSidebar={toggleSidebar} />
       
-      {/* Layout principal con sidebar fijo */}
+      {/* Layout principal */}
       <div className="flex pt-16">
-        {/* Sidebar fijo siempre visible */}
-        <div className="fixed left-0 top-16 h-[calc(100vh-4rem)] w-72 bg-white shadow-lg border-r border-gray-200 overflow-y-auto z-30">
+        {/* Sidebar fijo para desktop */}
+        <div className="hidden lg:block fixed left-0 top-16 h-[calc(100vh-4rem)] w-72 bg-white shadow-lg border-r border-gray-200 overflow-y-auto z-30">
           <SidebarInmobiliaria 
             isOpen={true}
             toggleMenu={() => {}}
@@ -100,22 +106,33 @@ export const ReportesInmobiliaria = () => {
           />
         </div>
 
-        {/* Contenido principal con margen izquierdo para el sidebar */}
-        <main className="flex-1 ml-72">
+        {/* Sidebar overlay para móviles */}
+        <div className="lg:hidden">
+          <SidebarInmobiliaria 
+            isOpen={isSidebarOpen}
+            toggleMenu={toggleSidebar}
+            isAuthenticated={isAuthenticated}
+            handleLogout={handleLogout}
+            isFixedLayout={false}
+          />
+        </div>
+
+        {/* Contenido principal con margen adaptativo */}
+        <main className="flex-1 lg:ml-72 transition-all duration-300">
           {/* Header de la página */}
           <div className="bg-white shadow-sm border-b border-gray-200">
-            <div className="px-6 py-4">
-              <div className="flex items-center justify-between">
+            <div className="px-4 sm:px-6 py-4">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
-                  <h1 className="text-2xl font-bold text-gray-900">Reportes y Estadísticas</h1>
+                  <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Reportes y Estadísticas</h1>
                   <p className="text-sm text-gray-600 mt-1">
                     Análisis completo del rendimiento de tu inmobiliaria
                   </p>
                 </div>
                 
-                <div className="flex items-center gap-3">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                   <select 
-                    className="px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#2F8EAC] focus:border-[#2F8EAC]"
+                    className="px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#2F8EAC] focus:border-[#2F8EAC] text-sm"
                     value={filtroTiempo}
                     onChange={(e) => setFiltroTiempo(e.target.value)}
                   >
@@ -125,7 +142,7 @@ export const ReportesInmobiliaria = () => {
                     <option value="anual">Último año</option>
                   </select>
                   
-                  <button className="flex items-center gap-2 px-4 py-2 bg-[#2F8EAC] text-white rounded-xl hover:bg-[#247a94] transition-colors">
+                  <button className="flex items-center justify-center gap-2 px-4 py-2 bg-[#2F8EAC] text-white rounded-xl hover:bg-[#247a94] transition-colors text-sm">
                     <Download className="w-4 h-4" />
                     Exportar
                   </button>
@@ -134,10 +151,10 @@ export const ReportesInmobiliaria = () => {
             </div>
           </div>
 
-          <div className="p-6">
-            {/* Tabs de navegación - Eliminada la pestaña "Resumen General" */}
+          <div className="p-4 sm:p-6">
+            {/* Tabs de navegación */}
             <div className="mb-6">
-              <div className="flex space-x-1 bg-gray-100 p-1 rounded-xl w-fit">
+              <div className="flex flex-wrap gap-1 bg-gray-100 p-1 rounded-xl w-full sm:w-fit">
                 {[
                   { id: 'ventas', label: 'Ventas' },
                   { id: 'agentes', label: 'Agentes' },
@@ -146,7 +163,7 @@ export const ReportesInmobiliaria = () => {
                   <button 
                     key={tab.id}
                     onClick={() => setTipoReporte(tab.id)}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    className={`flex-1 sm:flex-none px-3 sm:px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                       tipoReporte === tab.id
                         ? 'bg-white text-[#2F8EAC] shadow-sm'
                         : 'text-gray-600 hover:text-gray-900'
@@ -158,123 +175,123 @@ export const ReportesInmobiliaria = () => {
               </div>
             </div>
 
-            {/* Tarjetas de métricas principales con colores armoniosos */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-              {/* Ventas Totales - Verde océano (complementario) */}
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            {/* Tarjetas de métricas principales */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
+              {/* Ventas Totales */}
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6">
                 <div className="flex items-center justify-between mb-4">
                   <div className="p-2 bg-[#4ECDC4]/20 rounded-lg">
-                    <DollarSign className="w-6 h-6 text-[#4ECDC4]" />
+                    <DollarSign className="w-5 h-5 sm:w-6 sm:h-6 text-[#4ECDC4]" />
                   </div>
                   <div className="flex items-center gap-1 text-[#4ECDC4]">
-                    <ArrowUpRight className="w-4 h-4" />
-                    <span className="text-sm font-medium">
+                    <ArrowUpRight className="w-3 h-3 sm:w-4 sm:h-4" />
+                    <span className="text-xs sm:text-sm font-medium">
                       +{calcularCrecimiento(resumenGeneral.ventasTotales, resumenGeneral.ventasMesAnterior)}%
                     </span>
                   </div>
                 </div>
                 <div>
-                  <div className="text-2xl font-bold text-gray-900 mb-1">
+                  <div className="text-lg sm:text-2xl font-bold text-gray-900 mb-1">
                     {formatearPrecio(resumenGeneral.ventasTotales)}
                   </div>
-                  <p className="text-sm text-gray-600">Ventas Totales</p>
+                  <p className="text-xs sm:text-sm text-gray-600">Ventas Totales</p>
                 </div>
               </div>
 
-              {/* Propiedades Vendidas - Azul principal */}
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+              {/* Propiedades Vendidas */}
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6">
                 <div className="flex items-center justify-between mb-4">
                   <div className="p-2 bg-[#2F8EAC]/20 rounded-lg">
-                    <Building2 className="w-6 h-6 text-[#2F8EAC]" />
+                    <Building2 className="w-5 h-5 sm:w-6 sm:h-6 text-[#2F8EAC]" />
                   </div>
                   <div className="flex items-center gap-1 text-[#4ECDC4]">
-                    <ArrowUpRight className="w-4 h-4" />
-                    <span className="text-sm font-medium">
+                    <ArrowUpRight className="w-3 h-3 sm:w-4 sm:h-4" />
+                    <span className="text-xs sm:text-sm font-medium">
                       +{calcularCrecimiento(resumenGeneral.propiedadesVendidas, resumenGeneral.propiedadesMesAnterior)}%
                     </span>
                   </div>
                 </div>
                 <div>
-                  <div className="text-2xl font-bold text-gray-900 mb-1">
+                  <div className="text-lg sm:text-2xl font-bold text-gray-900 mb-1">
                     {resumenGeneral.propiedadesVendidas}
                   </div>
-                  <p className="text-sm text-gray-600">Propiedades Vendidas</p>
+                  <p className="text-xs sm:text-sm text-gray-600">Propiedades Vendidas</p>
                 </div>
               </div>
 
-              {/* Clientes Nuevos - Coral suave (análogo cálido) */}
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+              {/* Clientes Nuevos */}
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6">
                 <div className="flex items-center justify-between mb-4">
                   <div className="p-2 bg-[#FF8A80]/20 rounded-lg">
-                    <UserCheck className="w-6 h-6 text-[#FF8A80]" />
+                    <UserCheck className="w-5 h-5 sm:w-6 sm:h-6 text-[#FF8A80]" />
                   </div>
                   <div className="flex items-center gap-1 text-[#4ECDC4]">
-                    <ArrowUpRight className="w-4 h-4" />
-                    <span className="text-sm font-medium">
+                    <ArrowUpRight className="w-3 h-3 sm:w-4 sm:h-4" />
+                    <span className="text-xs sm:text-sm font-medium">
                       +{calcularCrecimiento(resumenGeneral.clientesNuevos, resumenGeneral.clientesMesAnterior)}%
                     </span>
                   </div>
                 </div>
                 <div>
-                  <div className="text-2xl font-bold text-gray-900 mb-1">
+                  <div className="text-lg sm:text-2xl font-bold text-gray-900 mb-1">
                     {resumenGeneral.clientesNuevos}
                   </div>
-                  <p className="text-sm text-gray-600">Clientes Nuevos</p>
+                  <p className="text-xs sm:text-sm text-gray-600">Clientes Nuevos</p>
                 </div>
               </div>
 
-              {/* Comisiones - Amarillo dorado (triádico) */}
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+              {/* Comisiones */}
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6">
                 <div className="flex items-center justify-between mb-4">
                   <div className="p-2 bg-[#FFD54F]/20 rounded-lg">
-                    <Target className="w-6 h-6 text-[#FFD54F]" />
+                    <Target className="w-5 h-5 sm:w-6 sm:h-6 text-[#FFD54F]" />
                   </div>
                   <div className="flex items-center gap-1 text-[#4ECDC4]">
-                    <ArrowUpRight className="w-4 h-4" />
-                    <span className="text-sm font-medium">
+                    <ArrowUpRight className="w-3 h-3 sm:w-4 sm:h-4" />
+                    <span className="text-xs sm:text-sm font-medium">
                       +{calcularCrecimiento(resumenGeneral.comisionesTotales, resumenGeneral.comisionesMesAnterior)}%
                     </span>
                   </div>
                 </div>
                 <div>
-                  <div className="text-2xl font-bold text-gray-900 mb-1">
+                  <div className="text-lg sm:text-2xl font-bold text-gray-900 mb-1">
                     {formatearPrecio(resumenGeneral.comisionesTotales)}
                   </div>
-                  <p className="text-sm text-gray-600">Comisiones Generadas</p>
+                  <p className="text-xs sm:text-sm text-gray-600">Comisiones Generadas</p>
                 </div>
               </div>
             </div>
 
             {/* Contenido principal según el tab seleccionado */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 sm:gap-6">
               {/* Gráfico principal */}
-              <div className="lg:col-span-2">
+              <div className="xl:col-span-2">
                 {tipoReporte === 'ventas' ? (
-                  <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-                    <div className="flex items-center justify-between mb-6">
+                  <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-2">
                       <div>
-                        <h3 className="text-lg font-semibold text-gray-800">Evolución de Ventas</h3>
-                        <p className="text-sm text-gray-500">Ventas mensuales y propiedades vendidas</p>
+                        <h3 className="text-base sm:text-lg font-semibold text-gray-800">Evolución de Ventas</h3>
+                        <p className="text-xs sm:text-sm text-gray-500">Ventas mensuales y propiedades vendidas</p>
                       </div>
                       <BarChart3 className="w-5 h-5 text-[#2F8EAC]" />
                     </div>
 
-                    <div className="space-y-4">
+                    <div className="space-y-3 sm:space-y-4">
                       {reportesData.ventasPorMes.slice(-6).map((item, index) => {
                         const maxVentas = Math.max(...reportesData.ventasPorMes.map(v => v.ventas));
                         return (
-                          <div key={index} className="flex items-center gap-4">
-                            <div className="w-8 text-sm font-medium text-gray-600">{item.mes}</div>
-                            <div className="flex-1 bg-gray-100 rounded-full h-8 relative">
+                          <div key={index} className="flex items-center gap-2 sm:gap-4">
+                            <div className="w-6 sm:w-8 text-xs sm:text-sm font-medium text-gray-600">{item.mes}</div>
+                            <div className="flex-1 bg-gray-100 rounded-full h-6 sm:h-8 relative">
                               <div 
-                                className="bg-gradient-to-r from-[#2F8EAC] to-[#4ECDC4] h-8 rounded-full flex items-center justify-between px-3"
+                                className="bg-gradient-to-r from-[#2F8EAC] to-[#4ECDC4] h-6 sm:h-8 rounded-full flex items-center justify-between px-2 sm:px-3"
                                 style={{ width: `${(item.ventas / maxVentas) * 100}%` }}
                               >
-                                <span className="text-xs font-medium text-white">
+                                <span className="text-xs font-medium text-white truncate">
                                   {formatearPrecio(item.ventas)}
                                 </span>
                                 <span className="text-xs font-medium text-white">
-                                  {item.propiedades} props
+                                  {item.propiedades}
                                 </span>
                               </div>
                             </div>
@@ -284,31 +301,31 @@ export const ReportesInmobiliaria = () => {
                     </div>
                   </div>
                 ) : tipoReporte === 'clientes' ? (
-                  <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-                    <div className="flex items-center justify-between mb-6">
+                  <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-2">
                       <div>
-                        <h3 className="text-lg font-semibold text-gray-800">Crecimiento de Clientela</h3>
-                        <p className="text-sm text-gray-500">Nuevos clientes y tasa de conversión</p>
+                        <h3 className="text-base sm:text-lg font-semibold text-gray-800">Crecimiento de Clientela</h3>
+                        <p className="text-xs sm:text-sm text-gray-500">Nuevos clientes y tasa de conversión</p>
                       </div>
                       <TrendingUp className="w-5 h-5 text-[#2F8EAC]" />
                     </div>
 
-                    <div className="space-y-4">
+                    <div className="space-y-3 sm:space-y-4">
                       {reportesData.crecimientoClientela.slice(-6).map((item, index) => {
                         const maxClientes = Math.max(...reportesData.crecimientoClientela.map(c => c.nuevos));
                         return (
-                          <div key={index} className="flex items-center gap-4">
-                            <div className="w-8 text-sm font-medium text-gray-600">{item.mes}</div>
-                            <div className="flex-1 bg-gray-100 rounded-full h-8 relative">
+                          <div key={index} className="flex items-center gap-2 sm:gap-4">
+                            <div className="w-6 sm:w-8 text-xs sm:text-sm font-medium text-gray-600">{item.mes}</div>
+                            <div className="flex-1 bg-gray-100 rounded-full h-6 sm:h-8 relative">
                               <div 
-                                className="bg-gradient-to-r from-[#2F8EAC] to-[#4ECDC4] h-8 rounded-full flex items-center justify-between px-3"
+                                className="bg-gradient-to-r from-[#2F8EAC] to-[#4ECDC4] h-6 sm:h-8 rounded-full flex items-center justify-between px-2 sm:px-3"
                                 style={{ width: `${(item.nuevos / maxClientes) * 100}%` }}
                               >
                                 <span className="text-xs font-medium text-white">
-                                  {item.nuevos} nuevos
+                                  {item.nuevos}
                                 </span>
                                 <span className="text-xs font-medium text-white">
-                                  {item.conversiones}% conv.
+                                  {item.conversiones}%
                                 </span>
                               </div>
                             </div>
@@ -318,26 +335,26 @@ export const ReportesInmobiliaria = () => {
                     </div>
                   </div>
                 ) : (
-                  <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-                    <div className="flex items-center justify-between mb-6">
+                  <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-2">
                       <div>
-                        <h3 className="text-lg font-semibold text-gray-800">Rendimiento de Agentes</h3>
-                        <p className="text-sm text-gray-500">Top 5 agentes por ventas y comisiones</p>
+                        <h3 className="text-base sm:text-lg font-semibold text-gray-800">Rendimiento de Agentes</h3>
+                        <p className="text-xs sm:text-sm text-gray-500">Top 5 agentes por ventas y comisiones</p>
                       </div>
                       <Award className="w-5 h-5 text-[#2F8EAC]" />
                     </div>
 
-                    <div className="space-y-4">
+                    <div className="space-y-3 sm:space-y-4">
                       {reportesData.topAgentes.map((agente, index) => (
-                        <div key={index} className="flex items-center gap-4 p-4 bg-gray-50 rounded-xl">
-                          <div className="flex items-center justify-center w-8 h-8 bg-gradient-to-br from-[#2F8EAC] to-[#4ECDC4] text-white rounded-full text-sm font-bold">
+                        <div key={index} className="flex items-center gap-3 sm:gap-4 p-3 sm:p-4 bg-gray-50 rounded-xl">
+                          <div className="flex items-center justify-center w-6 h-6 sm:w-8 sm:h-8 bg-gradient-to-br from-[#2F8EAC] to-[#4ECDC4] text-white rounded-full text-xs sm:text-sm font-bold">
                             {index + 1}
                           </div>
-                          <div className="flex-1">
-                            <div className="flex items-center justify-between mb-1">
-                              <span className="font-medium text-gray-900">{agente.nombre}</span>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-1 gap-1">
+                              <span className="font-medium text-gray-900 text-sm sm:text-base truncate">{agente.nombre}</span>
                               <div className="flex items-center gap-2">
-                                <span className="text-sm text-gray-600">{agente.ventas} ventas</span>
+                                <span className="text-xs sm:text-sm text-gray-600">{agente.ventas} ventas</span>
                                 <div className={`flex items-center gap-1 ${agente.crecimiento >= 0 ? 'text-[#4ECDC4]' : 'text-[#FF8A80]'}`}>
                                   {agente.crecimiento >= 0 ? 
                                     <ArrowUpRight className="w-3 h-3" /> : 
@@ -349,7 +366,7 @@ export const ReportesInmobiliaria = () => {
                                 </div>
                               </div>
                             </div>
-                            <div className="text-sm text-gray-600">
+                            <div className="text-xs sm:text-sm text-gray-600">
                               {formatearPrecio(agente.comisiones)} en comisiones
                             </div>
                           </div>
@@ -361,26 +378,26 @@ export const ReportesInmobiliaria = () => {
               </div>
 
               {/* Panel lateral */}
-              <div className="space-y-6">
-                {/* Distribución por tipo de propiedad con colores armoniosos */}
-                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+              <div className="space-y-4 sm:space-y-6">
+                {/* Distribución por tipo de propiedad */}
+                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6">
                   <div className="flex items-center justify-between mb-4">
-                    <h3 className="font-semibold text-gray-800">Tipos de Propiedades</h3>
-                    <PieChart className="w-5 h-5 text-[#2F8EAC]" />
+                    <h3 className="font-semibold text-gray-800 text-sm sm:text-base">Tipos de Propiedades</h3>
+                    <PieChart className="w-4 h-4 sm:w-5 sm:h-5 text-[#2F8EAC]" />
                   </div>
                   
-                  <div className="space-y-4">
+                  <div className="space-y-3 sm:space-y-4">
                     {reportesData.tiposPropiedades.map((tipo, index) => {
                       const colores = ['bg-[#2F8EAC]', 'bg-[#4ECDC4]', 'bg-[#FF8A80]', 'bg-[#FFD54F]'];
                       return (
                         <div key={index} className="space-y-2">
                           <div className="flex items-center justify-between">
-                            <span className="text-sm font-medium text-gray-700">{tipo.tipo}</span>
-                            <span className="text-sm text-gray-600">{tipo.porcentaje}%</span>
+                            <span className="text-xs sm:text-sm font-medium text-gray-700">{tipo.tipo}</span>
+                            <span className="text-xs sm:text-sm text-gray-600">{tipo.porcentaje}%</span>
                           </div>
                           <div className="w-full bg-gray-200 rounded-full h-2">
                             <div 
-                              className={`${colores[index]} h-2 rounded-full`}
+                              className={`${colores[index]} h-2 rounded-full transition-all duration-300`}
                               style={{ width: `${tipo.porcentaje}%` }}
                             ></div>
                           </div>
@@ -393,41 +410,41 @@ export const ReportesInmobiliaria = () => {
                   </div>
                 </div>
 
-                {/* Métricas rápidas con colores armoniosos */}
-                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-                  <h3 className="font-semibold text-gray-800 mb-4">Métricas del Periodo</h3>
+                {/* Métricas rápidas */}
+                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6">
+                  <h3 className="font-semibold text-gray-800 mb-4 text-sm sm:text-base">Métricas del Periodo</h3>
                   
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between p-3 bg-[#2F8EAC]/10 rounded-lg">
+                  <div className="space-y-3 sm:space-y-4">
+                    <div className="flex items-center justify-between p-2 sm:p-3 bg-[#2F8EAC]/10 rounded-lg">
                       <div className="flex items-center gap-2">
-                        <Phone className="w-4 h-4 text-[#2F8EAC]" />
-                        <span className="text-sm text-gray-700">Llamadas realizadas</span>
+                        <Phone className="w-3 h-3 sm:w-4 sm:h-4 text-[#2F8EAC]" />
+                        <span className="text-xs sm:text-sm text-gray-700">Llamadas realizadas</span>
                       </div>
-                      <span className="font-semibold text-gray-900">1,245</span>
+                      <span className="font-semibold text-gray-900 text-xs sm:text-sm">1,245</span>
                     </div>
                     
-                    <div className="flex items-center justify-between p-3 bg-[#4ECDC4]/10 rounded-lg">
+                    <div className="flex items-center justify-between p-2 sm:p-3 bg-[#4ECDC4]/10 rounded-lg">
                       <div className="flex items-center gap-2">
-                        <Mail className="w-4 h-4 text-[#4ECDC4]" />
-                        <span className="text-sm text-gray-700">Emails enviados</span>
+                        <Mail className="w-3 h-3 sm:w-4 sm:h-4 text-[#4ECDC4]" />
+                        <span className="text-xs sm:text-sm text-gray-700">Emails enviados</span>
                       </div>
-                      <span className="font-semibold text-gray-900">3,567</span>
+                      <span className="font-semibold text-gray-900 text-xs sm:text-sm">3,567</span>
                     </div>
                     
-                    <div className="flex items-center justify-between p-3 bg-[#FF8A80]/10 rounded-lg">
+                    <div className="flex items-center justify-between p-2 sm:p-3 bg-[#FF8A80]/10 rounded-lg">
                       <div className="flex items-center gap-2">
-                        <Calendar className="w-4 h-4 text-[#FF8A80]" />
-                        <span className="text-sm text-gray-700">Citas programadas</span>
+                        <Calendar className="w-3 h-3 sm:w-4 sm:h-4 text-[#FF8A80]" />
+                        <span className="text-xs sm:text-sm text-gray-700">Citas programadas</span>
                       </div>
-                      <span className="font-semibold text-gray-900">89</span>
+                      <span className="font-semibold text-gray-900 text-xs sm:text-sm">89</span>
                     </div>
                     
-                    <div className="flex items-center justify-between p-3 bg-[#FFD54F]/10 rounded-lg">
+                    <div className="flex items-center justify-between p-2 sm:p-3 bg-[#FFD54F]/10 rounded-lg">
                       <div className="flex items-center gap-2">
-                        <Target className="w-4 h-4 text-[#FFD54F]" />
-                        <span className="text-sm text-gray-700">Tasa de cierre</span>
+                        <Target className="w-3 h-3 sm:w-4 sm:h-4 text-[#FFD54F]" />
+                        <span className="text-xs sm:text-sm text-gray-700">Tasa de cierre</span>
                       </div>
-                      <span className="font-semibold text-gray-900">23.4%</span>
+                      <span className="font-semibold text-gray-900 text-xs sm:text-sm">23.4%</span>
                     </div>
                   </div>
                 </div>

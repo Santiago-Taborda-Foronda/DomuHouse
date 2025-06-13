@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { LayoutDashboard, Building, Plus, Calendar, MapPin, Users, Phone, TrendingUp, User, LogOut, X } from 'lucide-react';
 
-export default function AgentSideBar({ sidebarOpen, setSidebarOpen }) {
+export default function AgentSideBar({ sidebarOpen, setSidebarOpen, isFixedLayout = false, toggleSidebar }) {
     const navigate = useNavigate();
     const location = useLocation();
 
@@ -24,10 +24,15 @@ export default function AgentSideBar({ sidebarOpen, setSidebarOpen }) {
     // Función para manejar navegación
     const handleNavigation = (route) => {
         navigate(route);
+        // Cerrar el sidebar en móviles después de navegar (solo si no es layout fijo)
+        if (!isFixedLayout && window.innerWidth < 1024) {
+            if (setSidebarOpen) setSidebarOpen(false);
+            if (toggleSidebar) toggleSidebar();
+        }
     };
 
     // Componente personalizado para elementos del menú con estado activo
-    const MenuItem = ({ icon: Icon, label, route }) => {
+    const MenuItem = ({ icon: Icon, label, route, subtitle = null }) => {
         const isActive = isActiveRoute(route);
         
         return (
@@ -41,99 +46,225 @@ export default function AgentSideBar({ sidebarOpen, setSidebarOpen }) {
                     }`}
                 >
                     <Icon size={18} className={isActive ? 'text-[#2F8EAC]' : ''} />
-                    <span className="text-sm">{label}</span>
+                    <div className="flex flex-col">
+                        <span className="text-sm">{label}</span>
+                        {subtitle && (
+                            <span className="text-xs text-gray-500">{subtitle}</span>
+                        )}
+                    </div>
                 </button>
             </li>
         );
     };
 
+    // Si es layout fijo, renderizar solo el contenido del sidebar
+    if (isFixedLayout) {
+        return (
+            <div className="p-6 h-full">
+                {/* Logo en la parte superior del menú */}
+                <div className="text-center mb-8 pb-4 border-b border-gray-100">
+                    <h1 className="text-xl font-bold text-gray-800 title-montserrat">
+                        Portal de <span className='text-[#2F8EAC]'>Agentes</span>
+                    </h1>
+                    <div className="w-12 h-1 bg-[#2F8EAC] mx-auto mt-2 rounded-full"></div>
+                </div>
+
+                <div className="flex flex-col gap-6 mt-8">
+                    {/* Gestión de Propiedades */}
+                    <section>
+                        <h3 className="font-semibold text-gray-700 mb-3 title-montserrat text-xs uppercase tracking-wide">
+                            Gestión de Propiedades
+                        </h3>
+                        <ul className="space-y-1">
+                            <MenuItem 
+                                icon={LayoutDashboard}
+                                label="Dashboard"
+                                route="/AgentDashboard"
+                            />
+                            <MenuItem 
+                                icon={Building}
+                                label="Mis Propiedades"
+                                route="/MisPropiedades"
+                            />
+                            <MenuItem 
+                                icon={Plus}
+                                label="Crear Propiedad"
+                                route="/CrearPropiedad"
+                            />
+                        </ul>
+                    </section>
+
+                    {/* Gestión de Visitas */}
+                    <section>
+                        <h3 className="font-semibold text-gray-700 mb-3 title-montserrat text-xs uppercase tracking-wide">
+                            Gestión de Visitas
+                        </h3>
+                        <ul className="space-y-1">
+                            <MenuItem 
+                                icon={Calendar}
+                                label="Visitas Agendadas"
+                                route="/VisitasAgendadas"
+                            />
+                            <MenuItem 
+                                icon={MapPin}
+                                label="Programar Visitas"
+                                route="/ProgramarVisita"
+                            />
+                        </ul>
+                    </section>
+
+                    {/* Gestión de Clientes */}
+                    <section>
+                        <h3 className="font-semibold text-gray-700 mb-3 title-montserrat text-xs uppercase tracking-wide">
+                            Gestión de Clientes
+                        </h3>
+                        <ul className="space-y-1">
+                            <MenuItem 
+                                icon={Phone}
+                                label="Contactar Clientes"
+                                route="/ContactarCliente"
+                            />
+                            <MenuItem 
+                                icon={TrendingUp}
+                                label="Estado De Interés"
+                                route="/EstadoInteres"
+                            />
+                        </ul>
+                    </section>
+                </div>
+                
+                {/* Cerrar sesión */}
+                <section className="pt-4 border-t mt-6 mb-4">
+                    <button
+                        onClick={() => navigate('/Login')}
+                        className="w-full flex items-center gap-3 px-3 py-3 text-left text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200"
+                    >
+                        <LogOut size={18} />
+                        <div className="flex flex-col">
+                            <span className="text-sm font-medium">Cerrar Sesión</span>
+                            <span className="text-xs text-gray-500">DomuHouse</span>
+                        </div>
+                    </button>
+                </section>
+            </div>
+        )
+    }
+
+    // Layout original para versión móvil/overlay
     return (
-        <div className="w-64 sm:w-72 lg:w-64 bg-white shadow-lg h-screen flex flex-col p-6">
-            {/* Título del Portal */}
-            <div className="text-center mb-8 pb-4 border-b border-gray-100">
-                <h1 className="text-xl font-bold text-gray-800 title-montserrat">
-                    Portal de <span className='text-[#2F8EAC]'>Agentes</span>
-                </h1>
-                <div className="w-12 h-1 bg-[#2F8EAC] mx-auto mt-2 rounded-full"></div>
-            </div>
+        <>
+            {/* Sidebar y Overlay */}
+            {sidebarOpen && (
+                <>
+                    <div
+                        className="fixed inset-0 bg-black bg-opacity-30 z-40 transition-opacity duration-300 lg:hidden"
+                        onClick={() => {
+                            if (setSidebarOpen) setSidebarOpen(false);
+                            if (toggleSidebar) toggleSidebar();
+                        }}
+                    ></div>
 
-            <div className="flex flex-col gap-6 flex-1 overflow-y-auto">
-                {/* Gestión de Propiedades */}
-                <section>
-                    <h3 className="font-semibold text-gray-700 mb-3 title-montserrat text-xs uppercase tracking-wide">
-                        Gestión de Propiedades
-                    </h3>
-                    <ul className="space-y-1">
-                        <MenuItem 
-                            icon={LayoutDashboard}
-                            label="Dashboard"
-                            route="/AgentDashboard"
-                        />
-                        <MenuItem 
-                            icon={Building}
-                            label="Mis Propiedades"
-                            route="/MisPropiedades"
-                        />
-                        <MenuItem 
-                            icon={Plus}
-                            label="Crear Propiedad"
-                            route="/CrearPropiedad"
-                        />
-                    </ul>
-                </section>
+                    {/* Menú lateral */}
+                    <aside className="fixed top-16 left-0 w-72 h-[calc(100vh-4rem)] bg-white shadow-lg z-50 p-6 overflow-y-auto transition-transform duration-300 ease-in-out transform">
+                        {/* Título del Portal */}
+                        <div className="text-center mb-8 pb-4 border-b border-gray-100">
+                            <h1 className="text-xl font-bold text-gray-800 title-montserrat">
+                                Portal de <span className='text-[#2F8EAC]'>Agentes</span>
+                            </h1>
+                            <div className="w-12 h-1 bg-[#2F8EAC] mx-auto mt-2 rounded-full"></div>
+                        </div>
+                        
+                        {/* Botón cerrar */}
+                        <button 
+                            onClick={() => {
+                                if (setSidebarOpen) setSidebarOpen(false);
+                                if (toggleSidebar) toggleSidebar();
+                            }} 
+                            className="absolute top-4 right-4 focus:outline-none hover:bg-gray-100 p-1 rounded-lg transition-colors lg:hidden"
+                        >
+                            <X className="w-6 h-6 text-gray-700" />
+                        </button>
 
-                {/* Gestión de Visitas */}
-                <section>
-                    <h3 className="font-semibold text-gray-700 mb-3 title-montserrat text-xs uppercase tracking-wide">
-                        Gestión de Visitas
-                    </h3>
-                    <ul className="space-y-1">
-                        <MenuItem 
-                            icon={Calendar}
-                            label="Visitas Agendadas"
-                            route="/VisitasAgendadas"
-                        />
-                        <MenuItem 
-                            icon={MapPin}
-                            label="Programar Visitas"
-                            route="/ProgramarVisita"
-                        />
-                    </ul>
-                </section>
+                        <div className="flex flex-col gap-6 mt-8">
+                            {/* Gestión de Propiedades */}
+                            <section>
+                                <h3 className="font-semibold text-gray-700 mb-3 title-montserrat text-xs uppercase tracking-wide">
+                                    Gestión de Propiedades
+                                </h3>
+                                <ul className="space-y-1">
+                                    <MenuItem 
+                                        icon={LayoutDashboard}
+                                        label="Dashboard"
+                                        route="/AgentDashboard"
+                                    />
+                                    <MenuItem 
+                                        icon={Building}
+                                        label="Mis Propiedades"
+                                        route="/MisPropiedades"
+                                    />
+                                    <MenuItem 
+                                        icon={Plus}
+                                        label="Crear Propiedad"
+                                        route="/CrearPropiedad"
+                                    />
+                                </ul>
+                            </section>
 
-                {/* Gestión de Clientes */}
-                <section>
-                    <h3 className="font-semibold text-gray-700 mb-3 title-montserrat text-xs uppercase tracking-wide">
-                        Gestión de Clientes
-                    </h3>
-                    <ul className="space-y-1">
-                        <MenuItem 
-                            icon={Phone}
-                            label="Contactar Clientes"
-                            route="/ContactarCliente"
-                        />
-                        <MenuItem 
-                            icon={TrendingUp}
-                            label="Estado De Interés"
-                            route="/EstadoInteres"
-                        />
-                    </ul>
-                </section>
-            </div>
-            
-            {/* Cerrar sesión */}
-            <section className="pt-4 border-t mt-6 mb-4">
-                <button
-                    onClick={() => navigate('/Login')}
-                    className="w-full flex items-center gap-3 px-3 py-3 text-left text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200"
-                >
-                    <LogOut size={18} />
-                    <div className="flex flex-col">
-                        <span className="text-sm font-medium">Cerrar Sesión</span>
-                        <span className="text-xs text-gray-500">DomuHouse</span>
-                    </div>
-                </button>
-            </section>
-        </div>
+                            {/* Gestión de Visitas */}
+                            <section>
+                                <h3 className="font-semibold text-gray-700 mb-3 title-montserrat text-xs uppercase tracking-wide">
+                                    Gestión de Visitas
+                                </h3>
+                                <ul className="space-y-1">
+                                    <MenuItem 
+                                        icon={Calendar}
+                                        label="Visitas Agendadas"
+                                        route="/VisitasAgendadas"
+                                    />
+                                    <MenuItem 
+                                        icon={MapPin}
+                                        label="Programar Visitas"
+                                        route="/ProgramarVisita"
+                                    />
+                                </ul>
+                            </section>
+
+                            {/* Gestión de Clientes */}
+                            <section>
+                                <h3 className="font-semibold text-gray-700 mb-3 title-montserrat text-xs uppercase tracking-wide">
+                                    Gestión de Clientes
+                                </h3>
+                                <ul className="space-y-1">
+                                    <MenuItem 
+                                        icon={Phone}
+                                        label="Contactar Clientes"
+                                        route="/ContactarCliente"
+                                    />
+                                    <MenuItem 
+                                        icon={TrendingUp}
+                                        label="Estado De Interés"
+                                        route="/EstadoInteres"
+                                    />
+                                </ul>
+                            </section>
+                        </div>
+                        
+                        {/* Cerrar sesión */}
+                        <section className="pt-4 border-t mt-6 mb-4">
+                            <button
+                                onClick={() => navigate('/Login')}
+                                className="w-full flex items-center gap-3 px-3 py-3 text-left text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200"
+                            >
+                                <LogOut size={18} />
+                                <div className="flex flex-col">
+                                    <span className="text-sm font-medium">Cerrar Sesión</span>
+                                    <span className="text-xs text-gray-500">DomuHouse</span>
+                                </div>
+                            </button>
+                        </section>
+                    </aside>
+                </>
+            )}
+        </>
     );
 }

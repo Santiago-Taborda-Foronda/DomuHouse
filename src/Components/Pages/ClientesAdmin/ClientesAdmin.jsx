@@ -93,10 +93,16 @@ const clientesData = {
 
 export const ClientesAdmin = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(true)
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const [filtroTipo, setFiltroTipo] = useState('Todos')
   const [filtroEstado, setFiltroEstado] = useState('Todos')
   const [busqueda, setBusqueda] = useState('')
   const [clientesFiltrados, setClientesFiltrados] = useState(clientesData.clientes)
+
+  // Función para manejar el toggle del sidebar
+  const toggleSidebar = () => {
+    setIsSidebarOpen(!isSidebarOpen)
+  }
 
   // Función para manejar logout
   const handleLogout = () => {
@@ -151,12 +157,12 @@ export const ClientesAdmin = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <Header hasSidebar={true} />
+      <Header hasSidebar={true} toggleSidebar={toggleSidebar} />
       
-      {/* Layout principal con sidebar fijo */}
+      {/* Layout principal */}
       <div className="flex pt-16">
-        {/* Sidebar fijo siempre visible */}
-        <div className="fixed left-0 top-16 h-[calc(100vh-4rem)] w-72 bg-white shadow-lg border-r border-gray-200 overflow-y-auto z-30">
+        {/* Sidebar fijo para desktop */}
+        <div className="hidden lg:block fixed left-0 top-16 h-[calc(100vh-4rem)] w-72 bg-white shadow-lg border-r border-gray-200 overflow-y-auto z-30">
           <SidebarInmobiliaria 
             isOpen={true}
             toggleMenu={() => {}}
@@ -166,91 +172,102 @@ export const ClientesAdmin = () => {
           />
         </div>
 
-        {/* Contenido principal con margen izquierdo para el sidebar */}
-        <main className="flex-1 ml-72">
-          <div className="p-6">
+        {/* Sidebar overlay para móviles */}
+        <div className="lg:hidden">
+          <SidebarInmobiliaria 
+            isOpen={isSidebarOpen}
+            toggleMenu={toggleSidebar}
+            isAuthenticated={isAuthenticated}
+            handleLogout={handleLogout}
+            isFixedLayout={false}
+          />
+        </div>
+
+        {/* Contenido principal con margen responsivo */}
+        <main className="flex-1 lg:ml-72 transition-all duration-300">
+          <div className="p-3 sm:p-4 md:p-6">
             {/* Header de la página */}
-            <div className="mb-8">
-              <h1 className="text-3xl font-bold text-gray-900">Clientes</h1>
+            <div className="mb-6 md:mb-8">
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Clientes</h1>
               <p className="text-gray-600 text-sm mt-1">
                 Gestiona y visualiza información de tus clientes
               </p>
             </div>
 
             {/* Tarjetas de estadísticas principales */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6 mb-6 md:mb-8">
               {/* Total Clientes */}
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+              <div className="bg-white rounded-xl md:rounded-2xl shadow-sm border border-gray-100 p-4 md:p-6">
                 <div className="flex items-center justify-between">
                   <div>
                     <div className="flex items-center gap-2 mb-2">
-                      <Users className="w-5 h-5 text-[#2F8EAC]" />
-                      <span className="text-3xl font-bold text-gray-900">{clientesData.totalClientes}</span>
+                      <Users className="w-4 h-4 md:w-5 md:h-5 text-[#2F8EAC]" />
+                      <span className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">{clientesData.totalClientes}</span>
                     </div>
-                    <p className="text-sm text-gray-600">Total Clientes</p>
+                    <p className="text-xs md:text-sm text-gray-600">Total Clientes</p>
                   </div>
                 </div>
               </div>
 
               {/* Clientes Activos */}
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+              <div className="bg-white rounded-xl md:rounded-2xl shadow-sm border border-gray-100 p-4 md:p-6">
                 <div className="flex items-center justify-between">
                   <div>
                     <div className="flex items-center gap-2 mb-2">
-                      <User className="w-5 h-5 text-[#2F8EAC]" />
-                      <span className="text-3xl font-bold text-gray-900">{clientesData.clientesActivos}</span>
+                      <User className="w-4 h-4 md:w-5 md:h-5 text-[#2F8EAC]" />
+                      <span className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">{clientesData.clientesActivos}</span>
                     </div>
-                    <p className="text-sm text-gray-600">Clientes Activos</p>
+                    <p className="text-xs md:text-sm text-gray-600">Clientes Activos</p>
                   </div>
                 </div>
               </div>
 
               {/* Clientes Nuevos */}
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+              <div className="bg-white rounded-xl md:rounded-2xl shadow-sm border border-gray-100 p-4 md:p-6">
                 <div className="flex items-center justify-between">
                   <div>
                     <div className="flex items-center gap-2 mb-2">
-                      <TrendingUp className="w-5 h-5 text-[#2F8EAC]" />
-                      <span className="text-3xl font-bold text-gray-900">{clientesData.clientesNuevos}</span>
+                      <TrendingUp className="w-4 h-4 md:w-5 md:h-5 text-[#2F8EAC]" />
+                      <span className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">{clientesData.clientesNuevos}</span>
                     </div>
-                    <p className="text-sm text-gray-600">Nuevos este mes</p>
+                    <p className="text-xs md:text-sm text-gray-600">Nuevos este mes</p>
                   </div>
                 </div>
               </div>
 
               {/* Ingresos Totales */}
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+              <div className="bg-white rounded-xl md:rounded-2xl shadow-sm border border-gray-100 p-4 md:p-6 col-span-2 lg:col-span-1">
                 <div className="flex items-center justify-between">
                   <div>
                     <div className="flex items-center gap-2 mb-2">
-                      <DollarSign className="w-5 h-5 text-[#2F8EAC]" />
-                      <span className="text-lg font-bold text-gray-900">{formatearPrecio(clientesData.ingresosTotales)}</span>
+                      <DollarSign className="w-4 h-4 md:w-5 md:h-5 text-[#2F8EAC]" />
+                      <span className="text-sm sm:text-base md:text-lg font-bold text-gray-900">{formatearPrecio(clientesData.ingresosTotales)}</span>
                     </div>
-                    <p className="text-sm text-gray-600">Ingresos Totales</p>
+                    <p className="text-xs md:text-sm text-gray-600">Ingresos Totales</p>
                   </div>
                 </div>
               </div>
             </div>
 
             {/* Filtros y búsqueda */}
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
-              <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
+            <div className="bg-white rounded-xl md:rounded-2xl shadow-sm border border-gray-100 p-4 md:p-6 mb-4 md:mb-6">
+              <div className="flex flex-col gap-4">
                 {/* Barra de búsqueda */}
-                <div className="relative flex-1 max-w-md">
+                <div className="relative w-full">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                   <input
                     type="text"
                     placeholder="Buscar por nombre, email o propiedad..."
-                    className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#2F8EAC] focus:border-[#2F8EAC] transition-colors"
+                    className="w-full pl-10 pr-4 py-2 md:py-3 border border-gray-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-[#2F8EAC] focus:border-[#2F8EAC] transition-colors text-sm md:text-base"
                     value={busqueda}
                     onChange={(e) => setBusqueda(e.target.value)}
                   />
                 </div>
 
                 {/* Filtros */}
-                <div className="flex gap-3">
+                <div className="flex flex-col sm:flex-row gap-3">
                   <select
-                    className="px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#2F8EAC] focus:border-[#2F8EAC] transition-colors"
+                    className="flex-1 px-3 md:px-4 py-2 md:py-3 border border-gray-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-[#2F8EAC] focus:border-[#2F8EAC] transition-colors text-sm md:text-base"
                     value={filtroTipo}
                     onChange={(e) => setFiltroTipo(e.target.value)}
                   >
@@ -260,7 +277,7 @@ export const ClientesAdmin = () => {
                   </select>
 
                   <select
-                    className="px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#2F8EAC] focus:border-[#2F8EAC] transition-colors"
+                    className="flex-1 px-3 md:px-4 py-2 md:py-3 border border-gray-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-[#2F8EAC] focus:border-[#2F8EAC] transition-colors text-sm md:text-base"
                     value={filtroEstado}
                     onChange={(e) => setFiltroEstado(e.target.value)}
                   >
@@ -273,80 +290,82 @@ export const ClientesAdmin = () => {
             </div>
 
             {/* Lista de clientes */}
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100">
-              <div className="p-6 border-b border-gray-100">
-                <h3 className="text-lg font-semibold text-gray-800">
+            <div className="bg-white rounded-xl md:rounded-2xl shadow-sm border border-gray-100">
+              <div className="p-4 md:p-6 border-b border-gray-100">
+                <h3 className="text-base md:text-lg font-semibold text-gray-800">
                   Lista de Clientes ({clientesFiltrados.length})
                 </h3>
               </div>
 
               <div className="divide-y divide-gray-100">
                 {clientesFiltrados.map((cliente) => (
-                  <div key={cliente.id} className="p-6 hover:bg-gray-50 transition-colors">
-                    <div className="flex items-center justify-between">
+                  <div key={cliente.id} className="p-4 md:p-6 hover:bg-gray-50 transition-colors">
+                    <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                       {/* Información principal del cliente */}
-                      <div className="flex items-center gap-4">
+                      <div className="flex items-start sm:items-center gap-3 md:gap-4 flex-1">
                         {/* Avatar */}
-                        <div className="w-12 h-12 bg-[#2F8EAC] rounded-full flex items-center justify-center text-white font-semibold">
+                        <div className="w-10 h-10 md:w-12 md:h-12 bg-[#2F8EAC] rounded-full flex items-center justify-center text-white font-semibold text-sm md:text-base flex-shrink-0">
                           {cliente.avatar}
                         </div>
 
                         {/* Datos del cliente */}
-                        <div className="flex-1">
-                          <div className="flex items-center gap-3 mb-2">
-                            <h4 className="font-semibold text-gray-900">{cliente.nombre}</h4>
-                            <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                              cliente.tipoCliente === 'Comprador' 
-                                ? 'bg-green-100 text-green-700' 
-                                : 'bg-blue-100 text-blue-700'
-                            }`}>
-                              {cliente.tipoCliente}
-                            </span>
-                            <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                              cliente.estado === 'Activo' 
-                                ? 'bg-emerald-100 text-emerald-700' 
-                                : 'bg-red-100 text-red-700'
-                            }`}>
-                              {cliente.estado}
-                            </span>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-3">
+                            <h4 className="font-semibold text-gray-900 text-sm md:text-base truncate">{cliente.nombre}</h4>
+                            <div className="flex gap-2 flex-wrap">
+                              <span className={`px-2 md:px-3 py-1 rounded-full text-xs font-medium ${
+                                cliente.tipoCliente === 'Comprador' 
+                                  ? 'bg-green-100 text-green-700' 
+                                  : 'bg-blue-100 text-blue-700'
+                              }`}>
+                                {cliente.tipoCliente}
+                              </span>
+                              <span className={`px-2 md:px-3 py-1 rounded-full text-xs font-medium ${
+                                cliente.estado === 'Activo' 
+                                  ? 'bg-emerald-100 text-emerald-700' 
+                                  : 'bg-red-100 text-red-700'
+                              }`}>
+                                {cliente.estado}
+                              </span>
+                            </div>
                           </div>
 
-                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm text-gray-600">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-4 text-xs md:text-sm text-gray-600">
                             <div className="flex items-center gap-2">
-                              <Mail className="w-4 h-4" />
-                              <span>{cliente.email}</span>
+                              <Mail className="w-3 h-3 md:w-4 md:h-4 flex-shrink-0" />
+                              <span className="truncate">{cliente.email}</span>
                             </div>
 
                             <div className="flex items-center gap-2">
-                              <Phone className="w-4 h-4" />
+                              <Phone className="w-3 h-3 md:w-4 md:h-4 flex-shrink-0" />
                               <span>{cliente.telefono}</span>
                             </div>
 
-                            <div className="flex items-center gap-2">
-                              <Home className="w-4 h-4" />
-                              <span>{cliente.propiedadAsociada}</span>
+                            <div className="flex items-center gap-2 md:col-span-2 lg:col-span-1">
+                              <Home className="w-3 h-3 md:w-4 md:h-4 flex-shrink-0" />
+                              <span className="truncate">{cliente.propiedadAsociada}</span>
                             </div>
 
                             <div className="flex items-center gap-2">
-                              <Calendar className="w-4 h-4" />
-                              <span>Registro: {formatearFecha(cliente.fechaRegistro)}</span>
+                              <Calendar className="w-3 h-3 md:w-4 md:h-4 flex-shrink-0" />
+                              <span className="truncate">Registro: {formatearFecha(cliente.fechaRegistro)}</span>
                             </div>
                           </div>
                         </div>
                       </div>
 
                       {/* Información financiera y acciones */}
-                      <div className="text-right">
-                        <div className="flex items-center gap-2 mb-2">
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between lg:flex-col lg:items-end gap-3 lg:gap-2 pt-3 lg:pt-0 border-t lg:border-t-0 border-gray-100">
+                        <div className="flex items-center gap-2">
                           <CreditCard className="w-4 h-4 text-[#2F8EAC]" />
-                          <span className="font-bold text-gray-900">
+                          <span className="font-bold text-gray-900 text-sm md:text-base">
                             {formatearPrecio(cliente.valorTransaccion)}
                           </span>
                         </div>
-                        <p className="text-xs text-gray-500 mb-3">
+                        <p className="text-xs text-gray-500">
                           Última actividad: {formatearFecha(cliente.ultimaActividad)}
                         </p>
-                        <button className="px-4 py-2 bg-[#2F8EAC] text-white rounded-lg hover:bg-[#267a94] transition-colors text-sm">
+                        <button className="px-3 md:px-4 py-2 bg-[#2F8EAC] text-white rounded-lg hover:bg-[#267a94] transition-colors text-xs md:text-sm font-medium">
                           Ver Detalles
                         </button>
                       </div>
@@ -357,9 +376,9 @@ export const ClientesAdmin = () => {
 
               {/* Mensaje cuando no hay resultados */}
               {clientesFiltrados.length === 0 && (
-                <div className="p-12 text-center">
-                  <Users className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                  <p className="text-gray-500">No se encontraron clientes que coincidan con los filtros aplicados.</p>
+                <div className="p-8 md:p-12 text-center">
+                  <Users className="w-8 h-8 md:w-12 md:h-12 text-gray-300 mx-auto mb-4" />
+                  <p className="text-gray-500 text-sm md:text-base">No se encontraron clientes que coincidan con los filtros aplicados.</p>
                 </div>
               )}
             </div>

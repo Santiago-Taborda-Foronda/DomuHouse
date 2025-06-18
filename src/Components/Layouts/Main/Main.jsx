@@ -22,7 +22,6 @@ const PropertyCard = ({ address, title, rooms, bathrooms, area, price, type, age
     const operationStyle = getOperationStyle(type);
 
     return (
-<<<<<<<<< Temporary merge branch 1
         <div
             className="bg-white flex flex-col rounded-2xl w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg xl:max-w-xl 2xl:max-w-100 shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden cursor-pointer"
             onClick={onClick}
@@ -46,29 +45,6 @@ const PropertyCard = ({ address, title, rooms, bathrooms, area, price, type, age
 
                 <div
                     className="flex flex-col sm:flex-row sm:items-center text-gray-600 text-xs sm:text-sm gap-1 sm:gap-4 mb-3 sm:mb-4">
-=========
-        <div className='bg-white flex flex-col rounded-2xl w-80 shadow-lg overflow-hidden cursor-pointer hover:shadow-xl transition-shadow duration-300' onClick={onClick}>
-            <div className="relative w-full h-48">
-                <img
-                    src={Casa}
-                    alt="Propiedad"
-                    className="w-full h-full object-cover"
-                />
-                {/* Etiqueta de tipo de operación */}
-                <div className={`absolute top-3 right-3 ${operationStyle.bg} text-white px-4 py-1 rounded-full text-sm font-medium`}>
-                    {operationStyle.text}
-                </div>
-                {/* Overlay con dirección */}
-                <div className="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/70 to-transparent text-white text-sm px-4 py-3">
-                    <span className="font-medium">{address}</span>
-                </div>
-            </div>
-
-            <div className="px-5 py-4">
-                <h2 className="text-xl font-semibold text-gray-800 mb-4">{title}</h2>
-                
-                <div className="flex items-center text-gray-600 text-sm gap-6 mb-4">
->>>>>>>>> Temporary merge branch 2
                     <span className="flex items-center gap-1">
                         Cuartos: <strong className="text-gray-800">{rooms}</strong>
                     </span>
@@ -79,7 +55,6 @@ const PropertyCard = ({ address, title, rooms, bathrooms, area, price, type, age
                         m²: <strong className="text-gray-800">{area}</strong>
                     </span>
                 </div>
-<<<<<<<<< Temporary merge branch 1
 
                 <hr className="my-2" />
 
@@ -99,19 +74,6 @@ const PropertyCard = ({ address, title, rooms, bathrooms, area, price, type, age
                     >
                         ${price}
                     </span>
-=========
-                
-                <hr className="border-gray-200 mb-4" />
-                
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#2F8EAC] to-[#1e6b7a] flex items-center justify-center text-white text-sm font-bold shadow-md">
-                            {agentName ? agentName.split(' ').map(n => n[0]).join('').substring(0, 2) : 'AG'}
-                        </div>
-                        <span className="text-sm text-gray-700 font-medium">{agentName}</span>
-                    </div>
-                    <span className="text-lg font-bold text-gray-900">${price}</span>
->>>>>>>>> Temporary merge branch 2
                 </div>
             </div>
         </div>
@@ -166,14 +128,8 @@ export const Main = () => {
                 
                 setError(null);
             } catch (error) {
-<<<<<<<<< Temporary merge branch 1
                 console.error("Error al cargar propiedades:", error)
                 setError("Error al cargar propiedades")
-=========
-                console.error("Error al cargar propiedades:", error);
-                setError("Error al cargar propiedades: " + error.message);
-                setProperties([]);
->>>>>>>>> Temporary merge branch 2
             } finally {
                 setIsLoading(false)
             }
@@ -181,7 +137,6 @@ export const Main = () => {
         fetchProperties()
     }, [])
 
-<<<<<<<<< Temporary merge branch 1
     // Manejar búsqueda
     const handleSearch = async (e) => {
         e.preventDefault()
@@ -226,70 +181,6 @@ export const Main = () => {
             setIsLoading(false)
         }
     }
-=========
-   const handleSearch = async (e) => {
-  e.preventDefault();
-  setIsLoading(true);
-  setError(null);
-
-  try {
-    const formData = new FormData(e.target);
-    const searchParams = {
-      ...filters,
-      price_max: priceRange
-    };
->>>>>>>>> Temporary merge branch 2
-
-    // Agregar campos del formulario
-    if (formData.get('property_type')) searchParams.property_type = formData.get('property_type');
-    if (formData.get('city')) searchParams.city = formData.get('city');
-    if (formData.get('neighborhood')) searchParams.neighborhood = formData.get('neighborhood');
-    if (showAdvanced) {
-      if (formData.get('bedrooms_min')) searchParams.bedrooms_min = Number(formData.get('bedrooms_min'));
-      if (formData.get('socioeconomic_stratum')) searchParams.socioeconomic_stratum = formData.get('socioeconomic_stratum');
-      if (formData.get('bathrooms_min')) searchParams.bathrooms_min = Number(formData.get('bathrooms_min'));
-      if (formData.get('parking_spaces')) searchParams.parking_spaces = Number(formData.get('parking_spaces'));
-    }
-
-    const queryParams = new URLSearchParams();
-    Object.entries(searchParams).forEach(([key, value]) => {
-      if (value && value !== '') {
-        queryParams.append(key, value);
-      }
-    });
-
-    console.log('Enviando búsqueda con parámetros:', queryParams.toString());
-
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 10000);
-    const response = await fetch(`http://localhost:10101/search?${queryParams}`, {
-      signal: controller.signal
-    });
-    clearTimeout(timeoutId);
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || `Search failed: ${response.status}`);
-    }
-
-    const data = await response.json();
-    console.log('Resultado de búsqueda:', data);
-
-    if (Array.isArray(data)) {
-      setProperties(data);
-    } else if (data.success && data.properties) {
-      setProperties(data.properties);
-    } else {
-      setProperties([]);
-      setError('No se encontraron propiedades con los filtros aplicados');
-    }
-  } catch (error) {
-    console.error('Error en la búsqueda:', error);
-    setError(`Error al realizar la búsqueda: ${error.message}`);
-  } finally {
-    setIsLoading(false);
-  }
-};
 
     // Manejar clic en propiedad
     const handlePropertyClick = (propertyId) => {
@@ -298,59 +189,8 @@ export const Main = () => {
 
     // Manejar filtros de botones
     const handleFilterClick = (filterType, value) => {
-<<<<<<<<< Temporary merge branch 1
         setFilters((prev) => ({ ...prev, [filterType]: value }))
     }
-=========
-        setFilters(prev => ({...prev, [filterType]: value}));
-    };
-
-    // ✅ CORREGIDO: Resetear filtros
-    const resetFilters = () => {
-        setFilters({
-            operation_type: '',
-            property_type: '',
-            city: '',
-            neighborhood: '',
-            keyword: '',
-            bedrooms_min: '',
-            bathrooms_min: '',
-            parking_spaces: '',
-            socioeconomic_stratum: ''
-        });
-        setPriceRange(500000000);
-        setShowAdvanced(false);
-        
-        // ✅ CORREGIDO: Recargar todas las propiedades usando la ruta correcta
-        const fetchAllProperties = async () => {
-            setIsLoading(true);
-            try {
-                // ✅ CORREGIDO: Usar la ruta que SÍ existe
-                const res = await fetch('http://localhost:10101/api/properties');
-                if (!res.ok) {
-                    throw new Error(`HTTP error! status: ${res.status}`);
-                }
-                const data = await res.json();
-                
-                if (data.success && data.properties) {
-                    setProperties(data.properties);
-                } else if (Array.isArray(data)) {
-                    setProperties(data);
-                } else {
-                    setProperties([]);
-                }
-                setError(null);
-            } catch (error) {
-                console.error("Error al cargar propiedades:", error);
-                setError("Error al cargar propiedades: " + error.message);
-            } finally {
-                setIsLoading(false);
-            }
-        };
-        
-        fetchAllProperties();
-    };
->>>>>>>>> Temporary merge branch 2
 
     return (
         <>
@@ -549,13 +389,8 @@ export const Main = () => {
                 <div className="px-4 sm:px-6 lg:px-10 xl:px-20 py-6 sm:py-8 lg:py-10 w-full">
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 sm:gap-6 lg:gap-8 justify-items-center">
                         {isLoading ? (
-<<<<<<<<< Temporary merge branch 1
                             <div
                                 className="col-span-full text-center py-8 sm:py-10 lg:py-12 text-sm sm:text-base lg:text-lg">
-=========
-                            <div className="text-center py-10">
-                                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#2F8EAC] mx-auto mb-4"></div>
->>>>>>>>> Temporary merge branch 2
                                 Cargando propiedades...
                             </div>
                         ) : properties.length > 0 ? (
@@ -574,20 +409,8 @@ export const Main = () => {
                                 />
                             ))
                         ) : (
-<<<<<<<<< Temporary merge branch 1
                             <div className="col-span-full text-center py-8 sm:py-10 lg:py-12 text-sm sm:text-base lg:text-lg px-4 sm:px-6 lg:px-8">
                                 No se encontraron propiedades con los filtros aplicados
-=========
-                            <div className="text-center py-10">
-                                <div className="text-gray-500 mb-2">📭</div>
-                                <p className="text-gray-600">No se encontraron propiedades con los filtros aplicados</p>
-                                <button 
-                                    onClick={resetFilters}
-                                    className="mt-4 text-[#2F8EAC] hover:underline"
-                                >
-                                    Ver todas las propiedades
-                                </button>
->>>>>>>>> Temporary merge branch 2
                             </div>
                         )}
                     </div>
@@ -599,10 +422,5 @@ export const Main = () => {
                 />
             </section>
         </>
-<<<<<<<<< Temporary merge branch 1
     )
 }
-=========
-    );
-};
->>>>>>>>> Temporary merge branch 2

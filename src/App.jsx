@@ -25,6 +25,9 @@ import VisitasAgendadas from './Components/Pages/Agente/VisitasAgendadas'
 import ProgramarVisita from './Components/Pages/Agente/ProgramarVisita'
 import ContactarCliente from './Components/Pages/Agente/ContactarCliente'
 import EstadoInteres from './Components/Pages/Agente/EstadoInteres'
+import  UpdateProperty  from './Components/Pages/UpdateProperty/UpdateProperty'
+import { GestionAgents } from './Components/Pages/GestionAgents/GestionAgents'
+import  TokenGenerationPage  from './Components/Pages/TokenGenerationPage/TokenGenerationPage'
 
 
 export const App = () => {
@@ -36,6 +39,7 @@ export const App = () => {
       <Route path='/Encuentrame' element={<Encuentrame />} />
       <Route path='/Login' element={<Login />} />
       <Route path='/Registrarse' element={<Registrarse />} />
+      <Route path="/propiedad/:id" element={<PropiedadSeleccionada />} />
       <Route path='/propiedad-seleccionada' element={<PropiedadSeleccionada />} />
       <Route path='/CrearInmobiliarias' element={<CrearInmobiliarias />} />
       <Route path='/registrarseAdministrador' element={<RegistrarseAdministrador />} />
@@ -43,15 +47,16 @@ export const App = () => {
       <Route path="/recuperar-password" element={<RecoverPassword />} />
       <Route path="/inmobiliarias" element={<ShowInmobiliarias />} />
       <Route path="/inmobiliaria-seleccionada" element={<InmobiliariaSeleccionada />} />
-      <Route path="/MiInmobiliaria" element={<MiInmobiliaria />} />
+      <Route path="/mi-inmobiliaria/propiedades" element={<MiInmobiliaria />} />
       <Route path="/agregar-propiedad" element={<AgregarPropiedad />} />
       {/* <Route path="/actualizar-inmobiliaria" element={<ActualizarInmobiliaria />} /> */}
       <Route path="/privacidad" element={<Privacidad />} />
       <Route path="/terminos" element={<Terminos />} />
       <Route path="/Perfil" element={<Perfil />} />
+      <Route path="/editar-propiedad/:id" element={<UpdateProperty />} />
+      <Route path="/mi-inmobiliaria/gestion-agentes" element={<GestionAgents />} />
 
-      {/* Rutas del Agente */}
-  
+      {/* Rutas del Agente  */}
         <Route path="/AgentDashboard" element={<AgentDashboard />} />
         <Route path="MisPropiedades" element={<MisPropiedades />} />
         <Route path="CrearPropiedad" element={<CrearPropiedad />} />
@@ -59,9 +64,7 @@ export const App = () => {
         <Route path="ProgramarVisita" element={<ProgramarVisita />} />
         <Route path="ContactarCliente" element={<ContactarCliente />} />
         <Route path="EstadoInteres" element={<EstadoInteres />} />
-
-
-     
+    
     </Routes>
 
     

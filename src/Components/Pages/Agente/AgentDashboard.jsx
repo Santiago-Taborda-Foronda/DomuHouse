@@ -2,6 +2,7 @@ import { useState } from "react"
 import { Home, Star, Eye, Edit, Menu, X, Check, Heart } from "lucide-react"
 import AgentSideBar from "./Components/AgentSideBar"
 import { Outlet } from "react-router-dom"
+import { Header } from "../../Layouts/Header/Header"
 
 export default function AgentDashboard() {
   const [activeSection, setActiveSection] = useState("Dashboard")
@@ -207,155 +208,82 @@ export default function AgentDashboard() {
   }
 
   return (
-    <div className="flex h-screen bg-gray-50">
-      {/* Overlay para móvil */}
-      {sidebarOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden" onClick={() => setSidebarOpen(false)} />
-      )}
-
-      {/* Sidebar */}
-      <div
-        className={`
-        fixed lg:static inset-y-0 left-0 z-50 transform transition-transform duration-300 ease-in-out lg:transform-none
-        ${sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
-      `}
-      >
-        <AgentSideBar
-          activeSection={activeSection}
-          setActiveSection={setActiveSection}
-          sidebarOpen={sidebarOpen}
-          setSidebarOpen={setSidebarOpen}
-        />
-      </div>
-
-      {/* Contenido Principal */}
-      <div className="flex-1 overflow-auto">
-        {/* Header para móvil */}
-        <div className="lg:hidden bg-white border-b px-4 py-3 flex items-center justify-between">
-          <button onClick={() => setSidebarOpen(true)} className="p-2 rounded-md text-gray-600 hover:bg-gray-100">
-            <Menu className="w-6 h-6" />
-          </button>
-          <h1 className="text-lg font-semibold text-gray-800">Dashboard</h1>
-          <div className="w-10" />
+    <>
+    <Header hasSidebar={true} />
+    <div className="min-h-screen bg-gray-50">
+      {/* Layout principal con sidebar fijo */}
+      <div className="flex pt-16">
+        {/* Sidebar fijo siempre visible */}
+        <div className="fixed left-0 top-16 h-[calc(100vh-4rem)] w-72 bg-white shadow-lg border-r border-gray-200 overflow-y-auto z-30">
+          <AgentSideBar
+            activeSection={activeSection}
+            setActiveSection={setActiveSection}
+            sidebarOpen={true} // Siempre abierto
+            setSidebarOpen={() => {}} // Función vacía ya que no se necesita toggle
+          />
         </div>
 
-        <div className="p-4 sm:p-6 lg:p-8">
-          {/* Cards de estadísticas */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
-            {stats.map((stat, index) => (
-              <div key={index} className="bg-white rounded-lg shadow-sm p-4 sm:p-6 border">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="flex items-center space-x-2 mb-2">
-                      <Home className="w-4 h-4 sm:w-5 sm:h-5 text-[#2F8EAC]" />
-                      <span className="text-xl sm:text-2xl font-bold text-gray-800">{stat.value}</span>
-                    </div>
-                    <p className="text-xs sm:text-sm text-gray-600">{stat.subtitle}</p>
-                    <p className="text-base sm:text-lg font-semibold text-gray-800">{stat.label}</p>
-                  </div>
-                </div>
+        {/* Contenido principal con margen izquierdo para el sidebar */}
+        <main className="flex-1 ml-72">
+          <div className="p-6">
+            {/* Header de la página */}
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
+                <p className="text-gray-600 text-sm mt-1">
+                  Panel de control y estadísticas generales
+                </p>
               </div>
-            ))}
-          </div>
-
-          {/* Propiedades Recientes */}
-          <div className="bg-white rounded-lg shadow-sm border">
-            <div className="p-4 sm:p-6 border-b">
-              <h2 className="text-lg sm:text-xl font-semibold text-gray-800">Propiedades Recientes</h2>
             </div>
 
-            {/* Vista de tarjetas para móvil */}
-            <div className="block sm:hidden">
-              {recentProperties.map((property) => (
-                <div key={property.id} className="p-4 border-b last:border-b-0">
-                  <div className="flex items-start space-x-3">
-                    <div className="w-12 h-9 bg-gradient-to-br from-[#2F8EAC] to-blue-950 rounded flex-shrink-0"></div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <p className="text-sm font-medium text-gray-900 truncate">{property.name}</p>
-                          <p className="text-xs text-gray-500">{property.type}</p>
-                          <p className="text-xs text-gray-600 mt-1">{property.date}</p>
-                        </div>
-                        <span
-                          className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ml-2 ${getStatusColor(property.status)}`}
-                        >
-                          {property.status}
-                        </span>
+            {/* Cards de estadísticas */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+              {stats.map((stat, index) => (
+                <div key={index} className="bg-white rounded-2xl shadow-sm p-6 border border-gray-100">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="flex items-center space-x-2 mb-2">
+                        <Home className="w-5 h-5 text-[#2F8EAC]" />
+                        <span className="text-2xl font-bold text-gray-800">{stat.value}</span>
                       </div>
-                      <div className="flex items-center space-x-3 mt-3">
-                        <button
-                          onClick={() => handleToggleFavorite(property)}
-                          className={`${property.isFavorite ? "text-red-500" : "text-[#2F8EAC]"} hover:text-[#256b82]`}
-                          title={property.isFavorite ? "Quitar de favoritos" : "Agregar a favoritos"}
-                        >
-                          {property.isFavorite ? (
-                            <Heart className="w-4 h-4 fill-current" />
-                          ) : (
-                            <Star className="w-4 h-4" />
-                          )}
-                        </button>
-                        <button
-                          onClick={() => handleViewProperty(property)}
-                          className="text-teal-400 hover:text-teal-600"
-                          title="Ver detalles"
-                        >
-                          <Eye className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => handleEditProperty(property)}
-                          className="text-gray-400 hover:text-gray-600"
-                          title="Editar"
-                        >
-                          <Edit className="w-4 h-4" />
-                        </button>
-                      </div>
+                      <p className="text-sm text-gray-600">{stat.subtitle}</p>
+                      <p className="text-lg font-semibold text-gray-800">{stat.label}</p>
                     </div>
                   </div>
                 </div>
               ))}
             </div>
 
-            {/* Vista de tabla para desktop */}
-            <div className="hidden sm:block overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-4 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                      Propiedad
-                    </th>
-                    <th className="px-4 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Estado</th>
-                    <th className="px-4 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Fecha</th>
-                    <th className="px-4 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                      Funciones
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {recentProperties.map((property) => (
-                    <tr key={property.id} className="hover:bg-gray-50">
-                      <td className="px-4 lg:px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center space-x-3">
-                          <div className="w-12 h-9 bg-gradient-to-br from-[#2F8EAC] to-blue-950 rounded"></div>
+            {/* Propiedades Recientes */}
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+              <div className="px-6 py-4 border-b border-gray-100">
+                <h2 className="text-xl font-semibold text-gray-800">Propiedades Recientes</h2>
+                <p className="text-sm text-gray-500">Gestiona tus propiedades más recientes</p>
+              </div>
+
+              {/* Vista de tarjetas para móvil */}
+              <div className="block sm:hidden">
+                {recentProperties.map((property) => (
+                  <div key={property.id} className="p-6 border-b border-gray-100 last:border-b-0">
+                    <div className="flex items-start space-x-4">
+                      <div className="w-16 h-12 bg-gradient-to-br from-[#2F8EAC] to-blue-950 rounded-xl flex-shrink-0"></div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between">
                           <div>
-                            <div className="text-sm font-medium text-gray-900">{property.name}</div>
-                            <div className="text-sm text-gray-500">{property.type}</div>
+                            <p className="text-sm font-semibold text-gray-900 truncate">{property.name}</p>
+                            <p className="text-xs text-gray-500">{property.type}</p>
+                            <p className="text-xs text-gray-600 mt-1">{property.date}</p>
                           </div>
+                          <span
+                            className={`inline-flex px-3 py-1 text-xs font-medium rounded-full ml-2 ${getStatusColor(property.status)}`}
+                          >
+                            {property.status}
+                          </span>
                         </div>
-                      </td>
-                      <td className="px-4 lg:px-6 py-4 whitespace-nowrap">
-                        <span
-                          className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(property.status)}`}
-                        >
-                          {property.status}
-                        </span>
-                      </td>
-                      <td className="px-4 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-600">{property.date}</td>
-                      <td className="px-4 lg:px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center space-x-2">
+                        <div className="flex items-center gap-2 mt-3">
                           <button
                             onClick={() => handleToggleFavorite(property)}
-                            className={`${property.isFavorite ? "text-red-500" : "text-[#2F8EAC]"} hover:text-[#256b82]`}
+                            className={`p-2 rounded-lg transition-colors ${property.isFavorite ? "text-red-600 hover:bg-red-50" : "text-[#2F8EAC] hover:bg-blue-50"}`}
                             title={property.isFavorite ? "Quitar de favoritos" : "Agregar a favoritos"}
                           >
                             {property.isFavorite ? (
@@ -366,42 +294,118 @@ export default function AgentDashboard() {
                           </button>
                           <button
                             onClick={() => handleViewProperty(property)}
-                            className="text-teal-400 hover:text-teal-600"
+                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                             title="Ver detalles"
                           >
                             <Eye className="w-4 h-4" />
                           </button>
                           <button
                             onClick={() => handleEditProperty(property)}
-                            className="text-gray-400 hover:text-gray-600"
+                            className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
                             title="Editar"
                           >
                             <Edit className="w-4 h-4" />
                           </button>
                         </div>
-                      </td>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Vista de tabla para desktop */}
+              <div className="hidden sm:block overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                        Propiedad
+                      </th>
+                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                        Estado
+                      </th>
+                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                        Fecha
+                      </th>
+                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                        Acciones
+                      </th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-100">
+                    {recentProperties.map((property) => (
+                      <tr key={property.id} className="hover:bg-gray-50 transition-colors">
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex items-center gap-4">
+                            <div className="w-16 h-12 bg-gradient-to-br from-[#2F8EAC] to-blue-950 rounded-lg overflow-hidden">
+                              {/* Aquí podrías agregar una imagen si está disponible */}
+                            </div>
+                            <div>
+                              <div className="text-sm font-semibold text-gray-900">{property.name}</div>
+                              <div className="text-xs text-gray-500">{property.type}</div>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span
+                            className={`inline-flex px-3 py-1 text-xs font-medium rounded-full ${getStatusColor(property.status)}`}
+                          >
+                            {property.status}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{property.date}</td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => handleToggleFavorite(property)}
+                              className={`p-2 rounded-lg transition-colors ${property.isFavorite ? "text-red-600 hover:bg-red-50" : "text-[#2F8EAC] hover:bg-blue-50"}`}
+                              title={property.isFavorite ? "Quitar de favoritos" : "Agregar a favoritos"}
+                            >
+                              {property.isFavorite ? (
+                                <Heart className="w-4 h-4 fill-current" />
+                              ) : (
+                                <Star className="w-4 h-4" />
+                              )}
+                            </button>
+                            <button
+                              onClick={() => handleViewProperty(property)}
+                              className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                              title="Ver detalles"
+                            >
+                              <Eye className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => handleEditProperty(property)}
+                              className="p-2 text-sky-600 hover:bg-green-50 rounded-lg transition-colors"
+                              title="Editar"
+                            >
+                              <Edit className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
-        </div>
+        </main>
       </div>
 
       {/* View Property Modal */}
       {showViewModal && selectedProperty && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-opacity-75 bg-black/50"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
           onClick={(e) => {
             if (e.target === e.currentTarget) {
               closeModals()
             }
           }}
         >
-          <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-2xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6">
-              <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center justify-between mb-6">
                 <h2 className="text-xl font-semibold text-gray-800">Detalles de la Propiedad</h2>
                 <button onClick={closeModals} className="text-gray-400 hover:text-gray-600 transition-colors">
                   <X className="w-5 h-5" />
@@ -409,23 +413,23 @@ export default function AgentDashboard() {
               </div>
 
               <div className="space-y-6">
-                <div className="flex items-start space-x-4">
-                  <div className="w-32 h-24 bg-gradient-to-br from-[#2F8EAC] to-blue-950 rounded-lg"></div>
+                <div className="flex items-start gap-4">
+                  <div className="w-32 h-24 bg-gradient-to-br from-[#2F8EAC] to-blue-950 rounded-xl flex-shrink-0"></div>
                   <div className="flex-1">
-                    <h3 className="text-lg font-medium text-gray-900">{selectedProperty.name}</h3>
+                    <h3 className="text-lg font-semibold text-gray-900">{selectedProperty.name}</h3>
                     <p className="text-gray-600">
                       {selectedProperty.type} • {selectedProperty.location}
                     </p>
                     <p className="text-xl font-bold text-[#2F8EAC] mt-2">{selectedProperty.price}</p>
                     <span
-                      className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full mt-2 ${getStatusColor(selectedProperty.status)}`}
+                      className={`inline-flex px-3 py-1 text-xs font-medium rounded-full mt-2 ${getStatusColor(selectedProperty.status)}`}
                     >
                       {selectedProperty.status}
                     </span>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Área:</label>
                     <p className="text-gray-900">{selectedProperty.area}</p>
@@ -457,16 +461,16 @@ export default function AgentDashboard() {
       {/* Edit Property Modal */}
       {showEditModal && selectedProperty && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-opacity-75 bg-black/50"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
           onClick={(e) => {
             if (e.target === e.currentTarget) {
               closeModals()
             }
           }}
         >
-          <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-2xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6">
-              <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center justify-between mb-6">
                 <h2 className="text-xl font-semibold text-gray-800">Editar Propiedad</h2>
                 <button onClick={closeModals} className="text-gray-400 hover:text-gray-600 transition-colors">
                   <X className="w-5 h-5" />
@@ -474,53 +478,53 @@ export default function AgentDashboard() {
               </div>
 
               {submitSuccess && (
-                <div className="mb-4 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-xl">
+                <div className="mb-6 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-xl">
                   ¡Propiedad actualizada exitosamente!
                 </div>
               )}
 
-              <div className="space-y-4">
+              <div className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Nombre:</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Nombre:</label>
                     <input
                       type="text"
                       name="name"
                       value={editForm.name}
                       onChange={handleEditFormChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#2F8EAC] focus:border-[#2F8EAC] transition-colors"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Precio:</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Precio:</label>
                     <input
                       type="text"
                       name="price"
                       value={editForm.price}
                       onChange={handleEditFormChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#2F8EAC] focus:border-[#2F8EAC] transition-colors"
                     />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Ubicación:</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Ubicación:</label>
                     <input
                       type="text"
                       name="location"
                       value={editForm.location}
                       onChange={handleEditFormChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#2F8EAC] focus:border-[#2F8EAC] transition-colors"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Tipo:</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Tipo:</label>
                     <select
                       name="type"
                       value={editForm.type}
                       onChange={handleEditFormChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#2F8EAC] focus:border-[#2F8EAC] transition-colors"
                     >
                       <option value="Casa">Casa</option>
                       <option value="Apartamento">Apartamento</option>
@@ -532,44 +536,44 @@ export default function AgentDashboard() {
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Área:</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Área:</label>
                     <input
                       type="text"
                       name="area"
                       value={editForm.area}
                       onChange={handleEditFormChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#2F8EAC] focus:border-[#2F8EAC] transition-colors"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Habitaciones:</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Habitaciones:</label>
                     <input
                       type="number"
                       name="rooms"
                       value={editForm.rooms}
                       onChange={handleEditFormChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#2F8EAC] focus:border-[#2F8EAC] transition-colors"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Baños:</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Baños:</label>
                     <input
                       type="number"
                       name="bathrooms"
                       value={editForm.bathrooms}
                       onChange={handleEditFormChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#2F8EAC] focus:border-[#2F8EAC] transition-colors"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Estado:</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Estado:</label>
                   <select
                     name="status"
                     value={editForm.status}
                     onChange={handleEditFormChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#2F8EAC] focus:border-[#2F8EAC] transition-colors"
                   >
                     <option value="Publicado">Publicado</option>
                     <option value="Pendiente">Pendiente</option>
@@ -577,13 +581,13 @@ export default function AgentDashboard() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Descripción:</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Descripción:</label>
                   <textarea
                     name="description"
                     value={editForm.description}
                     onChange={handleEditFormChange}
                     rows={3}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#2F8EAC] focus:border-[#2F8EAC] transition-colors"
                   />
                 </div>
 
@@ -591,17 +595,17 @@ export default function AgentDashboard() {
                   <button
                     onClick={closeModals}
                     disabled={isSubmitting}
-                    className="flex-1 border border-gray-300 text-gray-700 py-3 px-4 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+                    className="flex-1 border border-gray-300 text-gray-700 py-3 px-4 rounded-xl hover:bg-gray-50 transition-colors font-medium"
                   >
                     Cancelar
                   </button>
                   <button
                     onClick={handleSaveEdit}
                     disabled={isSubmitting}
-                    className={`flex-1 py-3 px-4 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 ${
+                    className={`flex-1 py-3 px-4 rounded-xl font-medium transition-colors flex items-center justify-center gap-2 ${
                       isSubmitting
                         ? "bg-gray-400 text-gray-600 cursor-not-allowed"
-                        : "bg-[#2F8EAC] text-white hover:bg-[#256b82]"
+                        : "bg-[#2F8EAC] text-white hover:bg-[#267a95]"
                     }`}
                   >
                     <Check className="w-4 h-4" />
@@ -617,16 +621,16 @@ export default function AgentDashboard() {
       {/* Favorite Confirmation Modal */}
       {showFavoriteModal && selectedProperty && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-opacity-75 bg-black/50"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
           onClick={(e) => {
             if (e.target === e.currentTarget) {
               closeModals()
             }
           }}
         >
-          <div className="bg-white rounded-xl shadow-xl max-w-md w-full">
+          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full">
             <div className="p-6">
-              <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center justify-between mb-6">
                 <h2 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
                   {selectedProperty.isFavorite ? (
                     <Heart className="w-5 h-5 text-red-500 fill-current" />
@@ -651,19 +655,19 @@ export default function AgentDashboard() {
                 <button
                   onClick={closeModals}
                   disabled={isSubmitting}
-                  className="flex-1 border border-gray-300 text-gray-700 py-3 px-4 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+                  className="flex-1 border border-gray-300 text-gray-700 py-3 px-4 rounded-xl hover:bg-gray-50 transition-colors font-medium"
                 >
                   Cancelar
                 </button>
                 <button
                   onClick={confirmToggleFavorite}
                   disabled={isSubmitting}
-                  className={`flex-1 py-3 px-4 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 ${
+                  className={`flex-1 py-3 px-4 rounded-xl font-medium transition-colors flex items-center justify-center gap-2 ${
                     isSubmitting
                       ? "bg-gray-400 text-gray-600 cursor-not-allowed"
                       : selectedProperty.isFavorite
                         ? "bg-red-600 text-white hover:bg-red-700"
-                        : "bg-[#2F8EAC] text-white hover:bg-[#256b82]"
+                        : "bg-[#2F8EAC] text-white hover:bg-[#267a95]"
                   }`}
                 >
                   {selectedProperty.isFavorite ? <Heart className="w-4 h-4" /> : <Star className="w-4 h-4" />}
@@ -677,5 +681,6 @@ export default function AgentDashboard() {
 
       <Outlet />
     </div>
-  )
+    </>
+)
 }

@@ -1,7 +1,6 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import LogoDomuHouse from '../../../../assets/images/Logo-DomuHouse.png';
-import { LayoutDashboard, Building, Plus, Calendar, MapPin, Users, Phone, TrendingUp, User, LogOut, X, Home } from 'lucide-react';
+import { LayoutDashboard, Building, Plus, Calendar, MapPin, Users, Phone, TrendingUp, User, LogOut, X } from 'lucide-react';
 
 export default function AgentSideBar({ sidebarOpen, setSidebarOpen }) {
     const navigate = useNavigate();
@@ -17,74 +16,124 @@ export default function AgentSideBar({ sidebarOpen, setSidebarOpen }) {
         { name: "Estado De Interés", icon: TrendingUp, path: "/EstadoInteres" },
     ];
 
-    const handleMenuClick = (path) => {
-        navigate(path);
-        if (setSidebarOpen) {
-            setSidebarOpen(false);
-        }
+    // Función para verificar si una ruta está activa
+    const isActiveRoute = (route) => {
+        return location.pathname === route;
     };
 
-    const isActive = (path) => {
-        return location.pathname === path || (path === "/AgentDashboard" && location.pathname === "/AgentDashboard");
+    // Función para manejar navegación
+    const handleNavigation = (route) => {
+        navigate(route);
+    };
+
+    // Componente personalizado para elementos del menú con estado activo
+    const MenuItem = ({ icon: Icon, label, route }) => {
+        const isActive = isActiveRoute(route);
+        
+        return (
+            <li>
+                <button
+                    onClick={() => handleNavigation(route)}
+                    className={`w-full flex items-center gap-3 px-3 py-3 text-left rounded-lg transition-all duration-200 ${
+                        isActive 
+                            ? 'bg-blue-50 text-[#2F8EAC] border-r-4 border-[#2F8EAC] font-medium shadow-sm' 
+                            : 'text-gray-600 hover:bg-gray-50 hover:text-[#2F8EAC]'
+                    }`}
+                >
+                    <Icon size={18} className={isActive ? 'text-[#2F8EAC]' : ''} />
+                    <span className="text-sm">{label}</span>
+                </button>
+            </li>
+        );
     };
 
     return (
-        <div className="w-64 sm:w-72 lg:w-64 bg-white shadow-lg relative h-screen flex flex-col">
-            {setSidebarOpen && (
-                <div className="lg:hidden absolute top-4 right-4 z-10">
-                    <button
-                        onClick={() => setSidebarOpen(false)}
-                        className="p-2 rounded-md text-gray-600 hover:bg-gray-100"
-                    >
-                        <X className="w-5 h-5" />
-                    </button>
-                </div>
-            )}
-
-            <div className="px-4 sm:px-6 py-3 sm:py-4 border-b">
-                <div className="flex items-center space-x-2">
-                    <img src={LogoDomuHouse} alt="LogoDomuHouse" className="w-20 h-auto" />
-
-                    <h1 className="text-sm sm:text-base lg:text-lg font-semibold">
-                        DOMU<span className="text-[#2F8EAC]">HOUSE</span>
-                    </h1>
-                </div>
+        <div className="w-64 sm:w-72 lg:w-64 bg-white shadow-lg h-screen flex flex-col p-6">
+            {/* Título del Portal */}
+            <div className="text-center mb-8 pb-4 border-b border-gray-100">
+                <h1 className="text-xl font-bold text-gray-800 title-montserrat">
+                    Portal de <span className='text-[#2F8EAC]'>Agentes</span>
+                </h1>
+                <div className="w-12 h-1 bg-[#2F8EAC] mx-auto mt-2 rounded-full"></div>
             </div>
 
-            <nav className="flex-1 py-2 sm:py-4 overflow-y-auto">
-                {menuItems.map((item) => {
-                    const Icon = item.icon;
-                    return (
-                        <button
-                            key={item.name}
-                            onClick={() => handleMenuClick(item.path)}
-                            className={`w-full flex items-center gap-3 px-3 py-3 text-left rounded-lg transition-colors duration-200 ${isActive(item.path)
-                                    ? 'bg-blue-50 text-[#2F8EAC] border-r-2 border-[#2F8EAC]'
-                                    : 'text-gray-700 hover:bg-gray-50 hover:text-[#2F8EAC]'
-                                }`}
-                        >
-                            <Icon className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
-                            <span className="text-xs sm:text-sm font-medium truncate">{item.name}</span>
-                        </button>
-                    );
-                })}
-            </nav>
+            <div className="flex flex-col gap-6 flex-1 overflow-y-auto">
+                {/* Gestión de Propiedades */}
+                <section>
+                    <h3 className="font-semibold text-gray-700 mb-3 title-montserrat text-xs uppercase tracking-wide">
+                        Gestión de Propiedades
+                    </h3>
+                    <ul className="space-y-1">
+                        <MenuItem 
+                            icon={LayoutDashboard}
+                            label="Dashboard"
+                            route="/AgentDashboard"
+                        />
+                        <MenuItem 
+                            icon={Building}
+                            label="Mis Propiedades"
+                            route="/MisPropiedades"
+                        />
+                        <MenuItem 
+                            icon={Plus}
+                            label="Crear Propiedad"
+                            route="/CrearPropiedad"
+                        />
+                    </ul>
+                </section>
 
-            <div className="p-3 sm:p-4 border-t bg-gray-50">
+                {/* Gestión de Visitas */}
+                <section>
+                    <h3 className="font-semibold text-gray-700 mb-3 title-montserrat text-xs uppercase tracking-wide">
+                        Gestión de Visitas
+                    </h3>
+                    <ul className="space-y-1">
+                        <MenuItem 
+                            icon={Calendar}
+                            label="Visitas Agendadas"
+                            route="/VisitasAgendadas"
+                        />
+                        <MenuItem 
+                            icon={MapPin}
+                            label="Programar Visitas"
+                            route="/ProgramarVisita"
+                        />
+                    </ul>
+                </section>
+
+                {/* Gestión de Clientes */}
+                <section>
+                    <h3 className="font-semibold text-gray-700 mb-3 title-montserrat text-xs uppercase tracking-wide">
+                        Gestión de Clientes
+                    </h3>
+                    <ul className="space-y-1">
+                        <MenuItem 
+                            icon={Phone}
+                            label="Contactar Clientes"
+                            route="/ContactarCliente"
+                        />
+                        <MenuItem 
+                            icon={TrendingUp}
+                            label="Estado De Interés"
+                            route="/EstadoInteres"
+                        />
+                    </ul>
+                </section>
+            </div>
+            
+            {/* Cerrar sesión */}
+            <section className="pt-4 border-t mt-6 mb-4">
                 <button
                     onClick={() => navigate('/Login')}
-                    className="w-full flex items-center space-x-2 sm:space-x-3 hover:bg-gray-100 rounded-lg p-2 transition-colors"
+                    className="w-full flex items-center gap-3 px-3 py-3 text-left text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200"
                 >
-                    <div className="w-7 h-7 sm:w-8 sm:h-8 bg-gray-300 rounded-full flex items-center justify-center flex-shrink-0">
-                        <User className="w-3 h-3 sm:w-4 sm:h-4 text-gray-600" />
+                    <LogOut size={18} />
+                    <div className="flex flex-col">
+                        <span className="text-sm font-medium">Cerrar Sesión</span>
+                        <span className="text-xs text-gray-500">DomuHouse</span>
                     </div>
-                    <div className="flex-1 text-left min-w-0">
-                        <p className="text-xs sm:text-sm font-medium text-gray-800 truncate">Cerrar Sesión</p>
-                        <p className="text-xs text-gray-500 truncate">DomuHouse</p>
-                    </div>
-                    <LogOut className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400 flex-shrink-0" />
                 </button>
-            </div>
+            </section>
         </div>
     );
 }

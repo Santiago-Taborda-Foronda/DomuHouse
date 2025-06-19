@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { Eye, Edit, Trash2, Menu, Search, Plus, X, Check, AlertTriangle } from "lucide-react"
 import AgentSideBar from "./Components/AgentSideBar"
+import { Header } from "../../Layouts/Header/Header"
 import { useNavigate } from "react-router-dom"
 
 export default function MisPropiedades() {
@@ -221,247 +222,202 @@ export default function MisPropiedades() {
   }
 
   return (
-    <div className="flex h-screen bg-gray-50">
-      {/* Mobile Sidebar Overlay */}
-      {sidebarOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden" onClick={() => setSidebarOpen(false)} />
-      )}
-
-      {/* Sidebar */}
-      <div
-        className={`
-        fixed lg:static inset-y-0 left-0 z-50 transform transition-transform duration-300 ease-in-out lg:transform-none
-        ${sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
-      `}
-      >
+    <>
+    <Header hasSidebar={true} />
+    <div className="flex min-h-screen bg-gray-50">
+      
+      {/* Sidebar fijo siempre visible (como en el primer código) */}
+      <div className="fixed left-0 top-16 h-[calc(100vh-4rem)] w-72 bg-white shadow-lg border-r border-gray-200 overflow-y-auto z-30">
         <AgentSideBar
           activeSection={activeSection}
           setActiveSection={setActiveSection}
-          sidebarOpen={sidebarOpen}
-          setSidebarOpen={setSidebarOpen}
+          sidebarOpen={true} // Siempre abierto
+          setSidebarOpen={() => {}} // Función vacía
         />
       </div>
 
-      {/* Main Content */}
-      <div className="flex-1 overflow-auto">
-        {/* Mobile Header */}
-        <div className="lg:hidden bg-white border-b px-4 py-3 flex items-center justify-between">
-          <button onClick={() => setSidebarOpen(true)} className="p-2 rounded-md text-gray-600 hover:bg-gray-100">
-            <Menu className="w-6 h-6" />
-          </button>
-          <h1 className="text-lg font-semibold text-gray-800">Mis Propiedades</h1>
-          <div className="w-10" />
-        </div>
+      {/* Contenido principal con margen izquierdo para el sidebar */}
+      <main className="flex-1 ml-72 pt-16">
+        <div className="p-6">
+          {/* Header de la página */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">Mis Propiedades</h1>
+              <p className="text-gray-600 text-sm mt-1">
+                Administra y gestiona todas tus propiedades ({filteredProperties.length} propiedades)
+              </p>
+            </div>
+            <button
+              onClick={handleNewProperty}
+              className="flex items-center gap-2 bg-[#2F8EAC] text-white px-6 py-3 rounded-xl hover:bg-[#267a95] transition-colors font-medium shadow-sm"
+            >
+              <Plus className="w-4 h-4" />
+              Nueva Propiedad
+            </button>
+          </div>
 
-        <div className="p-4 sm:p-6 lg:p-8">
-          {/* Header Section */}
-          <div className="mb-6 sm:mb-8">
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4">Mis Propiedades</h1>
-
-            {/* Search and Filter Bar */}
-            <div className="flex flex-col sm:flex-row gap-4 mb-6">
-              <div className="flex-1 relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                <input
-                  type="text"
-                  placeholder="Buscar propiedades..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
-                />
+          {/* Panel de filtros y búsqueda */}
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
+            <div className="flex items-center gap-2 mb-4">
+              <Search className="w-5 h-5 text-gray-400" />
+              <h3 className="font-semibold text-gray-800">Filtros de búsqueda</h3>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Búsqueda</label>
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <input
+                    type="text"
+                    placeholder="Buscar propiedades..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#2F8EAC] focus:border-[#2F8EAC] transition-colors"
+                  />
+                </div>
               </div>
 
-              <div className="flex gap-2">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Estado</label>
                 <select
                   value={filterStatus}
                   onChange={(e) => setFilterStatus(e.target.value)}
-                  className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#2F8EAC] focus:border-[#2F8EAC] transition-colors"
                 >
                   <option value="Todos">Todos los estados</option>
                   <option value="Publicado">Publicado</option>
                   <option value="Pendiente">Pendiente</option>
                 </select>
-
-                <button
-                  onClick={handleNewProperty}
-                  className="px-4 py-2 bg-[#2F8EAC] text-white rounded-lg hover:bg-[#256b82] transition-colors flex items-center gap-2"
-                >
-                  <Plus className="w-4 h-4" />
-                  <span className="hidden sm:inline">Nueva Propiedad</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Stats */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
-              <div className="bg-white p-4 rounded-lg border">
-                <p className="text-2xl font-bold text-gray-900">{properties.length}</p>
-                <p className="text-sm text-gray-600">Total Propiedades</p>
-              </div>
-              <div className="bg-white p-4 rounded-lg border">
-                <p className="text-2xl font-bold text-sky-600">
-                  {properties.filter((p) => p.status === "Publicado").length}
-                </p>
-                <p className="text-sm text-gray-600">Publicadas</p>
-              </div>
-              <div className="bg-white p-4 rounded-lg border">
-                <p className="text-2xl font-bold text-blue-600">
-                  {properties.filter((p) => p.status === "Pendiente").length}
-                </p>
-                <p className="text-sm text-gray-600">Pendientes</p>
-              </div>
-              <div className="bg-white p-4 rounded-lg border">
-                <p className="text-2xl font-bold text-[#2F8EAC]">
-                  {properties.length > 0
-                    ? Math.round((properties.filter((p) => p.status === "Publicado").length / properties.length) * 100)
-                    : 0}
-                  %
-                </p>
-                <p className="text-sm text-gray-600">Tasa Publicación</p>
               </div>
             </div>
           </div>
 
-          {/* Properties Table/Cards */}
-          <div className="bg-white rounded-lg shadow-sm border">
-            {/* Mobile Card View */}
-            <div className="block lg:hidden">
-              {filteredProperties.length === 0 ? (
-                <div className="p-8 text-center text-gray-500">No se encontraron propiedades</div>
-              ) : (
-                filteredProperties.map((property) => (
-                  <div key={property.id} className="p-4 border-b last:border-b-0">
-                    <div className="flex items-start space-x-4">
-                      <img
-                        src={property.image || "/placeholder.svg"}
-                        alt={property.name}
-                        className="w-20 h-16 object-cover rounded-lg flex-shrink-0"
-                      />
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-start justify-between mb-2">
-                          <div>
-                            <h3 className="text-sm font-medium text-gray-900 truncate">{property.name}</h3>
-                            <p className="text-xs text-gray-500">
-                              {property.type} • {property.location}
-                            </p>
-                            <p className="text-sm font-semibold text-[#2F8EAC] mt-1">{property.price}</p>
-                          </div>
-                          <span
-                            className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(property.status)}`}
-                          >
-                            {property.status}
-                          </span>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <p className="text-xs text-gray-600">{property.date}</p>
-                          <div className="flex items-center space-x-2">
-                            <button
-                              onClick={() => handleViewProperty(property)}
-                              className="text-[#2F8EAC] hover:text-[#256b82] p-1"
-                              title="Ver detalles"
-                            >
-                              <Eye className="w-4 h-4" />
-                            </button>
-                            <button
-                              onClick={() => handleEditProperty(property)}
-                              className="text-gray-600 hover:text-gray-800 p-1"
-                              title="Editar"
-                            >
-                              <Edit className="w-4 h-4" />
-                            </button>
-                            <button
-                              onClick={() => handleDeleteProperty(property)}
-                              className="text-red-600 hover:text-red-800 p-1"
-                              title="Eliminar"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))
-              )}
+          {/* Estadísticas */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+              <p className="text-2xl font-bold text-gray-900">{properties.length}</p>
+              <p className="text-sm text-gray-600">Total Propiedades</p>
+            </div>
+            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+              <p className="text-2xl font-bold text-[#2F8EAC]">
+                {properties.filter((p) => p.status === "Publicado").length}
+              </p>
+              <p className="text-sm text-gray-600">Publicadas</p>
+            </div>
+            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+              <p className="text-2xl font-bold text-blue-800">
+                {properties.filter((p) => p.status === "Pendiente").length}
+              </p>
+              <p className="text-sm text-gray-600">Pendientes</p>
+            </div>
+            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+              <p className="text-2xl font-bold text-sky-600">
+                {properties.length > 0
+                  ? Math.round((properties.filter((p) => p.status === "Publicado").length / properties.length) * 100)
+                  : 0}
+                %
+              </p>
+              <p className="text-sm text-gray-600">Tasa Publicación</p>
+            </div>
+          </div>
+
+          {/* Tabla de propiedades */}
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <div className="px-6 py-4 border-b border-gray-100">
+              <h3 className="font-semibold text-gray-800">Lista de Propiedades</h3>
+              <p className="text-sm text-gray-500">Gestiona y edita tus propiedades</p>
             </div>
 
-            {/* Desktop Table View */}
-            <div className="hidden lg:block overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Propiedad
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Estado
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Fecha
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Precio
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Funciones
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {filteredProperties.length === 0 ? (
+            {filteredProperties.length === 0 ? (
+              <div className="text-center py-12">
+                <Building2 className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No hay propiedades</h3>
+                <p className="text-gray-500 mb-4">
+                  {properties.length === 0 
+                    ? 'Aún no has agregado ninguna propiedad.' 
+                    : 'No se encontraron propiedades con los filtros seleccionados.'
+                  }
+                </p>
+                {properties.length === 0 && (
+                  <button 
+                    onClick={handleNewProperty}
+                    className="bg-[#2F8EAC] text-white px-6 py-3 rounded-xl hover:bg-[#267a95] transition-colors font-medium"
+                  >
+                    Agregar Primera Propiedad
+                  </button>
+                )}
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-gray-50">
                     <tr>
-                      <td colSpan="5" className="px-6 py-8 text-center text-gray-500">
-                        No se encontraron propiedades
-                      </td>
+                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                        Propiedad
+                      </th>
+                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                        Estado
+                      </th>
+                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                        Fecha
+                      </th>
+                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                        Precio
+                      </th>
+                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                        Acciones
+                      </th>
                     </tr>
-                  ) : (
-                    filteredProperties.map((property) => (
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-100">
+                    {filteredProperties.map((property) => (
                       <tr key={property.id} className="hover:bg-gray-50 transition-colors">
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex items-center space-x-4">
-                            <img
-                              src={property.image || "/placeholder.svg"}
-                              alt={property.name}
-                              className="w-16 h-12 object-cover rounded-lg"
-                            />
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-4">
+                            <div className="w-16 h-12 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden">
+                              <img
+                                src={property.image || "/placeholder.svg"}
+                                alt={property.name}
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
                             <div>
-                              <p className="text-sm font-medium text-gray-900">{property.name}</p>
-                              <p className="text-xs text-gray-500">
-                                {property.type} • {property.location}
-                              </p>
+                              <div className="text-sm font-semibold text-gray-900">{property.name}</div>
+                              <div className="text-xs text-gray-500">{property.type} • {property.location}</div>
                             </div>
                           </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span
-                            className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(property.status)}`}
-                          >
+                        <td className="px-6 py-4">
+                          <span className={`inline-flex px-3 py-1 text-xs font-medium rounded-full ${getStatusColor(property.status)}`}>
                             {property.status}
                           </span>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{property.date}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-[#2F8EAC]">
-                          {property.price}
+                        <td className="px-6 py-4">
+                          <div className="text-sm text-gray-600">{property.date}</div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex space-x-2">
+                        <td className="px-6 py-4">
+                          <div className="text-sm font-semibold text-[#2F8EAC]">{property.price}</div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-2">
                             <button
                               onClick={() => handleViewProperty(property)}
-                              className="text-[#2F8EAC] hover:text-[#256b82] p-1"
+                              className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                               title="Ver detalles"
                             >
                               <Eye className="w-4 h-4" />
                             </button>
                             <button
                               onClick={() => handleEditProperty(property)}
-                              className="text-gray-600 hover:text-gray-800 p-1"
+                              className="p-2 text-sky-600 hover:bg-green-50 rounded-lg transition-colors"
                               title="Editar"
                             >
                               <Edit className="w-4 h-4" />
                             </button>
                             <button
                               onClick={() => handleDeleteProperty(property)}
-                              className="text-red-600 hover:text-red-800 p-1"
+                              className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                               title="Eliminar"
                             >
                               <Trash2 className="w-4 h-4" />
@@ -469,87 +425,87 @@ export default function MisPropiedades() {
                           </div>
                         </td>
                       </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
         </div>
-      </div>
+      </main>
 
-      {/* View Property Modal */}
+      {/* Modal de Ver Propiedad */}
       {showViewModal && selectedProperty && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-opacity-75 bg-black/50"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50"
           onClick={(e) => {
             if (e.target === e.currentTarget) {
               closeModals()
             }
           }}
         >
-          <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-2xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6">
-              <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center justify-between mb-6">
                 <h2 className="text-xl font-semibold text-gray-800">Detalles de la Propiedad</h2>
-                <button onClick={closeModals} className="text-gray-400 hover:text-gray-600 transition-colors">
+                <button onClick={closeModals} className="text-gray-400 hover:text-gray-600 transition-colors p-2 hover:bg-gray-100 rounded-lg">
                   <X className="w-5 h-5" />
                 </button>
               </div>
 
               <div className="space-y-6">
-                <div className="flex items-start space-x-4">
-                  <img
-                    src={selectedProperty.image || "/placeholder.svg"}
-                    alt={selectedProperty.name}
-                    className="w-32 h-24 object-cover rounded-lg"
-                  />
+                <div className="flex items-start gap-4">
+                  <div className="w-32 h-24 bg-gray-100 rounded-xl overflow-hidden">
+                    <img
+                      src={selectedProperty.image || "/placeholder.svg"}
+                      alt={selectedProperty.name}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
                   <div className="flex-1">
-                    <h3 className="text-lg font-medium text-gray-900">{selectedProperty.name}</h3>
-                    <p className="text-gray-600">
+                    <h3 className="text-lg font-semibold text-gray-900">{selectedProperty.name}</h3>
+                    <p className="text-gray-600 text-sm">
                       {selectedProperty.type} • {selectedProperty.location}
                     </p>
                     <p className="text-xl font-bold text-[#2F8EAC] mt-2">{selectedProperty.price}</p>
-                    <span
-                      className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full mt-2 ${getStatusColor(selectedProperty.status)}`}
-                    >
+                    <span className={`inline-flex px-3 py-1 text-xs font-medium rounded-full mt-2 ${getStatusColor(selectedProperty.status)}`}>
                       {selectedProperty.status}
                     </span>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
+                  <div className="bg-gray-50 p-4 rounded-xl">
                     <label className="block text-sm font-medium text-gray-700 mb-1">Área:</label>
-                    <p className="text-gray-900">{selectedProperty.area}</p>
+                    <p className="text-gray-900 font-semibold">{selectedProperty.area}</p>
                   </div>
-                  <div>
+                  <div className="bg-gray-50 p-4 rounded-xl">
                     <label className="block text-sm font-medium text-gray-700 mb-1">Habitaciones:</label>
-                    <p className="text-gray-900">{selectedProperty.rooms}</p>
+                    <p className="text-gray-900 font-semibold">{selectedProperty.rooms}</p>
                   </div>
-                  <div>
+                  <div className="bg-gray-50 p-4 rounded-xl">
                     <label className="block text-sm font-medium text-gray-700 mb-1">Baños:</label>
-                    <p className="text-gray-900">{selectedProperty.bathrooms}</p>
+                    <p className="text-gray-900 font-semibold">{selectedProperty.bathrooms}</p>
                   </div>
-                  <div>
+                  <div className="bg-gray-50 p-4 rounded-xl">
                     <label className="block text-sm font-medium text-gray-700 mb-1">Fecha de publicación:</label>
-                    <p className="text-gray-900">{selectedProperty.date}</p>
+                    <p className="text-gray-900 font-semibold">{selectedProperty.date}</p>
                   </div>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Descripción:</label>
+                <div className="bg-gray-50 p-4 rounded-xl">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Descripción:</label>
                   <p className="text-gray-900">{selectedProperty.description}</p>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
+                  <div className="bg-gray-50 p-4 rounded-xl">
                     <label className="block text-sm font-medium text-gray-700 mb-1">Agente:</label>
-                    <p className="text-gray-900">{selectedProperty.agent}</p>
+                    <p className="text-gray-900 font-semibold">{selectedProperty.agent}</p>
                   </div>
-                  <div>
+                  <div className="bg-gray-50 p-4 rounded-xl">
                     <label className="block text-sm font-medium text-gray-700 mb-1">Teléfono:</label>
-                    <p className="text-gray-900">{selectedProperty.phone}</p>
+                    <p className="text-gray-900 font-semibold">{selectedProperty.phone}</p>
                   </div>
                 </div>
               </div>
@@ -558,21 +514,21 @@ export default function MisPropiedades() {
         </div>
       )}
 
-      {/* Edit Property Modal */}
+      {/* Modal de Editar Propiedad */}
       {showEditModal && selectedProperty && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-opacity-75 bg-black/50"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50"
           onClick={(e) => {
             if (e.target === e.currentTarget) {
               closeModals()
             }
           }}
         >
-          <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-2xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6">
-              <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center justify-between mb-6">
                 <h2 className="text-xl font-semibold text-gray-800">Editar Propiedad</h2>
-                <button onClick={closeModals} className="text-gray-400 hover:text-gray-600 transition-colors">
+                <button onClick={closeModals} className="text-gray-400 hover:text-gray-600 transition-colors p-2 hover:bg-gray-100 rounded-lg">
                   <X className="w-5 h-5" />
                 </button>
               </div>
@@ -586,45 +542,45 @@ export default function MisPropiedades() {
               <div className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Nombre:</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Nombre:</label>
                     <input
                       type="text"
                       name="name"
                       value={editForm.name}
                       onChange={handleEditFormChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#2F8EAC] focus:border-[#2F8EAC] transition-colors"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Precio:</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Precio:</label>
                     <input
                       type="text"
                       name="price"
                       value={editForm.price}
                       onChange={handleEditFormChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#2F8EAC] focus:border-[#2F8EAC] transition-colors"
                     />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Ubicación:</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Ubicación:</label>
                     <input
                       type="text"
                       name="location"
                       value={editForm.location}
                       onChange={handleEditFormChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#2F8EAC] focus:border-[#2F8EAC] transition-colors"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Tipo:</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Tipo:</label>
                     <select
                       name="type"
                       value={editForm.type}
                       onChange={handleEditFormChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#2F8EAC] focus:border-[#2F8EAC] transition-colors"
                     >
                       <option value="Casa">Casa</option>
                       <option value="Apartamento">Apartamento</option>
@@ -636,44 +592,44 @@ export default function MisPropiedades() {
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Área:</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Área:</label>
                     <input
                       type="text"
                       name="area"
                       value={editForm.area}
                       onChange={handleEditFormChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#2F8EAC] focus:border-[#2F8EAC] transition-colors"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Habitaciones:</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Habitaciones:</label>
                     <input
                       type="number"
                       name="rooms"
                       value={editForm.rooms}
                       onChange={handleEditFormChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#2F8EAC] focus:border-[#2F8EAC] transition-colors"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Baños:</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Baños:</label>
                     <input
                       type="number"
                       name="bathrooms"
                       value={editForm.bathrooms}
                       onChange={handleEditFormChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#2F8EAC] focus:border-[#2F8EAC] transition-colors"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Estado:</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Estado:</label>
                   <select
                     name="status"
                     value={editForm.status}
                     onChange={handleEditFormChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#2F8EAC] focus:border-[#2F8EAC] transition-colors"
                   >
                     <option value="Publicado">Publicado</option>
                     <option value="Pendiente">Pendiente</option>
@@ -681,13 +637,13 @@ export default function MisPropiedades() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Descripción:</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Descripción:</label>
                   <textarea
                     name="description"
                     value={editForm.description}
                     onChange={handleEditFormChange}
                     rows={3}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#2F8EAC] focus:border-[#2F8EAC] transition-colors"
                   />
                 </div>
 
@@ -695,17 +651,17 @@ export default function MisPropiedades() {
                   <button
                     onClick={closeModals}
                     disabled={isSubmitting}
-                    className="flex-1 border border-gray-300 text-gray-700 py-3 px-4 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+                    className="flex-1 border border-gray-200 text-gray-700 py-3 px-4 rounded-xl hover:bg-gray-50 transition-colors font-medium"
                   >
                     Cancelar
                   </button>
                   <button
                     onClick={handleSaveEdit}
                     disabled={isSubmitting}
-                    className={`flex-1 py-3 px-4 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 ${
+                    className={`flex-1 py-3 px-4 rounded-xl font-medium transition-colors flex items-center justify-center gap-2 ${
                       isSubmitting
                         ? "bg-gray-400 text-gray-600 cursor-not-allowed"
-                        : "bg-[#2F8EAC] text-white hover:bg-[#256b82]"
+                        : "bg-[#2F8EAC] text-white hover:bg-[#267a95]"
                     }`}
                   >
                     <Check className="w-4 h-4" />
@@ -718,24 +674,24 @@ export default function MisPropiedades() {
         </div>
       )}
 
-      {/* Delete Confirmation Modal */}
+      {/* Modal de Confirmación de Eliminación */}
       {showDeleteModal && selectedProperty && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-opacity-75 bg-black/50"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50"
           onClick={(e) => {
             if (e.target === e.currentTarget) {
               closeModals()
             }
           }}
         >
-          <div className="bg-white rounded-xl shadow-xl max-w-md w-full">
+          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full">
             <div className="p-6">
-              <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center justify-between mb-6">
                 <h2 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
                   <AlertTriangle className="w-5 h-5 text-red-500" />
                   Confirmar Eliminación
                 </h2>
-                <button onClick={closeModals} className="text-gray-400 hover:text-gray-600 transition-colors">
+                <button onClick={closeModals} className="text-gray-400 hover:text-gray-600 transition-colors p-2 hover:bg-gray-100 rounded-lg">
                   <X className="w-5 h-5" />
                 </button>
               </div>
@@ -744,21 +700,23 @@ export default function MisPropiedades() {
                 <p className="text-gray-600 mb-4">
                   ¿Estás seguro de que deseas eliminar la propiedad <strong>{selectedProperty.name}</strong>?
                 </p>
-                <p className="text-sm text-red-600">Esta acción no se puede deshacer.</p>
+                <div className="bg-red-50 border border-red-200 rounded-xl p-3">
+                  <p className="text-sm text-red-600">Esta acción no se puede deshacer.</p>
+                </div>
               </div>
 
               <div className="flex gap-3">
                 <button
                   onClick={closeModals}
                   disabled={isSubmitting}
-                  className="flex-1 border border-gray-300 text-gray-700 py-3 px-4 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+                  className="flex-1 border border-gray-200 text-gray-700 py-3 px-4 rounded-xl hover:bg-gray-50 transition-colors font-medium"
                 >
                   Cancelar
                 </button>
                 <button
                   onClick={confirmDelete}
                   disabled={isSubmitting}
-                  className={`flex-1 py-3 px-4 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 ${
+                  className={`flex-1 py-3 px-4 rounded-xl font-medium transition-colors flex items-center justify-center gap-2 ${
                     isSubmitting
                       ? "bg-gray-400 text-gray-600 cursor-not-allowed"
                       : "bg-red-600 text-white hover:bg-red-700"
@@ -773,5 +731,6 @@ export default function MisPropiedades() {
         </div>
       )}
     </div>
+    </>
   )
 }

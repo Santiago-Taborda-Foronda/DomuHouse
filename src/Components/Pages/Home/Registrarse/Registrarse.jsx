@@ -19,7 +19,8 @@ export const Registrarse = () => {
         phone: "",
         email: "",
         password: "",
-        token: ""
+        token: "",
+        realEstateId: ""
     })
 
     // Estados para el formulario de inmobiliaria
@@ -142,14 +143,32 @@ export const Registrarse = () => {
         setSuccess('')
 
         try {
-            let endpoint = "http://localhost:10101/register"
-            let payload = { ...userData, role: userType }
+            let endpoint, payload;
 
-            if (userType === 'administrador') {
+            if (userType === 'agente') {
+                // Endpoint específico para agentes
+                endpoint = "http://localhost:10101/api/registro-agente"
+                
+                // Payload que coincide con lo que espera el backend
                 payload = {
-                    ...payload,
+                    first_name: userData.first_name,
+                    last_name: userData.last_name,
+                    email: userData.email,
+                    phone: userData.phone,
+                    password: userData.password,
+                    realEstateId: parseInt(userData.token), // El token es el realEstateId
+                    roleId: 2 // ID del rol para agentes
+                }
+            } else if (userType === 'administrador') {
+                endpoint = "http://localhost:10101/register"
+                payload = {
+                    ...userData,
+                    role: userType,
                     ...inmobiliariaData
                 }
+            } else {
+                endpoint = "http://localhost:10101/register"
+                payload = { ...userData, role: userType }
             }
 
             const response = await fetch(endpoint, {
@@ -170,7 +189,7 @@ export const Registrarse = () => {
                     })
                 }, 2000)
             } else {
-                setError(data.message || 'Error al crear la cuenta')
+                setError(data.error || data.message || 'Error al crear la cuenta')
             }
 
         } catch (error) {
@@ -333,6 +352,25 @@ export const Registrarse = () => {
                         </p>
                     </div>
                 )}
+
+                    {userType === 'agente' && (
+                    <div className="mt-4">
+                        <label htmlFor="realEstateId" className="block text-sm font-medium text-gray-700 mb-1">
+                        ID de Inmobiliaria *
+                        </label>
+                        <input
+                        type="number"
+                        id="realEstateId"
+                        name="realEstateId"
+                        value={userData.realEstateId || ""}
+                        onChange={(e) => setUserData({ ...userData, realEstateId: e.target.value })}
+                        placeholder="ID de la inmobiliaria"
+                        className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-sky-500 focus:outline-none transition-colors"
+                        disabled={isLoading}
+                        />
+                    </div>
+                    )}
+
             </div>
         </div>
     )

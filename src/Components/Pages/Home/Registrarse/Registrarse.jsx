@@ -174,7 +174,7 @@ export const Registrarse = () => {
       const payload = { ...userData, role: userType }
       console.log("Payload sent to /api/admin/registro:", payload)
 
-      const response = await fetch("https://domuhouse.onrender.com/register/register", {
+      const response = await fetch("http://localhost:10101/register/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),

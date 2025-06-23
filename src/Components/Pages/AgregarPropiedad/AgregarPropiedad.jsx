@@ -178,7 +178,7 @@ const AgregarPropiedad = () => {
       });
       
       // Llamada al API del backend
-      const response = await fetch('http://localhost:10101/api/properties', {
+      const response = await fetch('http://localhost:10101/api/properties/create', {
         method: 'POST',
         body: formDataToSend,
         // No agregar Content-Type header, el browser lo maneja automáticamente con FormData

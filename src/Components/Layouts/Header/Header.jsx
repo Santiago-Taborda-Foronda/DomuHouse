@@ -167,7 +167,7 @@ export const Header = ({ toggleSidebar }) => {
                   <UserCircle className="w-8 h-8 text-gray-600" />
                 )}
                 <span className="text-sm font-medium text-gray-700 hidden sm:block">
-                  {userInfo.first_name || userInfo.nombre || userInfo.email?.split('@')[0] || 'Usuario'}
+                  {userInfo.name_person || userInfo.nombre || userInfo.email?.split('@')[0] || 'Usuario'}
                 </span>
               </button>
 

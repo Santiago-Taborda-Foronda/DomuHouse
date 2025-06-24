@@ -1,342 +1,340 @@
-import React, { useState } from 'react';
-import { Menu, User, ArrowLeft } from 'lucide-react';
-import { Header } from '../../Layouts/Header/Header';
+"use client"
+
+import { useState, useEffect } from "react"
+import { ArrowLeft, ChevronDown } from "lucide-react"
+import { Header } from "../../Layouts/Header/Header"
 
 const AgregarPropiedad = () => {
   const [formData, setFormData] = useState({
     // Campos básicos
-    title: '',
-    address: '',
-    type: '',
-    description: '',
-    
-    // Campos numéricos específicos
-    rooms: '',
-    bathrooms: '',
-    area: '',
-    price: '',
-    
-    // Información del agente
-    agentName: '',
-    agentPhone: '',
-    agentEmail: '',
-    agentWhatsapp: '',
-    
-    // Información adicional
-    propertyType: 'Venta', // Cambiado de 'venta' a 'Venta'
-    additionalRoomInfo: '',
-    
-    // Nuevos campos para backend
-    socioeconomic_stratum: '',
-    city: '',
-    neighborhood: '',
-    parking_spaces: '',
-    total_area: '',
-    latitude: '',
-    longitude: ''
-  });
+    title: "",
+    address: "",
+    type: "",
+    description: "",
 
-  const [selectedImages, setSelectedImages] = useState([]);
-  const [imageFiles, setImageFiles] = useState([]);
-  const [precioEstimado, setPrecioEstimado] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitError, setSubmitError] = useState('');
-  const [submitSuccess, setSubmitSuccess] = useState(false);
+    // Campos numéricos específicos
+    rooms: "",
+    bathrooms: "",
+    area: "",
+    price: "",
+
+    // ID del agente seleccionado (en lugar de datos manuales)
+    selectedAgentId: "",
+
+    // Información adicional
+    propertyType: "Venta",
+    additionalRoomInfo: "",
+
+    // Nuevos campos para backend
+    socioeconomic_stratum: "",
+    city: "",
+    neighborhood: "",
+    parking_spaces: "",
+    total_area: "",
+    latitude: "",
+    longitude: "",
+  })
+
+  // Estado para la lista de agentes
+  const [agents, setAgents] = useState([])
+  const [loadingAgents, setLoadingAgents] = useState(true)
+  const [agentsError, setAgentsError] = useState("")
+
+  const [selectedImages, setSelectedImages] = useState([])
+  const [imageFiles, setImageFiles] = useState([])
+  const [precioEstimado, setPrecioEstimado] = useState("")
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState("")
+  const [submitSuccess, setSubmitSuccess] = useState(false)
+
+  // Cargar lista de agentes al montar el componente
+  useEffect(() => {
+    fetchAgents()
+  }, [])
+
+  const fetchAgents = async () => {
+    try {
+      setLoadingAgents(true)
+      setAgentsError("")
+
+      // Llamada al API para obtener agentes de la inmobiliaria
+      // Aquí deberías usar el ID de la inmobiliaria del usuario logueado
+      const response = await fetch("http://localhost:10101/api/agents/by-company", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          // Agregar headers de autenticación si es necesario
+        },
+        credentials: "include",
+      })
+
+      if (!response.ok) {
+        throw new Error("Error al cargar los agentes")
+      }
+
+      const agentsData = await response.json()
+      setAgents(agentsData)
+    } catch (error) {
+      console.error("Error fetching agents:", error)
+      setAgentsError("Error al cargar la lista de agentes")
+
+      // Datos de ejemplo para desarrollo (remover en producción)
+      setAgents([
+        {
+          person_id: 1,
+          first_name: "Juan",
+          last_name: "Pérez",
+          email: "juan.perez@inmobiliaria.com",
+          phone: "+57 300 123 4567",
+        },
+        {
+          person_id: 2,
+          first_name: "María",
+          last_name: "González",
+          email: "maria.gonzalez@inmobiliaria.com",
+          phone: "+57 301 234 5678",
+        },
+        {
+          person_id: 3,
+          first_name: "Carlos",
+          last_name: "Rodríguez",
+          email: "carlos.rodriguez@inmobiliaria.com",
+          phone: "+57 302 345 6789",
+        },
+      ])
+    } finally {
+      setLoadingAgents(false)
+    }
+  }
 
   const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
+    const { name, value } = e.target
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
-    }));
-  };
+      [name]: value,
+    }))
+  }
 
   const handleImageUpload = (e) => {
-    const files = Array.from(e.target.files);
-    const imageUrls = files.map(file => URL.createObjectURL(file));
-    
-    setSelectedImages(prev => [...prev, ...imageUrls]);
-    setImageFiles(prev => [...prev, ...files]);
-  };
+    const files = Array.from(e.target.files)
+    const imageUrls = files.map((file) => URL.createObjectURL(file))
+
+    setSelectedImages((prev) => [...prev, ...imageUrls])
+    setImageFiles((prev) => [...prev, ...files])
+  }
 
   const removeImage = (indexToRemove) => {
-    setSelectedImages(prev => prev.filter((_, index) => index !== indexToRemove));
-    setImageFiles(prev => prev.filter((_, index) => index !== indexToRemove));
-  };
+    setSelectedImages((prev) => prev.filter((_, index) => index !== indexToRemove))
+    setImageFiles((prev) => prev.filter((_, index) => index !== indexToRemove))
+  }
 
   // Mapeo de tipos de propiedad a IDs del backend
   const getPropertyTypeId = (type) => {
     const typeMap = {
-      'casa': 1,
-      'apartamento': 2,
-      'local': 3,
-      'oficina': 4,
-      'terreno': 5
-    };
-    return typeMap[type] || 1;
-  };
+      casa: 1,
+      apartamento: 2,
+      local: 3,
+      oficina: 4,
+      terreno: 5,
+    }
+    return typeMap[type] || 1
+  }
 
   // Función para mapear el tipo de operación del frontend al backend
   const mapOperationType = (frontendType) => {
     const operationMap = {
-      'Venta': 'Venta',
-      'Arriendo': 'Arriendo',
-      'Arriendo con opción de compra': 'Arriendo con opción de compra'
-    };
-    return operationMap[frontendType] || 'Venta';
-  };
+      Venta: "Venta",
+      Arriendo: "Arriendo",
+      "Arriendo con opción de compra": "Arriendo con opción de compra",
+    }
+    return operationMap[frontendType] || "Venta"
+  }
 
   // Función para validar el formulario
   const validateForm = () => {
     const requiredFields = [
-      'title', 'address', 'type', 'description', 'rooms', 
-      'bathrooms', 'area', 'price', 'agentName', 'agentPhone', 'agentEmail',
-      'city', 'neighborhood'
-    ];
-    
-    for (let field of requiredFields) {
+      "title",
+      "address",
+      "type",
+      "description",
+      "rooms",
+      "bathrooms",
+      "area",
+      "price",
+      "selectedAgentId",
+      "city",
+      "neighborhood",
+    ]
+
+    for (const field of requiredFields) {
       if (!formData[field]) {
-        setSubmitError(`El campo ${field} es requerido`);
-        return false;
+        if (field === "selectedAgentId") {
+          setSubmitError("Debe seleccionar un agente responsable")
+        } else {
+          setSubmitError(`El campo ${field} es requerido`)
+        }
+        return false
       }
     }
-    
+
     if (isNaN(formData.rooms) || formData.rooms < 0) {
-      setSubmitError('El número de habitaciones debe ser válido');
-      return false;
+      setSubmitError("El número de habitaciones debe ser válido")
+      return false
     }
-    
+
     if (isNaN(formData.bathrooms) || formData.bathrooms < 0) {
-      setSubmitError('El número de baños debe ser válido');
-      return false;
+      setSubmitError("El número de baños debe ser válido")
+      return false
     }
-    
+
     if (isNaN(formData.area) || formData.area <= 0) {
-      setSubmitError('El área debe ser un número válido mayor a 0');
-      return false;
+      setSubmitError("El área debe ser un número válido mayor a 0")
+      return false
     }
-    
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(formData.agentEmail)) {
-      setSubmitError('El email del agente no es válido');
-      return false;
-    }
-    
+
     if (imageFiles.length === 0) {
-      setSubmitError('Debe seleccionar al menos una imagen');
-      return false;
+      setSubmitError("Debe seleccionar al menos una imagen")
+      return false
     }
 
     if (imageFiles.length > 10) {
-      setSubmitError('Máximo 10 imágenes permitidas');
-      return false;
+      setSubmitError("Máximo 10 imágenes permitidas")
+      return false
     }
-    
-    return true;
-  };
+
+    return true
+  }
 
   // Función para envío al backend
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    
-    setSubmitError('');
-    setSubmitSuccess(false);
-    
+    e.preventDefault()
+
+    setSubmitError("")
+    setSubmitSuccess(false)
+
     if (!validateForm()) {
-      return;
+      return
     }
-    
-    setIsSubmitting(true);
-    
+
+    setIsSubmitting(true)
+
     try {
       // Crear FormData para enviar archivos e información
-      const formDataToSend = new FormData();
-      
+      const formDataToSend = new FormData()
+
       // Mapear campos del frontend a los que espera el backend
-      formDataToSend.append('address', formData.address.trim()); // Nota: el backend usa 'adress'
-      formDataToSend.append('property_title', formData.title.trim());
-      formDataToSend.append('description', formData.description.trim());
-      formDataToSend.append('price', formData.price.replace(/[^\d]/g, ''));
-      formDataToSend.append('status', 'Disponible');
-      formDataToSend.append('person_id', '1'); // Debes obtener esto del usuario logueado
-      formDataToSend.append('property_type_id', getPropertyTypeId(formData.type));
-      formDataToSend.append('socioeconomic_stratum', formData.socioeconomic_stratum || '3');
-      formDataToSend.append('city', formData.city.trim());
-      formDataToSend.append('neighborhood', formData.neighborhood.trim());
-      formDataToSend.append('operation_type', mapOperationType(formData.propertyType)); // Usar la función de mapeo
-      formDataToSend.append('bedrooms', parseInt(formData.rooms));
-      formDataToSend.append('bathrooms', parseInt(formData.bathrooms));
-      formDataToSend.append('parking_spaces', parseInt(formData.parking_spaces) || 0);
-      formDataToSend.append('built_area', parseInt(formData.area));
-      formDataToSend.append('total_area', parseInt(formData.total_area) || parseInt(formData.area));
-      formDataToSend.append('latitude', formData.latitude || '0');
-      formDataToSend.append('longitude', formData.longitude || '0');
-      
+      formDataToSend.append("address", formData.address.trim())
+      formDataToSend.append("property_title", formData.title.trim())
+      formDataToSend.append("description", formData.description.trim())
+      formDataToSend.append("price", formData.price.replace(/[^\d]/g, ""))
+      formDataToSend.append("status", "Disponible")
+
+      // Usar el ID del agente seleccionado en lugar de datos manuales
+      formDataToSend.append("person_id", formData.selectedAgentId)
+
+      formDataToSend.append("property_type_id", getPropertyTypeId(formData.type))
+      formDataToSend.append("socioeconomic_stratum", formData.socioeconomic_stratum || "3")
+      formDataToSend.append("city", formData.city.trim())
+      formDataToSend.append("neighborhood", formData.neighborhood.trim())
+      formDataToSend.append("operation_type", mapOperationType(formData.propertyType))
+      formDataToSend.append("bedrooms", Number.parseInt(formData.rooms))
+      formDataToSend.append("bathrooms", Number.parseInt(formData.bathrooms))
+      formDataToSend.append("parking_spaces", Number.parseInt(formData.parking_spaces) || 0)
+      formDataToSend.append("built_area", Number.parseInt(formData.area))
+      formDataToSend.append("total_area", Number.parseInt(formData.total_area) || Number.parseInt(formData.area))
+      formDataToSend.append("latitude", formData.latitude || "0")
+      formDataToSend.append("longitude", formData.longitude || "0")
+
       // Agregar imágenes
       imageFiles.forEach((file) => {
-        formDataToSend.append('images', file);
-      });
-      
+        formDataToSend.append("images", file)
+      })
+
       // Llamada al API del backend
-      const response = await fetch('http://localhost:10101/api/properties/create', {
-        method: 'POST',
+      const response = await fetch("http://localhost:10101/api/properties/create", {
+        method: "POST",
         body: formDataToSend,
-        // No agregar Content-Type header, el browser lo maneja automáticamente con FormData
-      });
-      
+        credentials: "include",
+      })
+
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Error al crear la propiedad');
+        const errorData = await response.json()
+        throw new Error(errorData.error || "Error al crear la propiedad")
       }
-      
-      const result = await response.json();
-      console.log('Propiedad creada exitosamente:', result);
-      
-      setSubmitSuccess(true);
-      
+
+      const result = await response.json()
+      console.log("Propiedad creada exitosamente:", result)
+
+      setSubmitSuccess(true)
+
       // Limpiar formulario después del éxito
       setTimeout(() => {
-        resetForm();
-      }, 2000);
-      
+        resetForm()
+      }, 2000)
     } catch (error) {
-      console.error('Error al enviar propiedad:', error);
-      setSubmitError(error.message || 'Error al registrar la propiedad. Intenta de nuevo.');
+      console.error("Error al enviar propiedad:", error)
+      setSubmitError(error.message || "Error al registrar la propiedad. Intenta de nuevo.")
     } finally {
-      setIsSubmitting(false);
+      setIsSubmitting(false)
     }
-  };
+  }
 
-// ------------------------
-
-//   const handleSubmit = async (e) => {
-//   e.preventDefault();
-  
-//   setSubmitError('');
-//   setSubmitSuccess(false);
-  
-//   if (!validateForm()) {
-//     return;
-//   }
-  
-//   setIsSubmitting(true);
-  
-//   try {
-//     // Crear FormData para enviar archivos e información
-//     const formDataToSend = new FormData();
-    
-//     // Mapear campos del frontend a los que espera el backend
-//     formDataToSend.append('address', formData.address.trim()); // Corregido: 'address' en lugar de 'adress'
-//     formDataToSend.append('property_title', formData.title.trim());
-//     formDataToSend.append('description', formData.description.trim());
-//     formDataToSend.append('price', formData.price.replace(/[^\d]/g, ''));
-//     formDataToSend.append('status', 'Disponible');
-//     formDataToSend.append('person_id', '1'); // TODO: Obtener del usuario autenticado
-//     formDataToSend.append('property_type_id', getPropertyTypeId(formData.type));
-//     formDataToSend.append('socioeconomic_stratum', formData.socioeconomic_stratum || '3');
-//     formDataToSend.append('city', formData.city.trim());
-//     formDataToSend.append('neighborhood', formData.neighborhood.trim());
-//     formDataToSend.append('operation_type', mapOperationType(formData.propertyType));
-//     formDataToSend.append('bedrooms', parseInt(formData.rooms));
-//     formDataToSend.append('bathrooms', parseInt(formData.bathrooms));
-//     formDataToSend.append('parking_spaces', parseInt(formData.parking_spaces) || 0);
-//     formDataToSend.append('built_area', parseInt(formData.area));
-//     formDataToSend.append('total_area', parseInt(formData.total_area) || parseInt(formData.area));
-//     formDataToSend.append('latitude', formData.latitude || '0');
-//     formDataToSend.append('longitude', formData.longitude || '0');
-    
-//     // Agregar imágenes
-//     imageFiles.forEach((file) => {
-//       formDataToSend.append('images', file); // 'images' debe coincidir con el nombre en multer
-//     });
-    
-//     // Llamada al API del backend
-//     const response = await fetch('http://localhost:10101/api/properties', {
-//       method: 'POST',
-//       body: formDataToSend,
-//       credentials: 'include', // Incluir cookies para autenticación si es necesario
-//     });
-    
-//     if (!response.ok) {
-//       const errorData = await response.json();
-//       throw new Error(errorData.error || 'Error al crear la propiedad');
-//     }
-    
-//     const result = await response.json();
-//     console.log('Propiedad creada exitosamente:', result);
-    
-//     setSubmitSuccess(true);
-    
-//     // Limpiar formulario después del éxito
-//     setTimeout(() => {
-//       resetForm();
-//     }, 2000);
-    
-//   } catch (error) {
-//     console.error('Error al enviar propiedad:', error);
-//     setSubmitError(error.message || 'Error al registrar la propiedad. Intenta de nuevo.');
-//   } finally {
-//     setIsSubmitting(false);
-//   }
-// };
-  
   const resetForm = () => {
     setFormData({
-      title: '',
-      address: '',
-      type: '',
-      description: '',
-      rooms: '',
-      bathrooms: '',
-      area: '',
-      price: '',
-      agentName: '',
-      agentPhone: '',
-      agentEmail: '',
-      agentWhatsapp: '',
-      propertyType: 'Venta', // Cambiado de 'venta' a 'Venta'
-      additionalRoomInfo: '',
-      socioeconomic_stratum: '',
-      city: '',
-      neighborhood: '',
-      parking_spaces: '',
-      total_area: '',
-      latitude: '',
-      longitude: ''
-    });
-    setSelectedImages([]);
-    setImageFiles([]);
-    setPrecioEstimado('');
-    setSubmitError('');
-    setSubmitSuccess(false);
-  };
+      title: "",
+      address: "",
+      type: "",
+      description: "",
+      rooms: "",
+      bathrooms: "",
+      area: "",
+      price: "",
+      selectedAgentId: "",
+      propertyType: "Venta",
+      additionalRoomInfo: "",
+      socioeconomic_stratum: "",
+      city: "",
+      neighborhood: "",
+      parking_spaces: "",
+      total_area: "",
+      latitude: "",
+      longitude: "",
+    })
+    setSelectedImages([])
+    setImageFiles([])
+    setPrecioEstimado("")
+    setSubmitError("")
+    setSubmitSuccess(false)
+  }
 
   const handleSolicitarValoracion = async () => {
     if (!formData.area || !formData.type || !formData.address) {
-      alert('Por favor completa el área, tipo de propiedad y dirección para solicitar valoración');
-      return;
+      alert("Por favor completa el área, tipo de propiedad y dirección para solicitar valoración")
+      return
     }
-    
+
     try {
       // Simulación temporal - puedes implementar un endpoint de valoración
-      const basePrice = Math.random() * 500000 + 200000;
-      const formattedPrice = new Intl.NumberFormat('es-CO').format(basePrice);
-      setPrecioEstimado(formattedPrice);
-      
-      setFormData(prev => ({
+      const basePrice = Math.random() * 500000 + 200000
+      const formattedPrice = new Intl.NumberFormat("es-CO").format(basePrice)
+      setPrecioEstimado(formattedPrice)
+
+      setFormData((prev) => ({
         ...prev,
-        price: formattedPrice
-      }));
-      
+        price: formattedPrice,
+      }))
     } catch (error) {
-      console.error('Error en valoración:', error);
-      alert('Error al solicitar valoración. Intenta de nuevo.');
+      console.error("Error en valoración:", error)
+      alert("Error al solicitar valoración. Intenta de nuevo.")
     }
-  };
+  }
 
   const handleGoBack = () => {
-    window.history.back();
-  };
+    window.history.back()
+  }
+
+  // Obtener información del agente seleccionado para mostrar
+  const selectedAgent = agents.find((agent) => agent.person_id.toString() === formData.selectedAgentId)
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -354,32 +352,31 @@ const AgregarPropiedad = () => {
         </div>
 
         {submitError && (
-          <div className="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl">
-            {submitError}
-          </div>
+          <div className="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl">{submitError}</div>
         )}
-        
+
         {submitSuccess && (
           <div className="mb-6 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-xl">
             ¡Propiedad registrada exitosamente!
           </div>
         )}
 
+        {agentsError && (
+          <div className="mb-6 bg-yellow-50 border border-yellow-200 text-yellow-700 px-4 py-3 rounded-xl">
+            {agentsError}
+          </div>
+        )}
+
         <form onSubmit={handleSubmit}>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            
             <div className="bg-white rounded-2xl p-8 shadow-sm">
-              <h1 className="text-2xl font-bold text-gray-800 mb-8 text-center">
-                Agregar Propiedad
-              </h1>
-              
+              <h1 className="text-2xl font-bold text-gray-800 mb-8 text-center">Agregar Propiedad</h1>
+
               <div className="space-y-6">
                 {/* Información básica */}
                 <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-gray-700 border-b pb-2">
-                    Información Básica
-                  </h3>
-                  
+                  <h3 className="text-lg font-semibold text-gray-700 border-b pb-2">Información Básica</h3>
+
                   <input
                     type="text"
                     name="title"
@@ -468,10 +465,8 @@ const AgregarPropiedad = () => {
 
                 {/* Características de la propiedad */}
                 <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-gray-700 border-b pb-2">
-                    Características
-                  </h3>
-                  
+                  <h3 className="text-lg font-semibold text-gray-700 border-b pb-2">Características</h3>
+
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <input
                       type="number"
@@ -551,10 +546,8 @@ const AgregarPropiedad = () => {
 
                 {/* Ubicación GPS (opcional) */}
                 <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-gray-700 border-b pb-2">
-                    Ubicación GPS (Opcional)
-                  </h3>
-                  
+                  <h3 className="text-lg font-semibold text-gray-700 border-b pb-2">Ubicación GPS (Opcional)</h3>
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <input
                       type="number"
@@ -578,52 +571,62 @@ const AgregarPropiedad = () => {
                   </div>
                 </div>
 
-                {/* Información del agente */}
+                {/* Selección del agente responsable */}
                 <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-gray-700 border-b pb-2">
-                    Información del Agente
-                  </h3>
-                  
-                  <input
-                    type="text"
-                    name="agentName"
-                    placeholder="Nombre del Agente *"
-                    value={formData.agentName}
-                    onChange={handleInputChange}
-                    required
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
+                  <h3 className="text-lg font-semibold text-gray-700 border-b pb-2">Agente Responsable</h3>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <input
-                      type="tel"
-                      name="agentPhone"
-                      placeholder="Teléfono *"
-                      value={formData.agentPhone}
-                      onChange={handleInputChange}
-                      required
-                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
+                  {loadingAgents ? (
+                    <div className="flex items-center justify-center py-4">
+                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
+                      <span className="ml-2 text-gray-600">Cargando agentes...</span>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="relative">
+                        <select
+                          name="selectedAgentId"
+                          value={formData.selectedAgentId}
+                          onChange={handleInputChange}
+                          required
+                          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none"
+                        >
+                          <option value="">Seleccionar Agente *</option>
+                          {agents.map((agent) => (
+                            <option key={agent.person_id} value={agent.person_id}>
+                              {agent.first_name} {agent.last_name}
+                            </option>
+                          ))}
+                        </select>
+                        <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
+                      </div>
 
-                    <input
-                      type="tel"
-                      name="agentWhatsapp"
-                      placeholder="WhatsApp (opcional)"
-                      value={formData.agentWhatsapp}
-                      onChange={handleInputChange}
-                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                  </div>
+                      {/* Mostrar información del agente seleccionado */}
+                      {selectedAgent && (
+                        <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                          <h4 className="font-semibold text-blue-800 mb-2">Información del Agente:</h4>
+                          <div className="text-sm text-blue-700 space-y-1">
+                            <p>
+                              <strong>Nombre:</strong> {selectedAgent.first_name} {selectedAgent.last_name}
+                            </p>
+                            <p>
+                              <strong>Email:</strong> {selectedAgent.email}
+                            </p>
+                            <p>
+                              <strong>Teléfono:</strong> {selectedAgent.phone}
+                            </p>
+                          </div>
+                        </div>
+                      )}
 
-                  <input
-                    type="email"
-                    name="agentEmail"
-                    placeholder="Email del Agente *"
-                    value={formData.agentEmail}
-                    onChange={handleInputChange}
-                    required
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
+                      {agents.length === 0 && !loadingAgents && (
+                        <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
+                          <p className="text-yellow-700">
+                            No se encontraron agentes disponibles. Contacte al administrador.
+                          </p>
+                        </div>
+                      )}
+                    </>
+                  )}
                 </div>
 
                 {/* Descripción */}
@@ -641,14 +644,14 @@ const AgregarPropiedad = () => {
 
                 <button
                   type="submit"
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || loadingAgents}
                   className={`w-full py-3 rounded-xl font-medium transition-colors ${
-                    isSubmitting 
-                      ? 'bg-gray-400 text-gray-600 cursor-not-allowed' 
-                      : 'bg-[#2F8EAC] text-white hover:bg-[#267a95]'
+                    isSubmitting || loadingAgents
+                      ? "bg-gray-400 text-gray-600 cursor-not-allowed"
+                      : "bg-[#2F8EAC] text-white hover:bg-[#267a95]"
                   }`}
                 >
-                  {isSubmitting ? 'Registrando...' : 'Registrar Propiedad'}
+                  {isSubmitting ? "Registrando..." : "Registrar Propiedad"}
                 </button>
               </div>
             </div>
@@ -657,10 +660,8 @@ const AgregarPropiedad = () => {
             <div className="space-y-6">
               {/* Sección de imágenes */}
               <div className="bg-white rounded-2xl p-6 shadow-sm">
-                <h2 className="text-lg font-semibold text-gray-800 mb-4">
-                  Imágenes de la Propiedad *
-                </h2>
-                
+                <h2 className="text-lg font-semibold text-gray-800 mb-4">Imágenes de la Propiedad *</h2>
+
                 <div className="border-2 border-dashed border-gray-300 rounded-xl p-6">
                   {selectedImages.length > 0 ? (
                     <div className="space-y-4">
@@ -668,7 +669,7 @@ const AgregarPropiedad = () => {
                         {selectedImages.map((image, index) => (
                           <div key={index} className="relative group">
                             <img
-                              src={image}
+                              src={image || "/placeholder.svg"}
                               alt={`Propiedad ${index + 1}`}
                               className="w-full h-24 object-cover rounded-lg"
                             />
@@ -689,14 +690,12 @@ const AgregarPropiedad = () => {
                   ) : (
                     <div className="text-center">
                       <div className="w-full h-32 bg-gray-100 rounded-lg flex items-center justify-center mb-4">
-                        <div className="w-16 h-12 bg-gray-300 rounded flex items-center justify-center">
-                          📷
-                        </div>
+                        <div className="w-16 h-12 bg-gray-300 rounded flex items-center justify-center">📷</div>
                       </div>
                       <p className="text-gray-500 mb-4">No hay imágenes seleccionadas</p>
                     </div>
                   )}
-                  
+
                   <input
                     type="file"
                     multiple
@@ -709,7 +708,7 @@ const AgregarPropiedad = () => {
                     htmlFor="imageUpload"
                     className="block w-full text-center bg-gray-100 text-gray-700 px-4 py-2 rounded-lg cursor-pointer hover:bg-gray-200 transition-colors"
                   >
-                    {selectedImages.length > 0 ? 'Agregar más imágenes' : 'Seleccionar Imágenes *'}
+                    {selectedImages.length > 0 ? "Agregar más imágenes" : "Seleccionar Imágenes *"}
                   </label>
                 </div>
               </div>
@@ -717,16 +716,10 @@ const AgregarPropiedad = () => {
               {/* Valoración automática */}
               <div className="bg-white rounded-2xl p-6 shadow-sm">
                 <div className="text-center mb-4">
-                  <p className="text-lg font-semibold text-gray-800 mb-2">
-                    Valoración Automática
-                  </p>
-                  {precioEstimado && (
-                    <p className="text-2xl font-bold text-green-600">
-                      ${precioEstimado}
-                    </p>
-                  )}
+                  <p className="text-lg font-semibold text-gray-800 mb-2">Valoración Automática</p>
+                  {precioEstimado && <p className="text-2xl font-bold text-green-600">${precioEstimado}</p>}
                 </div>
-                
+
                 <button
                   type="button"
                   onClick={handleSolicitarValoracion}
@@ -735,7 +728,7 @@ const AgregarPropiedad = () => {
                   <span>📊</span>
                   Solicitar Valoración Automática
                 </button>
-                
+
                 {precioEstimado && (
                   <p className="text-xs text-gray-500 text-center mt-2">
                     * El precio se ha actualizado automáticamente en el formulario
@@ -747,7 +740,7 @@ const AgregarPropiedad = () => {
         </form>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default AgregarPropiedad;
+export default AgregarPropiedad

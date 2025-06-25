@@ -35,6 +35,7 @@ import { ClientesAdmin } from './Components/Pages/ClientesAdmin/ClientesAdmin'
 import { AgendaAdmin } from './Components/Pages/AgendaAdmin/AgendaAdmin'
 import { ReportesInmobiliaria } from "./components/Pages/ReportesInmobiliaria/ReportesInmobiliaria";
 import { GenerarTokenAgente } from './Components/Pages/GenerarTokenAgente/GenerarTokenAgente'
+import { MetodosPagoPage } from './Components/Pages/MetodosPagoPage/MetodosPagoPage'
 
 
 export const App = () => {
@@ -58,6 +59,7 @@ export const App = () => {
       {/* <Route path="/actualizar-inmobiliaria" element={<ActualizarInmobiliaria />} /> */}
       <Route path="/privacidad" element={<Privacidad />} />
       <Route path="/terminos" element={<Terminos />} />
+      <Route path="/metodos-pago" element={<MetodosPagoPage />} />
       <Route path="/Perfil" element={<Perfil />} />
       <Route path="/editar-propiedad/:id" element={<UpdateProperty />} />
       <Route path="/mi-inmobiliaria/gestion-agentes" element={<GestionAgents />} />

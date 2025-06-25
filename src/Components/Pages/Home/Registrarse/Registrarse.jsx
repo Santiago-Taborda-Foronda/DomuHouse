@@ -15,7 +15,7 @@ export const Registrarse = () => {
 
   // State for user form
   const [userData, setUserData] = useState({
-    first_name: "",
+    name_person: "",
     last_name: "",
     phone: "",
     email: "",
@@ -70,7 +70,7 @@ export const Registrarse = () => {
   const togglePasswordVisibility = () => setShowPassword(!showPassword)
 
   const validateStep1 = () => {
-    if (!userData.first_name.trim()) {
+    if (!userData.name_person.trim()) {
       setError("El nombre es requerido")
       return false
     }
@@ -290,14 +290,14 @@ export const Registrarse = () => {
       <div className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label htmlFor="first_name" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="name_person" className="block text-sm font-medium text-gray-700 mb-1">
               Nombre *
             </label>
             <input
               type="text"
-              id="first_name"
-              name="first_name"
-              value={userData.first_name}
+              id="name_person"
+              name="name_person"
+              value={userData.name_person}
               onChange={handleUserDataChange}
               placeholder="Tu nombre"
               className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-sky-500 focus:outline-none transition-colors"

@@ -1,12 +1,10 @@
 import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
-import { LuSettings2 } from "react-icons/lu"
 import Casa from "../../../assets/images/casLujo2.jpg"
 import Casa2 from "../../../assets/images/Casa2.jpg"
 import { LuSettings2 } from "react-icons/lu"
 import { ChatDomu } from "../../UI/ChatDomu/ChatDomu"
 import { Button } from "../../UI/Button/Button"
-import Casa2 from "../../../assets/images/Casa2.jpg"
 import "../../../App"
 
 const PropertyCard = ({ address, title, rooms, bathrooms, area, price, type, agentName, onClick }) => {

@@ -8,6 +8,7 @@ import { Header } from '../../Layouts/Header/Header'
 import { Link, useNavigate } from 'react-router-dom'
 import { jwtDecode } from 'jwt-decode';
 
+ const URL = "http://localhost:10101/login/login"
 
 export const Login = () => {
     const navigate = useNavigate()
@@ -38,7 +39,7 @@ export const Login = () => {
   setError('');
 
   try {
-    const response = await fetch('http://localhost:10101/login', {
+    const response = await fetch(URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -52,14 +53,13 @@ export const Login = () => {
     if (response.ok && data.token) {
       const user = {
         id: data.user.id,
-        first_name: data.user.nombre,
-        email: data.user.correo,
+        first_name: data.user.first_name,
+        email: data.user.email,
         avatar: data.user.avatar ?? null,
       };
 
       localStorage.setItem('authToken', data.token);
       localStorage.setItem('userData', JSON.stringify(user));
-
       window.dispatchEvent(new Event('storage'));
       navigate('/');
     } else {

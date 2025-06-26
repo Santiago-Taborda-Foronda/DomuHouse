@@ -28,6 +28,14 @@ import EstadoInteres from './Components/Pages/Agente/EstadoInteres'
 import  UpdateProperty  from './Components/Pages/UpdateProperty/UpdateProperty'
 import { GestionAgents } from './Components/Pages/GestionAgents/GestionAgents'
 import  TokenGenerationPage  from './Components/Pages/TokenGenerationPage/TokenGenerationPage'
+import { DashboardAdmin } from './Components/Pages/DashboardAdmin/DashboardAdmin'
+import { Contract } from './Components/Pages/contract/contract'
+import { VentasAlquileresAdmin } from './Components/Pages/VentasAlquileresAdmin/VentasAlquileresAdmin'
+import { ClientesAdmin } from './Components/Pages/ClientesAdmin/ClientesAdmin'
+import { AgendaAdmin } from './Components/Pages/AgendaAdmin/AgendaAdmin'
+import { ReportesInmobiliaria } from "./Components/Pages/ReportesInmobiliaria/ReportesInmobiliaria";
+import { GenerarTokenAgente } from './Components/Pages/GenerarTokenAgente/GenerarTokenAgente'
+import { MetodosPagoPage } from './Components/Pages/MetodosPagoPage/MetodosPagoPage'
 
 
 export const App = () => {
@@ -39,6 +47,7 @@ export const App = () => {
       <Route path='/Encuentrame' element={<Encuentrame />} />
       <Route path='/Login' element={<Login />} />
       <Route path='/Registrarse' element={<Registrarse />} />
+      <Route path="/propiedad/:id" element={<PropiedadSeleccionada />} />
       <Route path='/propiedad-seleccionada' element={<PropiedadSeleccionada />} />
       <Route path='/CrearInmobiliarias' element={<CrearInmobiliarias />} />
       <Route path='/registrarseAdministrador' element={<RegistrarseAdministrador />} />
@@ -51,10 +60,17 @@ export const App = () => {
       {/* <Route path="/actualizar-inmobiliaria" element={<ActualizarInmobiliaria />} /> */}
       <Route path="/privacidad" element={<Privacidad />} />
       <Route path="/terminos" element={<Terminos />} />
+      <Route path="/metodos-pago" element={<MetodosPagoPage />} />
       <Route path="/Perfil" element={<Perfil />} />
       <Route path="/editar-propiedad/:id" element={<UpdateProperty />} />
       <Route path="/mi-inmobiliaria/gestion-agentes" element={<GestionAgents />} />
-
+      <Route path="/invitar-agente" element={<GenerarTokenAgente />} />
+      <Route path="/mi-inmobiliaria/dashboard" element={<DashboardAdmin />} />
+      <Route path="/mi-inmobiliaria/contratos" element={<Contract />} />
+      <Route path="/mi-inmobiliaria/ventas-alquileres" element={<VentasAlquileresAdmin />} />
+      <Route path="/mi-inmobiliaria/clientes" element={<ClientesAdmin />} />
+      <Route path="/mi-inmobiliaria/agenda" element={<AgendaAdmin />} />
+      <Route path="/mi-inmobiliaria/reportes" element={<ReportesInmobiliaria />} />
       {/* Rutas del Agente  */}
         <Route path="/AgentDashboard" element={<AgentDashboard />} />
         <Route path="MisPropiedades" element={<MisPropiedades />} />

@@ -8,7 +8,7 @@ import { Header } from '../../Layouts/Header/Header'
 import { Link, useNavigate } from 'react-router-dom'
 import { jwtDecode } from 'jwt-decode';
 
- const URL = "http://localhost:10101/login"
+ const URL = "http://localhost:10101/login/login"
 
 export const Login = () => {
     const navigate = useNavigate()

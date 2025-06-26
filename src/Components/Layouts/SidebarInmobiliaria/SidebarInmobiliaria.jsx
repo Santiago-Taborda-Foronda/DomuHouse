@@ -58,12 +58,11 @@ export const SidebarInmobiliaria = ({ isOpen, toggleMenu, isAuthenticated, handl
     return (
       <div className="p-6 h-full">
         {/* Logo en la parte superior del menú */}
-        <div className="flex items-center mb-6">
-          <img src={LogoDomuHouse} alt="LogoDomuHouse" className="w-20" />
-          <div className="ml-2">
-            <span className="text-lg title-montserrat">DOMU<span className='text-[#2F8EAC]'>HOUSE</span></span>
-            <p className="text-sm text-gray-500">Panel de gestión</p>
-          </div>
+        <div className="text-center mb-8 pb-4 border-b border-gray-100">
+          <h1 className="text-xl font-bold text-gray-800 title-montserrat">
+            Portal de <span className='text-[#2F8EAC]'>Administrador</span>
+          </h1>
+          <div className="w-12 h-1 bg-[#2F8EAC] mx-auto mt-2 rounded-full"></div>
         </div>
 
         <div className="flex flex-col gap-6 mt-8">
@@ -123,18 +122,13 @@ export const SidebarInmobiliaria = ({ isOpen, toggleMenu, isAuthenticated, handl
           {/* Reportes y Usuarios */}
           <section>
             <h3 className="font-semibold text-gray-700 mb-3 title-montserrat text-xs uppercase tracking-wide">
-              Reportes y Usuarios
+              Reportes
             </h3>
             <ul className="space-y-1">
               <MenuItem 
                 icon={BarChart3}
                 label="Reportes"
                 route="/mi-inmobiliaria/reportes"
-              />
-              <MenuItem 
-                icon={User}
-                label="Usuarios"
-                route="/mi-inmobiliaria/usuarios"
               />
             </ul>
           </section>
@@ -261,18 +255,13 @@ export const SidebarInmobiliaria = ({ isOpen, toggleMenu, isAuthenticated, handl
               {/* Reportes y Usuarios */}
               <section>
                 <h3 className="font-semibold text-gray-700 mb-3 title-montserrat text-xs uppercase tracking-wide">
-                  Reportes y Usuarios
+                  Reportes
                 </h3>
                 <ul className="space-y-1">
                   <MenuItem 
                     icon={BarChart3}
                     label="Reportes"
                     route="/mi-inmobiliaria/reportes"
-                  />
-                  <MenuItem 
-                    icon={User}
-                    label="Usuarios"
-                    route="/mi-inmobiliaria/usuarios"
                   />
                 </ul>
               </section>

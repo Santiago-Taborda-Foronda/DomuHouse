@@ -221,49 +221,25 @@ export const Header = ({ toggleSidebar, toggleAgentSidebar }) => {
             className="bg-[#2F8EAC] hover:bg-sky-600 active:bg-sky-700 transition duration-150 ease-in-out text-white px-3 py-2 rounded-xl text-sm"
           />
 
-          {!isAuthenticated ? (
-            // Botones de autenticación con estilo original
-            <>
-              <Button
-                name="Regístrate"
-                Route="/Registrarse"
-                className="bg-[#2F8EAC] hover:bg-sky-600 active:bg-sky-700 transition duration-150 ease-in-out text-white px-3 py-2 rounded-xl text-sm"
-              />
-              <Button
-                name="Iniciar"
-                Route="/Login"
-                className="bg-[#2F8EAC] hover:bg-sky-600 active:bg-sky-700 transition duration-150 ease-in-out text-white px-3 py-2 rounded-xl text-sm"
-              />
-            </>
-          ) : (
-            // Perfil de usuario y botón de perfil
-            <div className="flex items-center space-x-2">
-              {/* Botón directo al perfil */}
-              <Button
-                name="Mi Perfil"
-                Route="/perfil"
-                className="bg-gray-100 hover:bg-[#2F8EAC] hover:text-white text-gray-700 px-3 py-2 rounded-xl text-sm transition duration-150 ease-in-out"
-              />
-
-              {/* Menú desplegable del usuario */}
-              <div className="relative">
-                <button
-                  onClick={toggleUserMenu}
-                  className="flex items-center gap-2 p-2 rounded-full hover:bg-gray-100 transition-colors"
-                >
-                  {userInfo?.avatar ? (
-                    <img
-                      src={userInfo.avatar || "/placeholder.svg"}
-                      alt="Avatar"
-                      className="w-8 h-8 rounded-full object-cover"
-                    />
-                  ) : (
-                    <UserCircle className="w-8 h-8 text-gray-600" />
-                  )}
-                  <span className="text-sm font-medium text-gray-700 hidden sm:block">
-                    {userInfo?.first_name || userInfo?.name || "Usuario"}
-                  </span>
-                </button>
+          {isAuthenticated && userInfo ? (
+            <div className="relative">
+              <button 
+                onClick={toggleUserMenu}
+                className="flex items-center gap-2 p-2 rounded-full hover:bg-gray-100 transition-colors"
+              >
+                {userInfo.avatar ? (
+                  <img 
+                    src={userInfo.avatar} 
+                    alt="Avatar" 
+                    className="w-8 h-8 rounded-full object-cover"
+                  />
+                ) : (
+                  <UserCircle className="w-8 h-8 text-gray-600" />
+                )}
+                <span className="text-sm font-medium text-gray-700 hidden sm:block">
+                  {userInfo.name_person || userInfo.nombre || userInfo.email?.split('@')[0] || 'Usuario'}
+                </span>
+              </button>
 
                 {/* Menú desplegable del usuario */}
                 {showUserMenu && (

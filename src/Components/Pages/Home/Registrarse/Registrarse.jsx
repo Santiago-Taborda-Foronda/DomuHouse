@@ -121,6 +121,7 @@ export const Registrarse = () => {
 
   const validateStep1 = () => {
     if (!userData.name_person.trim()) {
+    if (!userData.name_person.trim()) {
       setError("El nombre es requerido")
       return false
     }
@@ -721,4 +722,5 @@ export const Registrarse = () => {
       </div>
     </div>
   )
+}
 }

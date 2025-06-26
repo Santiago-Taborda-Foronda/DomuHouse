@@ -1,11 +1,10 @@
 import { useState, useEffect } from "react"
-import { LuSettings2 } from "react-icons/lu"
+import { useNavigate } from "react-router-dom"
 import Casa from "../../../assets/images/casLujo2.jpg"
 import Casa2 from "../../../assets/images/Casa2.jpg"
 import { LuSettings2 } from "react-icons/lu"
 import { ChatDomu } from "../../UI/ChatDomu/ChatDomu"
 import { Button } from "../../UI/Button/Button"
-import Casa2 from "../../../assets/images/Casa2.jpg"
 import "../../../App"
 
 const PropertyCard = ({ address, title, rooms, bathrooms, area, price, type, agentName, onClick }) => {
@@ -389,10 +388,10 @@ export const Main = () => {
 
     return (
         <>
-            <div
-                className="relative h-[500px] sm:h-[600px] md:h-[700px] lg:h-[800px] bg-cover bg-center flex flex-col justify-center items-center text-white text-center px-4 sm:px-6 md:px-8 lg:px-12"
-                style={{ backgroundImage: "url('/src/assets/images/Casa2.jpg')" }}
-            >
+        <div
+        className="relative h-[400px] xs:h-[450px] sm:h-[550px] md:h-[650px] lg:h-[750px] bg-cover bg-center flex flex-col justify-center items-center text-white text-center px-4 sm:px-6 md:px-8 lg:px-12"
+        style={{ backgroundImage: `url(${Casa2})` }}
+      >
                 <div className="absolute inset-0 bg-black/30 z-0"></div>
 
         <div className="relative z-10 w-full flex flex-col justify-center items-center">

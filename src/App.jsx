@@ -37,6 +37,15 @@ import { ReportesInmobiliaria } from "./Components/Pages/ReportesInmobiliaria/Re
 import { GenerarTokenAgente } from './Components/Pages/GenerarTokenAgente/GenerarTokenAgente'
 import { MetodosPagoPage } from './Components/Pages/MetodosPagoPage/MetodosPagoPage'
 
+// Importar componentes del Super Admin
+import { DashboardSuperAdmin } from "./Components/Pages/SuperAdmin/DashboardSuperAdmin/DashboardSuperAdmin"
+import { AnalyticsGlobales } from "./Components/Pages/SuperAdmin/AnalyticsGlobales/AnalyticsGlobales"
+import { GestionInmobiliarias } from "./Components/Pages/SuperAdmin/GestionInmobiliarias/GestionInmobiliarias"
+import { GestionAdministradores } from "./Components/Pages/SuperAdmin/GestionAdministradores/GestionAdministradores"
+
+// import { ConfiguracionSistema } from "./Components/Pages/SuperAdmin/ConfiguracionSistema/ConfiguracionSistema"
+// import { FacturacionSuscripciones } from "./Components/Pages/SuperAdmin/FacturacionSuscripciones/FacturacionSuscripciones"
+
 
 export const App = () => {
   return (
@@ -79,6 +88,17 @@ export const App = () => {
         <Route path="ProgramarVisita" element={<ProgramarVisita />} />
         <Route path="ContactarCliente" element={<ContactarCliente />} />
         <Route path="EstadoInteres" element={<EstadoInteres />} />
+
+
+         {/* Rutas del Super Admin */}
+        <Route path="/super-admin/dashboard" element={<DashboardSuperAdmin />} />
+        <Route path="/super-admin/analytics" element={<AnalyticsGlobales />} />
+        <Route path="/super-admin/inmobiliarias" element={<GestionInmobiliarias />} />
+        <Route path="/super-admin/administradores" element={<GestionAdministradores />} />
+        {/* 
+        
+        <Route path="/super-admin/configuracion" element={<ConfiguracionSistema />} />
+        <Route path="/super-admin/facturacion" element={<FacturacionSuscripciones />} /> */}
     
     </Routes>
 

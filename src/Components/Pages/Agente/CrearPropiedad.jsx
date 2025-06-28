@@ -1,9 +1,3 @@
-"use client"
-
-import { useState } from "react"
-import { Upload, X } from "lucide-react"
-"use client"
-
 import { useState, useEffect } from "react"
 import { Upload, X, Menu } from "lucide-react"
 import AgentSideBar from "./Components/AgentSideBar"

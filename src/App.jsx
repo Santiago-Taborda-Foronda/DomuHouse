@@ -42,6 +42,7 @@ import { DashboardSuperAdmin } from "./Components/Pages/SuperAdmin/DashboardSupe
 import { AnalyticsGlobales } from "./Components/Pages/SuperAdmin/AnalyticsGlobales/AnalyticsGlobales"
 import { GestionInmobiliarias } from "./Components/Pages/SuperAdmin/GestionInmobiliarias/GestionInmobiliarias"
 import { GestionAdministradores } from "./Components/Pages/SuperAdmin/GestionAdministradores/GestionAdministradores"
+import { EditarInmobiliaria } from './Components/Pages/EditarInmobiliaria/EditarInmobiliaria'
 
 // import { ConfiguracionSistema } from "./Components/Pages/SuperAdmin/ConfiguracionSistema/ConfiguracionSistema"
 // import { FacturacionSuscripciones } from "./Components/Pages/SuperAdmin/FacturacionSuscripciones/FacturacionSuscripciones"
@@ -80,6 +81,7 @@ export const App = () => {
       <Route path="/mi-inmobiliaria/clientes" element={<ClientesAdmin />} />
       <Route path="/mi-inmobiliaria/agenda" element={<AgendaAdmin />} />
       <Route path="/mi-inmobiliaria/reportes" element={<ReportesInmobiliaria />} />
+      <Route path="/mi-inmobiliaria/configuracion" element={<EditarInmobiliaria />} />
       {/* Rutas del Agente  */}
         <Route path="/AgentDashboard" element={<AgentDashboard />} />
         <Route path="MisPropiedades" element={<MisPropiedades />} />

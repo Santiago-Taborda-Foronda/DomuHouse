@@ -1,10 +1,15 @@
+import { useState, useEffect } from "react"
+import { useNavigate } from "react-router-dom"
+import Casa from "../../../assets/images/casLujo2.jpg"
+import Casa2 from "../../../assets/images/Casa2.jpg"
+
 
 import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
+
 import { LuSettings2 } from "react-icons/lu"
 import { ChatDomu } from "../../UI/ChatDomu/ChatDomu"
 import { Button } from "../../UI/Button/Button"
-import Casa2 from "../../../assets/images/Casa2.jpg"
 import "../../../App"
 
 const PropertyCard = ({ address, title, rooms, bathrooms, area, price, type, agentName, onClick }) => {
@@ -25,27 +30,33 @@ const PropertyCard = ({ address, title, rooms, bathrooms, area, price, type, age
 
   return (
     <div
-      className="bg-white flex flex-col rounded-2xl w-80 shadow-lg overflow-hidden cursor-pointer hover:shadow-xl transition-shadow duration-300"
+      className="bg-white flex flex-col rounded-2xl w-full max-w-xs sm:max-w-sm shadow-lg overflow-hidden cursor-pointer hover:shadow-xl transition-shadow duration-300"
       onClick={onClick}
     >
-      <div className="relative w-full h-48">
+      {/* Imagen de la propiedad con etiqueta de tipo */}
+      <div className="relative w-full h-40 sm:h-44 md:h-48 lg:h-52">
         <img src={Casa || "/placeholder.svg"} alt="Propiedad" className="w-full h-full object-cover" />
         {/* Etiqueta de tipo de operación */}
         <div
-          className={`absolute top-3 right-3 ${operationStyle.bg} text-white px-4 py-1 rounded-full text-sm font-medium`}
+          className={`absolute top-3 right-3 ${operationStyle.bg} text-white px-3 py-1 rounded-full text-xs sm:text-sm font-medium`}
         >
           {operationStyle.text}
         </div>
         {/* Overlay con dirección */}
-        <div className="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/70 to-transparent text-white text-sm px-4 py-3">
-          <span className="font-medium">{address}</span>
+        <div className="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/60 to-transparent text-white text-xs sm:text-sm px-2 sm:px-4 py-1 sm:py-2">
+          <span className="drop-shadow-lg">{address}</span>
         </div>
       </div>
 
-      <div className="px-5 py-4">
-        <h2 className="text-xl font-semibold text-gray-800 mb-4">{title}</h2>
+      {/* Información de la propiedad */}
+      <div className="p-3 sm:p-4">
+        {/* Título de la propiedad */}
+        <h2 className="text-sm sm:text-base lg:text-lg font-semibold text-gray-800 mb-2 sm:mb-3 line-clamp-2">
+          {title}
+        </h2>
 
-        <div className="flex items-center text-gray-600 text-sm gap-6 mb-4">
+        {/* Características principales */}
+        <div className="flex flex-wrap items-center text-gray-600 text-xs sm:text-sm gap-3 sm:gap-6 mb-3 sm:mb-4">
           <span className="flex items-center gap-1">
             Cuartos: <strong className="text-gray-800">{rooms}</strong>
           </span>
@@ -57,11 +68,12 @@ const PropertyCard = ({ address, title, rooms, bathrooms, area, price, type, age
           </span>
         </div>
 
-        <hr className="border-gray-200 mb-4" />
+        <hr className="my-2" />
 
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#2F8EAC] to-[#1e6b7a] flex items-center justify-center text-white text-sm font-bold shadow-md">
+        {/* Información del agente y precio */}
+        <div className="flex items-center justify-between mt-2 sm:mt-3">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-[#2F8EAC] to-[#1e6b7a] flex items-center justify-center text-white text-xs sm:text-sm font-bold shadow-md">
               {agentName
                 ? agentName
                     .split(" ")
@@ -70,9 +82,9 @@ const PropertyCard = ({ address, title, rooms, bathrooms, area, price, type, age
                     .substring(0, 2)
                 : "AG"}
             </div>
-            <span className="text-sm text-gray-700 font-medium">{agentName}</span>
+            <span className="text-xs sm:text-sm text-gray-700 font-medium">{agentName}</span>
           </div>
-          <span className="text-lg font-bold text-gray-900">${price}</span>
+          <span className="text-base sm:text-lg font-bold text-gray-900">${price}</span>
         </div>
       </div>
     </div>
@@ -101,11 +113,15 @@ export const Main = () => {
 
   const toggleAdvanced = () => setShowAdvanced(!showAdvanced)
 
+  const API_BASE_URL = "http://localhost:10101"
+
   // Cargar propiedades iniciales
   useEffect(() => {
     const fetchProperties = async () => {
       setIsLoading(true)
       try {
+        const res = await fetch(`${API_BASE_URL}/api/properties/approved`)
+
         const res = await fetch("https://domuhouse.onrender.com/api/properties/obtener")
 
         if (!res.ok) {
@@ -136,6 +152,109 @@ export const Main = () => {
     fetchProperties()
   }, [])
 
+  // ✅ FUNCIÓN MEJORADA PARA MANEJAR CLICKS DE TIPO DE OPERACIÓN
+ const handleOperationTypeClick = async (operationType) => {
+  console.log(`🏠 Filtro seleccionado: ${operationType}`)
+
+  // Prevenir múltiples clicks mientras se carga
+  if (isLoading) {
+    console.log("⏳ Ya hay una búsqueda en progreso...")
+    return
+  }
+
+  setIsLoading(true)
+  setError(null)
+
+  try {
+    // ✅ FIX: Actualizar los filtros correctamente
+    const newFilters = { ...filters, operation_type: operationType }
+    setFilters(newFilters)
+
+    // ✅ FIX: Construir la URL correctamente
+    const queryParams = new URLSearchParams()
+    queryParams.append("operation_type", operationType)
+
+    const url = `${API_BASE_URL}/api/search/search?${queryParams.toString()}`
+    console.log(`🔗 Fetching: ${url}`)
+
+    // ✅ FIX: Hacer la petición correctamente
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 15000) // Aumentar timeout
+
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        // ✅ Agregar headers adicionales si es necesario
+        "Accept": "application/json",
+      },
+      signal: controller.signal,
+    })
+
+    clearTimeout(timeoutId)
+
+    console.log(`📊 Response status: ${response.status}`)
+    console.log(`📊 Response headers:`, response.headers)
+
+    if (!response.ok) {
+      // ✅ FIX: Manejo de errores más específico
+      const errorText = await response.text()
+      console.error(`❌ Error response: ${errorText}`)
+      throw new Error(`HTTP Error: ${response.status} - ${response.statusText}. Details: ${errorText}`)
+    }
+
+    const data = await response.json()
+    console.log(`📊 Datos recibidos para ${operationType}:`, data)
+
+    // ✅ FIX: Procesamiento de respuesta más robusto
+    let propertiesToSet = []
+
+    if (Array.isArray(data)) {
+      propertiesToSet = data
+    } else if (data && data.success && Array.isArray(data.properties)) {
+      propertiesToSet = data.properties
+    } else if (data && data.properties && Array.isArray(data.properties)) {
+      propertiesToSet = data.properties
+    } else if (data && data.data && Array.isArray(data.data)) {
+      propertiesToSet = data.data
+    } else if (data && data.results && Array.isArray(data.results)) {
+      propertiesToSet = data.results
+    } else {
+      console.warn("❌ Formato de datos inesperado:", data)
+      propertiesToSet = []
+    }
+
+    setProperties(propertiesToSet)
+
+    if (propertiesToSet.length === 0) {
+      console.warn(`⚠️ No se encontraron propiedades para ${operationType}`)
+      setError(`No se encontraron propiedades en ${operationType.toLowerCase()}`)
+    } else {
+      console.log(`✅ ${propertiesToSet.length} propiedades encontradas para ${operationType}`)
+      setError(null)
+    }
+
+  } catch (error) {
+    console.error(`❌ Error al filtrar por ${operationType}:`, error)
+
+    if (error.name === "AbortError") {
+      setError("La búsqueda tardó demasiado tiempo. Intenta nuevamente.")
+    } else if (error.message.includes("Failed to fetch")) {
+      setError("Error de conexión. Verifica que el servidor esté funcionando en el puerto 10101.")
+    } else if (error.message.includes("NetworkError")) {
+      setError("Error de red. Verifica tu conexión a internet.")
+    } else {
+      setError(`Error al filtrar propiedades: ${error.message}`)
+    }
+
+    // ✅ FIX: No limpiar las propiedades si hay error, mantener las anteriores
+    // setProperties([]) // Comentado para mantener propiedades anteriores
+  } finally {
+    setIsLoading(false)
+  }
+}
+
+  // ✅ FUNCIÓN DE BÚSQUEDA PRINCIPAL MEJORADA
   const handleSearch = async (e) => {
     e.preventDefault()
     setIsLoading(true)
@@ -161,6 +280,8 @@ export const Main = () => {
         if (formData.get("parking_spaces")) searchParams.parking_spaces = formData.get("parking_spaces")
       }
 
+      console.log("🔍 Parámetros de búsqueda:", searchParams)
+
       const queryParams = new URLSearchParams()
       Object.entries(searchParams).forEach(([key, value]) => {
         if (value && value !== "") {
@@ -168,7 +289,9 @@ export const Main = () => {
         }
       })
 
-      const response = await fetch(`https://domuhouse.onrender.com/busqueda/search?${queryParams}`)
+      console.log("🔗 Query string:", queryParams.toString())
+
+      const response = await fetch(`${API_BASE_URL}/api/search/search?${queryParams}`)
 
       if (!response.ok) {
         throw new Error(`Search failed: ${response.status}`)
@@ -193,7 +316,6 @@ export const Main = () => {
     }
   }
 
-  // ✅ FUNCIÓN SIMPLIFICADA Y CORREGIDA
   const handlePropertyClick = (property) => {
     console.log("Propiedad seleccionada:", property)
 
@@ -202,7 +324,6 @@ export const Main = () => {
       return
     }
 
-    // Obtener el ID de la propiedad
     const propId = property.property_id || property.id
 
     if (!propId) {
@@ -211,7 +332,6 @@ export const Main = () => {
     }
 
     try {
-      // Navegar con la propiedad completa en el state
       navigate(`/propiedad/${propId}`, {
         state: {
           property: property,
@@ -225,12 +345,15 @@ export const Main = () => {
     }
   }
 
-  // Manejar filtros de botones
   const handleFilterClick = (filterType, value) => {
-    setFilters((prev) => ({ ...prev, [filterType]: value }))
+    console.log(`🔧 Aplicando filtro: ${filterType} = ${value}`)
+    const newFilters = { ...filters, [filterType]: value }
+    setFilters(newFilters)
   }
 
-  const resetFilters = () => {
+  const resetFilters = async () => {
+    console.log("🔄 Reseteando filtros...")
+
     setFilters({
       operation_type: "",
       property_type: "",
@@ -246,75 +369,103 @@ export const Main = () => {
     setShowAdvanced(false)
 
     // Recargar todas las propiedades
-    const fetchAllProperties = async () => {
-      setIsLoading(true)
-      try {
-        const res = await fetch("https://domuhouse.onrender.com/api/properties/obtener")
-        if (!res.ok) {
-          throw new Error(`HTTP error! status: ${res.status}`)
-        }
-        const data = await res.json()
-
-        if (data.success && Array.isArray(data.properties)) {
-          setProperties(data.properties)
-        } else if (Array.isArray(data)) {
-          setProperties(data)
-        } else {
-          setProperties([])
-        }
-        setError(null)
-      } catch (error) {
-        console.error("Error al cargar propiedades:", error)
-        setError("Error al cargar propiedades: " + error.message)
-      } finally {
-        setIsLoading(false)
+    setIsLoading(true)
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/properties/approved`)
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`)
       }
-    }
+      const data = await res.json()
 
-    fetchAllProperties()
+      if (data.success && Array.isArray(data.properties)) {
+        setProperties(data.properties)
+      } else if (Array.isArray(data)) {
+        setProperties(data)
+      } else {
+        setProperties([])
+      }
+      setError(null)
+    } catch (error) {
+      console.error("Error al cargar propiedades:", error)
+      setError("Error al cargar propiedades: " + error.message)
+    } finally {
+      setIsLoading(false)
+    }
   }
 
-  return (
-    <>
-      <div
-        className="relative h-[800px] bg-cover bg-center flex flex-col justify-center items-center text-white text-center"
-        style={{ backgroundImage: `url(${Casa2})` }}
+    return (
+        <>
+        <div
+        className="relative h-[400px] xs:h-[450px] sm:h-[550px] md:h-[650px] lg:h-[750px] bg-cover bg-center flex flex-col justify-center items-center text-white text-center px-4 sm:px-6 md:px-8 lg:px-12"
+        style={{ backgroundImage: `url(${Casa2})` }}
       >
-        <div className="absolute inset-0 bg-black/30 z-0"></div>
+                <div className="absolute inset-0 bg-black/30 z-0"></div>
 
         <div className="relative z-10 w-full flex flex-col justify-center items-center">
-          <h1 className="font-bold text-5xl mb-10">Encuentra Tu Lugar Ideal</h1>
+          {/* Título principal */}
+          <h1 className="font-bold text-xl xs:text-2xl sm:text-3xl md:text-4xl lg:text-5xl mb-4 xs:mb-6 sm:mb-8 lg:mb-10 leading-tight">
+            Encuentra Tu Lugar Ideal
+          </h1>
 
-          <div className="flex gap-4 mb-6">
-            <Button
-              name="Venta"
-              className={`rounded-2xl px-10 p-2 ${
-                filters.operation_type === "Venta"
-                  ? "bg-[#2F8EAC] text-white"
-                  : "bg-transparent border border-white text-white"
-              }`}
-              onClick={() => handleFilterClick("operation_type", "Venta")}
-            />
-            <Button
-              name="Arriendo"
-              className={`rounded-2xl px-10 p-2 ${
-                filters.operation_type === "Arriendo"
-                  ? "bg-[#2F8EAC] text-white"
-                  : "bg-transparent border border-white text-white"
-              }`}
-              onClick={() => handleFilterClick("operation_type", "Arriendo")}
-            />
-          </div>
+          {/* Botones de tipo de operación - MEJORADOS */}
+          <div className="flex flex-row gap-3 sm:gap-4 mb-4 sm:mb-6">
+  <button
+    type="button" // ✅ FIX: Especificar type="button" para evitar submit del form
+    onClick={(e) => {
+      e.preventDefault() // ✅ FIX: Prevenir comportamiento por defecto
+      e.stopPropagation() // ✅ FIX: Evitar propagación del evento
+      if (!isLoading) {
+        console.log("🔥 Botón Venta clickado")
+        handleOperationTypeClick("Venta")
+      }
+    }}
+    disabled={isLoading}
+    className={`rounded-2xl px-4 xs:px-6 sm:px-8 lg:px-10 py-1.5 xs:py-2 text-xs xs:text-sm sm:text-base transition-all duration-300 ${
+      filters.operation_type === "Venta"
+        ? "bg-[#2F8EAC] text-white border-2 border-[#2F8EAC] shadow-lg transform scale-105"
+        : "bg-transparent border-2 border-white text-white hover:bg-white hover:text-[#2F8EAC] hover:scale-105"
+    } ${isLoading ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:shadow-lg"}`}
+  >
+    {isLoading && filters.operation_type === "Venta" ? "Buscando..." : "Venta"}
+  </button>
+  
+  <button
+    type="button" // ✅ FIX: Especificar type="button"
+    onClick={(e) => {
+      e.preventDefault() // ✅ FIX: Prevenir comportamiento por defecto
+      e.stopPropagation() // ✅ FIX: Evitar propagación del evento
+      if (!isLoading) {
+        console.log("🔥 Botón Arriendo clickado")
+        handleOperationTypeClick("Arriendo")
+      }
+    }}
+    disabled={isLoading}
+    className={`rounded-2xl px-4 xs:px-6 sm:px-8 lg:px-10 py-1.5 xs:py-2 text-xs xs:text-sm sm:text-base transition-all duration-300 ${
+      filters.operation_type === "Arriendo"
+        ? "bg-[#2F8EAC] text-white border-2 border-[#2F8EAC] shadow-lg transform scale-105"
+        : "bg-transparent border-2 border-white text-white hover:bg-white hover:text-[#2F8EAC] hover:scale-105"
+    } ${isLoading ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:shadow-lg"}`}
+  >
+    {isLoading && filters.operation_type === "Arriendo" ? "Buscando..." : "Arriendo"}
+  </button>
+</div>
 
+          {/* Formulario de búsqueda */}
           <form
             onSubmit={handleSearch}
-            className="flex bg-white rounded-full shadow-lg px-10 py-6 gap-6 items-center w-[85%] max-w-7xl mx-auto"
+            className="flex flex-col lg:flex-row bg-white rounded-xl xs:rounded-2xl lg:rounded-full shadow-xl 
+                      px-2 xs:px-3 sm:px-5 md:px-6 lg:px-8 
+                      py-2 xs:py-3 sm:py-4 md:py-5 
+                      gap-2 xs:gap-3 sm:gap-4 lg:gap-6 
+                      items-stretch lg:items-center 
+                      w-[95%] xs:w-[90%] max-w-[1100px] mx-auto"
           >
-            <div className="flex flex-col w-55">
+            {/* Tipo de propiedad */}
+            <div className="flex flex-col w-full lg:w-auto lg:min-w-[180px] lg:flex-1">
               <label className="text-xs text-gray-800 text-left ml-2 mb-1">Tipo</label>
               <select
                 name="property_type"
-                className="border-none bg-transparent focus:outline-none text-sm text-gray-800 px-2"
+                className="border-none bg-transparent focus:outline-none text-xs sm:text-sm text-gray-800 px-2"
                 value={filters.property_type}
                 onChange={(e) => handleFilterClick("property_type", e.target.value)}
               >
@@ -326,53 +477,59 @@ export const Main = () => {
               </select>
             </div>
 
-            <div className="flex flex-col w-70">
+            {/* Ciudad */}
+            <div className="flex flex-col w-full lg:w-auto lg:min-w-[150px] lg:flex-1">
               <label className="text-xs text-gray-800 text-left ml-2 mb-1">Ciudad</label>
               <input
                 type="text"
                 name="city"
                 placeholder="Ingrese la Ciudad"
-                className="border-none bg-transparent focus:outline-none focus:placeholder-gray-400 text-sm text-gray-800 px-2"
+                className="border-none bg-transparent focus:outline-none focus:placeholder-gray-400 text-xs sm:text-sm text-gray-800 px-2"
                 value={filters.city}
                 onChange={(e) => handleFilterClick("city", e.target.value)}
               />
             </div>
 
-            <div className="flex flex-col w-70">
+            {/* Barrio */}
+            <div className="flex flex-col w-full lg:w-auto lg:min-w-[150px] lg:flex-1">
               <label className="text-xs text-gray-800 text-left ml-2 mb-1">Barrio</label>
               <input
                 type="text"
                 name="neighborhood"
                 placeholder="Ingrese el Barrio"
-                className="border-none bg-transparent focus:outline-none focus:placeholder-gray-400 text-sm text-gray-800 px-2"
+                className="border-none bg-transparent focus:outline-none focus:placeholder-gray-400 text-xs sm:text-sm text-gray-800 px-2"
                 value={filters.neighborhood}
                 onChange={(e) => handleFilterClick("neighborhood", e.target.value)}
               />
             </div>
 
-            <button
-              type="button"
-              onClick={toggleAdvanced}
-              className="flex items-center gap-8 border border-[#2F8EAC] text-[#2F8EAC] rounded-full px-10 py-2 text-sm"
-            >
-              Búsqueda avanzada
-              <LuSettings2 className="text-[#2F8EAC] text-xl" />
-            </button>
+            {/* Botones de acción */}
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 w-full lg:w-auto">
+              <button
+                type="button"
+                onClick={toggleAdvanced}
+                className="flex items-center justify-center gap-2 lg:gap-8 border border-[#2F8EAC] text-[#2F8EAC] whitespace-nowrap rounded-full px-4 sm:px-6 lg:px-10 py-2 text-sm hover:bg-[#2F8EAC] hover:text-white transition-all duration-300"
+              >
+                <span className="hidden sm:inline">Búsqueda avanzada</span>
+                <span className="sm:hidden">Búsqueda Avanzada</span>
+                <LuSettings2 className="text-lg lg:text-xl" />
+              </button>
 
-            <button
-              type="submit"
-              className="bg-[#2F8EAC] text-white rounded-full px-8 py-2 text-sm"
-              disabled={isLoading}
-            >
-              {isLoading ? "Buscando..." : "Buscar"}
-            </button>
+              <button
+                type="submit"
+                className="bg-[#2F8EAC] text-white rounded-full px-4 sm:px-6 lg:px-8 py-2 text-sm hover:bg-[#2F8EAC]/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300"
+                disabled={isLoading}
+              >
+                {isLoading ? "Buscando..." : "Buscar"}
+              </button>
+            </div>
           </form>
         </div>
 
         {/* Panel de Búsqueda Avanzada */}
         {showAdvanced && (
-          <div className="bg-white shadow-lg rounded-2xl p-6 mb-4 z-10 mt-4 w-[85%] max-w-7xl">
-            <div className="mb-6">
+          <div className="bg-white shadow-xl rounded-2xl p-4 sm:p-6 mb-4 z-10 mt-4 w-full max-w-sm sm:max-w-2xl lg:max-w-7xl mx-4 sm:mx-6 lg:mx-auto">
+            <div className="mb-4 sm:mb-6">
               <div className="flex justify-between items-center mb-3">
                 <span className="text-sm text-gray-700 font-medium">Precio máximo: ${priceRange.toLocaleString()}</span>
               </div>
@@ -382,52 +539,52 @@ export const Main = () => {
                 max="500000000"
                 value={priceRange}
                 onChange={(e) => setPriceRange(Number.parseInt(e.target.value))}
-                className="w-full h-2 appearance-none bg-gray-200 rounded-lg accent-teal-600 cursor-pointer"
+                className="w-full h-2 appearance-none bg-gray-200 rounded-lg cursor-pointer"
               />
             </div>
 
-            <div className="flex flex-wrap gap-4 mb-6">
-              <div className="flex flex-col flex-1 min-w-48">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-4 sm:mb-6">
+              <div className="flex flex-col">
                 <label className="text-xs text-gray-600 mb-2">Habitaciones</label>
                 <input
                   type="number"
                   name="bedrooms_min"
                   placeholder="Mínimo"
-                  className="text-sm px-3 py-2 border border-gray-300 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  className="text-sm px-3 py-2 border border-gray-300 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-[#2F8EAC]"
                   value={filters.bedrooms_min}
                   onChange={(e) => handleFilterClick("bedrooms_min", e.target.value)}
                 />
               </div>
 
-              <div className="flex flex-col flex-1 min-w-48">
+              <div className="flex flex-col">
                 <label className="text-xs text-gray-600 mb-2">Baños</label>
                 <input
                   type="number"
                   name="bathrooms_min"
                   placeholder="Mínimo"
-                  className="text-sm px-3 py-2 border border-gray-300 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  className="text-sm px-3 py-2 border border-gray-300 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-[#2F8EAC]"
                   value={filters.bathrooms_min}
                   onChange={(e) => handleFilterClick("bathrooms_min", e.target.value)}
                 />
               </div>
 
-              <div className="flex flex-col flex-1 min-w-48">
+              <div className="flex flex-col">
                 <label className="text-xs text-gray-600 mb-2">Parqueaderos</label>
                 <input
                   type="number"
                   name="parking_spaces"
                   placeholder="Mínimo"
-                  className="text-sm px-3 py-2 border border-gray-300 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  className="text-sm px-3 py-2 border border-gray-300 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-[#2F8EAC]"
                   value={filters.parking_spaces}
                   onChange={(e) => handleFilterClick("parking_spaces", e.target.value)}
                 />
               </div>
 
-              <div className="flex flex-col flex-1 min-w-48">
+              <div className="flex flex-col">
                 <label className="text-xs text-gray-600 mb-2">Estrato</label>
                 <select
                   name="socioeconomic_stratum"
-                  className="text-sm px-3 py-2 border border-gray-300 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  className="text-sm px-3 py-2 border border-gray-300 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-[#2F8EAC]"
                   value={filters.socioeconomic_stratum}
                   onChange={(e) => handleFilterClick("socioeconomic_stratum", e.target.value)}
                 >
@@ -447,10 +604,10 @@ export const Main = () => {
 
       {/* Mostrar errores */}
       {error && (
-        <div className="fixed top-20 left-1/2 transform -translate-x-1/2 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded z-50 max-w-md">
+        <div className="fixed top-16 xs:top-20 left-1/2 transform -translate-x-1/2 bg-red-100 border border-red-400 text-red-700 px-3 xs:px-4 py-2 xs:py-3 rounded z-50 max-w-[90%] xs:max-w-md">
           <div className="flex items-center justify-between">
-            <span className="text-sm">{error}</span>
-            <button onClick={() => setError(null)} className="ml-4 text-red-900 hover:text-red-700 font-bold">
+            <span className="text-xs xs:text-sm">{error}</span>
+            <button onClick={() => setError(null)} className="ml-2 xs:ml-4 text-red-900 hover:text-red-700 font-bold">
               ✕
             </button>
           </div>
@@ -459,55 +616,50 @@ export const Main = () => {
 
       <ChatDomu />
 
-      <section className="flex flex-col items-center gap-4 m-15">
-        <h3 className="text-2xl text-[#2F8EAC]">Propiedades Destacadas</h3>
-        <h2 className="text-4xl font-bold">Recomendaciones Para Ti</h2>
+      {/* Sección de propiedades destacadas */}
+      <section className="flex flex-col items-center gap-3 xs:gap-4 py-8 xs:py-10 sm:py-12 md:py-16">
+        <h3 className="text-base xs:text-lg sm:text-xl lg:text-2xl text-[#2F8EAC] text-center font-medium">
+          Propiedades Destacadas
+        </h3>
+        <h2 className="text-xl xs:text-2xl sm:text-3xl lg:text-4xl font-bold text-center px-3 xs:px-4 sm:px-6 lg:px-8 leading-tight mb-4 xs:mb-6 sm:mb-8">
+          Recomendaciones Para Ti
+        </h2>
 
-        <div className="flex gap-5">
-          <Button
-            name="Ver Todo"
-            className="bg-[#2F8EAC] border border-[#2F8EAC] text-white rounded-3xl px-6 py-2 flex items-center gap-2"
-            onClick={resetFilters}
-          />
-          <Button
-            name="Apartamento"
-            className={`rounded-3xl px-6 py-2 ${
-              filters.property_type === "2" ? "bg-[#2F8EAC] text-white" : "bg-[#F4F4F4] text-black"
-            }`}
-            onClick={() => handleFilterClick("property_type", "2")}
-          />
-          <Button
-            name="Casa"
-            className={`rounded-3xl px-6 py-2 ${
-              filters.property_type === "1" ? "bg-[#2F8EAC] text-white" : "bg-[#F4F4F4] text-black"
-            }`}
-            onClick={() => handleFilterClick("property_type", "1")}
-          />
-          <Button
-            name="Finca"
-            className={`rounded-3xl px-6 py-2 ${
-              filters.property_type === "3" ? "bg-[#2F8EAC] text-white" : "bg-[#F4F4F4] text-black"
-            }`}
-            onClick={() => handleFilterClick("property_type", "3")}
-          />
-        </div>
+        {/* Indicador de filtro activo */}
+        {filters.operation_type && (
+          <div className="flex items-center gap-2 mb-4">
+            <span className="text-sm text-gray-600">Mostrando propiedades en:</span>
+            <span className="bg-[#2F8EAC] text-white px-3 py-1 rounded-full text-sm font-medium">
+              {filters.operation_type}
+            </span>
+            <button onClick={resetFilters} className="text-sm text-[#2F8EAC] hover:underline ml-2">
+              Ver todas
+            </button>
+          </div>
+        )}
 
-        <div className="px-6 md:px-10 lg:px20 py-10">
-          <div className="flex flex-wrap justify-center gap-8">
+        {/* Listado de propiedades */}
+        <div className="w-full px-3 xs:px-4 sm:px-6 md:px-8 lg:px-10 xl:px-12">
+          <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 xs:gap-5 sm:gap-6 md:gap-8 justify-items-center">
             {isLoading ? (
-              <div className="text-center py-10">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#2F8EAC] mx-auto mb-4"></div>
-                Cargando propiedades...
+              <div className="text-center py-10 col-span-full">
+                <div className="animate-spin rounded-full h-8 w-8 xs:h-10 xs:w-10 sm:h-12 sm:w-12 border-b-2 border-[#2F8EAC] mx-auto mb-3 xs:mb-4"></div>
+                <p className="text-sm xs:text-base text-gray-600">
+                  {filters.operation_type
+                    ? `Buscando propiedades en ${filters.operation_type.toLowerCase()}...`
+                    : "Cargando propiedades..."}
+                </p>
               </div>
             ) : properties.length > 0 ? (
               properties.map((property, index) => {
-                // Obtener un ID único para cada propiedad
                 const uniqueId = property.property_id || property.id || property.ID || `property-${index}`
 
                 return (
                   <PropertyCard
                     key={uniqueId}
-                    address={`${property.address || "Sin dirección"}, ${property.neighborhood || "Sin barrio"}, ${property.city || "Sin ciudad"}`}
+                    address={`${property.address || "Sin dirección"}, ${property.neighborhood || "Sin barrio"}, ${
+                      property.city || "Sin ciudad"
+                    }`}
                     title={property.property_title || property.title || "Sin título"}
                     rooms={property.bedrooms || property.habitaciones || 0}
                     bathrooms={property.bathrooms || property.banos || 0}
@@ -520,10 +672,17 @@ export const Main = () => {
                 )
               })
             ) : (
-              <div className="text-center py-10">
-                <div className="text-gray-500 mb-2 text-4xl">📭</div>
-                <p className="text-gray-600">No se encontraron propiedades con los filtros aplicados</p>
-                <button onClick={resetFilters} className="mt-4 text-[#2F8EAC] hover:underline">
+              <div className="text-center py-8 xs:py-10 sm:py-12 col-span-full">
+                <div className="text-gray-500 mb-2 text-3xl xs:text-4xl">📭</div>
+                <p className="text-sm xs:text-base text-gray-600 mb-3 xs:mb-4">
+                  {filters.operation_type
+                    ? `No se encontraron propiedades en ${filters.operation_type.toLowerCase()}`
+                    : "No se encontraron propiedades con los filtros aplicados"}
+                </p>
+                <button
+                  onClick={resetFilters}
+                  className="text-sm xs:text-base text-[#2F8EAC] hover:underline focus:outline-none"
+                >
                   Ver todas las propiedades
                 </button>
               </div>
@@ -531,9 +690,10 @@ export const Main = () => {
           </div>
         </div>
 
+        {/* Botón Ver Más */}
         <Button
           name="➡ Ver Más"
-          className="bg-[#2F8EAC] border border-[#2F8EAC] text-white rounded-3xl px-6 py-2 flex items-center gap-2"
+          className="bg-[#2F8EAC] border border-[#2F8EAC] text-white rounded-3xl px-4 xs:px-5 sm:px-6 py-1.5 xs:py-2 flex items-center gap-1 xs:gap-2 mt-6 xs:mt-8 sm:mt-10"
         />
       </section>
     </>

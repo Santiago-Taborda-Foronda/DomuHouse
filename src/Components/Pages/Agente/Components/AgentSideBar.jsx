@@ -1,14 +1,10 @@
-import React from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Building, Plus, Calendar, MapPin, Users, Phone, TrendingUp, User, LogOut, X } from 'lucide-react';
+"use client"
+import { useNavigate, useLocation } from "react-router-dom"
+import { LayoutDashboard, Building, Plus, Calendar, MapPin, Phone, TrendingUp, LogOut, X } from "lucide-react"
 
-export default function AgentSideBar({ 
-  sidebarOpen, 
-  setSidebarOpen, 
-  toggleSidebar 
-}) {
-  const navigate = useNavigate();
-  const location = useLocation();
+export default function AgentSideBar({ sidebarOpen, setSidebarOpen, toggleSidebar }) {
+  const navigate = useNavigate()
+  const location = useLocation()
 
   const menuItems = [
     { name: "Dashboard", icon: LayoutDashboard, path: "/AgentDashboard" },
@@ -18,54 +14,52 @@ export default function AgentSideBar({
     { name: "Programar Visitas", icon: MapPin, path: "/ProgramarVisita" },
     { name: "Contactar Clientes", icon: Phone, path: "/ContactarCliente" },
     { name: "Estado De Interés", icon: TrendingUp, path: "/EstadoInteres" },
-  ];
+  ]
 
   // Función para verificar si una ruta está activa
   const isActiveRoute = (route) => {
-    return location.pathname === route;
-  };
+    return location.pathname === route
+  }
 
   // Función para manejar navegación
   const handleNavigation = (route) => {
-    navigate(route);
+    navigate(route)
     // Cerrar el sidebar en móviles después de navegar
     if (window.innerWidth < 1024) {
-      if (setSidebarOpen) setSidebarOpen(false);
-      if (toggleSidebar) toggleSidebar();
+      if (setSidebarOpen) setSidebarOpen(false)
+      if (toggleSidebar) toggleSidebar()
     }
-  };
+  }
 
   // Función para cerrar el sidebar
   const closeSidebar = () => {
-    if (setSidebarOpen) setSidebarOpen(false);
-    if (toggleSidebar) toggleSidebar();
-  };
+    if (setSidebarOpen) setSidebarOpen(false)
+    if (toggleSidebar) toggleSidebar()
+  }
 
   // Componente personalizado para elementos del menú con estado activo
   const MenuItem = ({ icon: Icon, label, route, subtitle = null }) => {
-    const isActive = isActiveRoute(route);
-    
+    const isActive = isActiveRoute(route)
+
     return (
       <li>
         <button
           onClick={() => handleNavigation(route)}
           className={`w-full flex items-center gap-3 px-3 py-3 text-left rounded-lg transition-all duration-200 ${
-            isActive 
-              ? 'bg-blue-50 text-[#2F8EAC] border-r-4 border-[#2F8EAC] font-medium shadow-sm' 
-              : 'text-gray-600 hover:bg-gray-50 hover:text-[#2F8EAC]'
+            isActive
+              ? "bg-blue-50 text-[#2F8EAC] border-r-4 border-[#2F8EAC] font-medium shadow-sm"
+              : "text-gray-600 hover:bg-gray-50 hover:text-[#2F8EAC]"
           }`}
         >
-          <Icon size={18} className={isActive ? 'text-[#2F8EAC]' : ''} />
+          <Icon size={18} className={isActive ? "text-[#2F8EAC]" : ""} />
           <div className="flex flex-col">
             <span className="text-sm">{label}</span>
-            {subtitle && (
-              <span className="text-xs text-gray-500">{subtitle}</span>
-            )}
+            {subtitle && <span className="text-xs text-gray-500">{subtitle}</span>}
           </div>
         </button>
       </li>
-    );
-  };
+    )
+  }
 
   // Contenido del sidebar (reutilizable)
   const SidebarContent = ({ showCloseButton = false }) => (
@@ -73,14 +67,14 @@ export default function AgentSideBar({
       {/* Título del Portal */}
       <div className="text-center mb-8 pb-4 border-b border-gray-100 relative">
         <h1 className="text-xl font-bold text-gray-800 title-montserrat">
-          Portal de <span className='text-[#2F8EAC]'>Agentes</span>
+          Portal de <span className="text-[#2F8EAC]">Agentes</span>
         </h1>
         <div className="w-12 h-1 bg-[#2F8EAC] mx-auto mt-2 rounded-full"></div>
-        
+
         {/* Botón cerrar - Solo en versión móvil */}
         {showCloseButton && (
-          <button 
-            onClick={closeSidebar} 
+          <button
+            onClick={closeSidebar}
             className="absolute top-0 right-0 focus:outline-none hover:bg-gray-100 p-1 rounded-lg transition-colors lg:hidden"
           >
             <X className="w-6 h-6 text-gray-700" />
@@ -95,21 +89,9 @@ export default function AgentSideBar({
             Gestión de Propiedades
           </h3>
           <ul className="space-y-1">
-            <MenuItem 
-              icon={LayoutDashboard}
-              label="Dashboard"
-              route="/AgentDashboard"
-            />
-            <MenuItem 
-              icon={Building}
-              label="Mis Propiedades"
-              route="/MisPropiedades"
-            />
-            <MenuItem 
-              icon={Plus}
-              label="Crear Propiedad"
-              route="/CrearPropiedad"
-            />
+            <MenuItem icon={LayoutDashboard} label="Dashboard" route="/AgentDashboard" />
+            <MenuItem icon={Building} label="Mis Propiedades" route="/MisPropiedades" />
+            <MenuItem icon={Plus} label="Crear Propiedad" route="/CrearPropiedad" />
           </ul>
         </section>
 
@@ -119,16 +101,8 @@ export default function AgentSideBar({
             Gestión de Visitas
           </h3>
           <ul className="space-y-1">
-            <MenuItem 
-              icon={Calendar}
-              label="Visitas Agendadas"
-              route="/VisitasAgendadas"
-            />
-            <MenuItem 
-              icon={MapPin}
-              label="Programar Visitas"
-              route="/ProgramarVisita"
-            />
+            <MenuItem icon={Calendar} label="Visitas Agendadas" route="/VisitasAgendadas" />
+            <MenuItem icon={MapPin} label="Programar Visitas" route="/ProgramarVisita" />
           </ul>
         </section>
 
@@ -138,24 +112,16 @@ export default function AgentSideBar({
             Gestión de Clientes
           </h3>
           <ul className="space-y-1">
-            <MenuItem 
-              icon={Phone}
-              label="Contactar Clientes"
-              route="/ContactarCliente"
-            />
-            <MenuItem 
-              icon={TrendingUp}
-              label="Estado De Interés"
-              route="/EstadoInteres"
-            />
+            <MenuItem icon={Phone} label="Contactar Clientes" route="/ContactarCliente" />
+            <MenuItem icon={TrendingUp} label="Estado De Interés" route="/EstadoInteres" />
           </ul>
         </section>
       </div>
-      
+
       {/* Cerrar sesión */}
       <section className="pt-4 border-t mt-6 mb-4">
         <button
-          onClick={() => navigate('/Login')}
+          onClick={() => navigate("/Login")}
           className="w-full flex items-center gap-3 px-3 py-3 text-left text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200"
         >
           <LogOut size={18} />
@@ -166,7 +132,7 @@ export default function AgentSideBar({
         </button>
       </section>
     </>
-  );
+  )
 
   return (
     <>
@@ -180,9 +146,9 @@ export default function AgentSideBar({
       {/* Sidebar Mobile - Overlay con animación */}
       {sidebarOpen && (
         <>
-          {/* Overlay de fondo */}
+          {/* AQUÍ ESTÁ EL CAMBIO: Overlay transparente en lugar de negro */}
           <div
-            className="fixed inset-0 bg-black bg-opacity-30 z-40 transition-opacity duration-300 lg:hidden"
+            className="fixed inset-0 bg-transparent z-40 transition-opacity duration-300 lg:hidden"
             onClick={closeSidebar}
           ></div>
 
@@ -195,5 +161,5 @@ export default function AgentSideBar({
         </>
       )}
     </>
-  );
+  )
 }

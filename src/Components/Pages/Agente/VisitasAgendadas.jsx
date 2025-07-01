@@ -132,7 +132,6 @@ export default function VisitasAgendadas() {
     try {
       // Simulación de actualización
       await new Promise((resolve) => setTimeout(resolve, 1500))
-
       const updatedVisits = visits.map((v) => {
         if (v.id === selectedVisit.id) {
           return {
@@ -150,10 +149,8 @@ export default function VisitasAgendadas() {
         }
         return v
       })
-
       setVisits(updatedVisits)
       setSubmitSuccess(true)
-
       setTimeout(() => {
         setShowEditModal(false)
         setSelectedVisit(null)
@@ -172,7 +169,6 @@ export default function VisitasAgendadas() {
     try {
       // Simulación de eliminación
       await new Promise((resolve) => setTimeout(resolve, 1000))
-
       setVisits(visits.filter((v) => v.id !== selectedVisit.id))
       setShowDeleteModal(false)
       setSelectedVisit(null)
@@ -224,10 +220,7 @@ export default function VisitasAgendadas() {
           setActiveSection={setActiveSection}
         />
 
-        {/* Overlay para móvil cuando el sidebar está abierto */}
-        {sidebarOpen && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden" onClick={() => setSidebarOpen(false)} />
-        )}
+        {/* OVERLAY DUPLICADO ELIMINADO - El AgentSideBar ya maneja su propio overlay */}
 
         {/* Contenido principal con margen izquierdo para el sidebar */}
         <main className="lg:ml-72 pt-16">
@@ -248,7 +241,6 @@ export default function VisitasAgendadas() {
                 <Search className="w-5 h-5 text-gray-400" />
                 <h3 className="font-semibold text-gray-800">Búsqueda y filtros</h3>
               </div>
-
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Búsqueda</label>
@@ -263,7 +255,6 @@ export default function VisitasAgendadas() {
                     />
                   </div>
                 </div>
-
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Estado</label>
                   <select
@@ -501,7 +492,6 @@ export default function VisitasAgendadas() {
                     <X className="w-5 h-5" />
                   </button>
                 </div>
-
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Cliente</label>
@@ -512,7 +502,6 @@ export default function VisitasAgendadas() {
                       className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-gray-50"
                     />
                   </div>
-
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Propiedad</label>
                     <input
@@ -522,7 +511,6 @@ export default function VisitasAgendadas() {
                       className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-gray-50"
                     />
                   </div>
-
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">Fecha</label>
@@ -541,7 +529,6 @@ export default function VisitasAgendadas() {
                       />
                     </div>
                   </div>
-
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Estado</label>
                     <span
@@ -550,7 +537,6 @@ export default function VisitasAgendadas() {
                       {selectedVisit.estado}
                     </span>
                   </div>
-
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Notas</label>
                     <textarea
@@ -560,7 +546,6 @@ export default function VisitasAgendadas() {
                     />
                   </div>
                 </div>
-
                 <div className="flex flex-col sm:flex-row gap-3 mt-6">
                   <button
                     onClick={handleSaveConfirmation}

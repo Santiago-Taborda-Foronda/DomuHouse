@@ -132,14 +132,12 @@ export default function AgentDashboard() {
     setIsSubmitting(true)
     try {
       await new Promise((resolve) => setTimeout(resolve, 1000))
-
       const updatedProperties = recentProperties.map((p) => {
         if (p.id === selectedProperty.id) {
           return { ...p, isFavorite: !p.isFavorite }
         }
         return p
       })
-
       setRecentProperties(updatedProperties)
       setShowFavoriteModal(false)
       setSelectedProperty(null)
@@ -156,7 +154,6 @@ export default function AgentDashboard() {
     setIsSubmitting(true)
     try {
       await new Promise((resolve) => setTimeout(resolve, 1500))
-
       const updatedProperties = recentProperties.map((p) => {
         if (p.id === selectedProperty.id) {
           return {
@@ -174,10 +171,8 @@ export default function AgentDashboard() {
         }
         return p
       })
-
       setRecentProperties(updatedProperties)
       setSubmitSuccess(true)
-
       setTimeout(() => {
         setShowEditModal(false)
         setSelectedProperty(null)
@@ -237,10 +232,7 @@ export default function AgentDashboard() {
           setActiveSection={setActiveSection}
         />
 
-        {/* Overlay para móvil cuando el sidebar está abierto */}
-        {sidebarOpen && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden" onClick={() => setSidebarOpen(false)} />
-        )}
+        {/* OVERLAY DUPLICADO ELIMINADO - El AgentSideBar ya maneja su propio overlay */}
 
         {/* Contenido principal con margen izquierdo para el sidebar (igual que en mis-propiedades) */}
         <main className="lg:ml-72 pt-16">
@@ -433,7 +425,6 @@ export default function AgentDashboard() {
                     <X className="w-5 h-5" />
                   </button>
                 </div>
-
                 <div className="space-y-4 sm:space-y-6">
                   <div className="flex flex-col sm:flex-row items-start gap-4">
                     <div className="w-full sm:w-32 h-24 bg-gradient-to-br from-[#2F8EAC] to-blue-950 rounded-xl flex-shrink-0"></div>
@@ -450,7 +441,6 @@ export default function AgentDashboard() {
                       </span>
                     </div>
                   </div>
-
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Área:</label>
@@ -469,7 +459,6 @@ export default function AgentDashboard() {
                       <p className="text-gray-900">{selectedProperty.date}</p>
                     </div>
                   </div>
-
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Descripción:</label>
                     <p className="text-gray-900">{selectedProperty.description}</p>

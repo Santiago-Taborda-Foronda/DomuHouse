@@ -1,4 +1,5 @@
 "use client"
+
 import {
   X,
   LayoutDashboard,
@@ -59,7 +60,6 @@ export const SidebarInmobiliaria = ({ isOpen, toggleMenu, isAuthenticated, handl
   // Componente personalizado para elementos del menú con estado activo
   const MenuItem = ({ icon: Icon, label, route, subtitle = null }) => {
     const isActive = isActiveRoute(route)
-
     return (
       <li>
         <button
@@ -92,13 +92,11 @@ export const SidebarInmobiliaria = ({ isOpen, toggleMenu, isAuthenticated, handl
           </h1>
           {/* Portal de Administrador como subtítulo */}
           <p className="text-sm text-gray-600 title-montserrat">Portal de Administrador</p>
-
           {/* Información adicional */}
           <div className="mt-3 text-xs text-gray-500 space-y-1">
             <p>NIT: {inmobiliariaData.nit}</p>
             <p>Responsable: {inmobiliariaData.responsible}</p>
           </div>
-
           {/* Botón de editar */}
           <button
             onClick={() => handleNavigation("/mi-inmobiliaria/configuracion")}
@@ -107,7 +105,6 @@ export const SidebarInmobiliaria = ({ isOpen, toggleMenu, isAuthenticated, handl
             <Edit3 size={12} />
             Editar Datos
           </button>
-
           <div className="w-12 h-1 bg-[#2F8EAC] mx-auto mt-3 rounded-full"></div>
         </div>
 
@@ -194,8 +191,9 @@ export const SidebarInmobiliaria = ({ isOpen, toggleMenu, isAuthenticated, handl
       {/* Sidebar y Overlay */}
       {isOpen && (
         <>
+          {/* AQUÍ ESTÁ EL CAMBIO: Overlay transparente en lugar de negro */}
           <div
-            className="fixed inset-0 bg-black bg-opacity-30 z-40 transition-opacity duration-300 lg:hidden"
+            className="fixed inset-0 bg-transparent z-40 transition-opacity duration-300 lg:hidden"
             onClick={toggleMenu}
           ></div>
 

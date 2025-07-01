@@ -19,19 +19,16 @@ export default function CrearPropiedad() {
     address: "",
     type: "",
     description: "",
-
     // Campos numéricos específicos
     rooms: "",
     bathrooms: "",
     area: "",
     price: "",
-
     // Información del agente
     agentName: "",
     agentPhone: "",
     agentEmail: "",
     agentWhatsapp: "",
-
     // Información adicional
     propertyType: "venta",
     additionalRoomInfo: "",
@@ -51,7 +48,6 @@ export default function CrearPropiedad() {
       ...prev,
       [name]: value,
     }))
-
     // Update map address when address field changes
     if (name === "address") {
       setFullAddress(value || "Bogotá, Colombia")
@@ -61,7 +57,6 @@ export default function CrearPropiedad() {
   const handleImageUpload = (e) => {
     const files = Array.from(e.target.files)
     const imageUrls = files.map((file) => URL.createObjectURL(file))
-
     // Para mostrar preview
     setSelectedImages((prev) => [...prev, ...imageUrls])
     // Para enviar al backend
@@ -125,7 +120,6 @@ export default function CrearPropiedad() {
   // Función optimizada para envío al backend
   const handleSubmit = async (e) => {
     e.preventDefault()
-
     // Resetear estados
     setSubmitError("")
     setSubmitSuccess(false)
@@ -149,13 +143,11 @@ export default function CrearPropiedad() {
         type: formData.type,
         description: formData.description.trim(),
         propertyType: formData.propertyType, // 'venta' o 'alquiler'
-
         // Características numéricas (convertir a números)
         rooms: Number.parseInt(formData.rooms),
         bathrooms: Number.parseInt(formData.bathrooms),
         area: Number.parseInt(formData.area),
         price: formData.price.replace(/[^\d]/g, ""), // Limpiar precio de caracteres no numéricos
-
         // Información del agente
         agent: {
           name: formData.agentName.trim(),
@@ -163,10 +155,8 @@ export default function CrearPropiedad() {
           email: formData.agentEmail.trim().toLowerCase(),
           whatsapp: formData.agentWhatsapp.trim() || formData.agentPhone.trim(),
         },
-
         // Información adicional
         additionalRoomInfo: formData.additionalRoomInfo.trim(),
-
         // Metadatos
         createdAt: new Date().toISOString(),
         status: "active", // o el estado que manejen en el backend
@@ -282,10 +272,7 @@ export default function CrearPropiedad() {
           setActiveSection={setActiveSection}
         />
 
-        {/* Overlay para móvil cuando el sidebar está abierto */}
-        {sidebarOpen && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden" onClick={() => setSidebarOpen(false)} />
-        )}
+        {/* OVERLAY DUPLICADO ELIMINADO - El AgentSideBar ya maneja su propio overlay */}
 
         {/* Contenido principal con margen izquierdo para el sidebar */}
         <main className="lg:ml-72 pt-16">
@@ -328,7 +315,6 @@ export default function CrearPropiedad() {
                         required
                         className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
                       />
-
                       <input
                         type="text"
                         name="address"
@@ -338,7 +324,6 @@ export default function CrearPropiedad() {
                         required
                         className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
                       />
-
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <select
                           name="type"
@@ -354,7 +339,6 @@ export default function CrearPropiedad() {
                           <option value="oficina">Oficina</option>
                           <option value="terreno">Terreno</option>
                         </select>
-
                         <select
                           name="propertyType"
                           value={formData.propertyType}
@@ -383,7 +367,6 @@ export default function CrearPropiedad() {
                           min="0"
                           className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
                         />
-
                         <input
                           type="number"
                           name="bathrooms"
@@ -394,7 +377,6 @@ export default function CrearPropiedad() {
                           min="0"
                           className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
                         />
-
                         <input
                           type="number"
                           name="area"
@@ -406,7 +388,6 @@ export default function CrearPropiedad() {
                           className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
                         />
                       </div>
-
                       <input
                         type="text"
                         name="additionalRoomInfo"
@@ -415,7 +396,6 @@ export default function CrearPropiedad() {
                         onChange={handleInputChange}
                         className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
                       />
-
                       <input
                         type="text"
                         name="price"
@@ -441,7 +421,6 @@ export default function CrearPropiedad() {
                         required
                         className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
                       />
-
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <input
                           type="tel"
@@ -452,7 +431,6 @@ export default function CrearPropiedad() {
                           required
                           className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
                         />
-
                         <input
                           type="tel"
                           name="agentWhatsapp"
@@ -462,7 +440,6 @@ export default function CrearPropiedad() {
                           className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
                         />
                       </div>
-
                       <input
                         type="email"
                         name="agentEmail"
@@ -549,7 +526,6 @@ export default function CrearPropiedad() {
                         <p className="text-xl sm:text-2xl font-bold text-green-600">${precioEstimado}</p>
                       )}
                     </div>
-
                     <button
                       type="button"
                       onClick={handleSolicitarValoracion}
@@ -558,7 +534,6 @@ export default function CrearPropiedad() {
                       <span>📊</span>
                       Solicitar Valoración Automática
                     </button>
-
                     {precioEstimado && (
                       <p className="text-xs text-gray-500 text-center mt-2">
                         * El precio se ha actualizado automáticamente en el formulario

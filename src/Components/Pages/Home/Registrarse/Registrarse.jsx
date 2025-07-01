@@ -10,9 +10,10 @@ export const Registrarse = () => {
   const [error, setError] = useState("")
   const [success, setSuccess] = useState("")
   const [userType, setUserType] = useState("cliente")
+  const [registeredPersonId, setRegisteredPersonId] = useState(null)
   const [tokenCopied, setTokenCopied] = useState(false)
 
-  // Estados para el formulario de usuario
+  // State for user form
   const [userData, setUserData] = useState({
     name_person: "",
     last_name: "",
@@ -23,7 +24,7 @@ export const Registrarse = () => {
     realEstateId: "",
   })
 
-  // Estados para el formulario de inmobiliaria
+  // State for real estate form, including logo
   const [inmobiliariaData, setInmobiliariaData] = useState({
     nombre_inmobiliaria: "",
     descripcion_inmobiliaria: "",
@@ -31,30 +32,18 @@ export const Registrarse = () => {
     responsible: "",
     address: "",
     city: "",
+    department: "",
     phone_inmobiliaria: "",
     email_inmobiliaria: "",
-    logo: null,
+    num_properties: "",
+    logo: null, // Store the logo file
+    logoPreview: null, // Store the logo preview URL
   })
 
   const userTypeOptions = [
-    {
-      value: "cliente",
-      label: "Cliente",
-      icon: User,
-      description: "Buscar propiedades",
-    },
-    {
-      value: "agente",
-      label: "Agente",
-      icon: UserCheck,
-      description: "Vender propiedades",
-    },
-    {
-      value: "administrador",
-      label: "Administrador",
-      icon: Building,
-      description: "Gestionar inmobiliaria",
-    },
+    { value: "cliente", label: "Cliente", icon: User, description: "Buscar propiedades" },
+    { value: "agente", label: "Agente", icon: UserCheck, description: "Vender propiedades" },
+    { value: "administrador", label: "Administrador", icon: Building, description: "Gestionar inmobiliaria" },
   ]
 
   const handleTokenChange = (e) => {
@@ -86,23 +75,24 @@ export const Registrarse = () => {
   }
 
   const handleInmobiliariaDataChange = (e) => {
-    const { name, value } = e.target
-    setInmobiliariaData({ ...inmobiliariaData, [name]: value })
-  }
-
-  const handleLogoUpload = (e) => {
-    const file = e.target.files[0]
-    if (file) {
-      setInmobiliariaData({
-        ...inmobiliariaData,
-        logo: file,
-      })
+    const { name, value, files } = e.target
+    if (name === "logo") {
+      const file = files[0]
+      if (file) {
+        // Create a preview URL for the selected image
+        const previewUrl = URL.createObjectURL(file)
+        setInmobiliariaData({ ...inmobiliariaData, logo: file, logoPreview: previewUrl })
+      } else {
+        setInmobiliariaData({ ...inmobiliariaData, logo: null, logoPreview: null })
+      }
+    } else {
+      setInmobiliariaData({ ...inmobiliariaData, [name]: value })
     }
   }
 
   const togglePasswordVisibility = () => setShowPassword(!showPassword)
 
-  // Función para validar el token antes de enviar
+  // Enhanced token validation
   const validateTokenBeforeSend = () => {
     const token = userData.token.trim()
     if (!token) {
@@ -154,6 +144,42 @@ export const Registrarse = () => {
       setError("El NIT es requerido")
       return false
     }
+    if (!inmobiliariaData.phone_inmobiliaria && !userData.phone) {
+      setError("El teléfono es requerido")
+      return false
+    }
+    if (!inmobiliariaData.email_inmobiliaria && !userData.email) {
+      setError("El email es requerido")
+      return false
+    }
+    if (!inmobiliariaData.city.trim()) {
+      setError("La ciudad es requerida")
+      return false
+    }
+    if (!inmobiliariaData.department.trim()) {
+      setError("El departamento es requerido")
+      return false
+    }
+    if (!inmobiliariaData.address.trim()) {
+      setError("La dirección es requerida")
+      return false
+    }
+    if (!inmobiliariaData.descripcion_inmobiliaria.trim()) {
+      setError("La descripción es requerida")
+      return false
+    }
+    if (!inmobiliariaData.num_properties || isNaN(Number.parseInt(inmobiliariaData.num_properties))) {
+      setError("El número de propiedades es requerido y debe ser un número")
+      return false
+    }
+    if (!inmobiliariaData.logo) {
+      setError("El logo de la inmobiliaria es requerido")
+      return false
+    }
+    if (!registeredPersonId) {
+      setError("No se ha registrado un usuario válido. Por favor, completa el paso 1.")
+      return false
+    }
     return true
   }
 
@@ -161,18 +187,22 @@ export const Registrarse = () => {
     setError("")
     if (currentStep === 1 && validateStep1()) {
       if (userType === "administrador") {
-        setCurrentStep(2)
+        handleSubmit()
       } else {
         handleSubmit()
       }
     } else if (currentStep === 2 && validateStep2()) {
-      handleSubmit()
+      handleSubmitInmobiliaria()
     }
   }
 
   const handleBack = () => {
     setCurrentStep(1)
     setError("")
+  }
+
+  const redirectToLogin = () => {
+      navigate.push("/login")
   }
 
   const handleSubmit = async () => {
@@ -207,15 +237,17 @@ export const Registrarse = () => {
         console.log("Enviando datos de agente:", payload)
         console.log("Token específico:", tokenToSend)
       } else if (userType === "administrador") {
-        endpoint = "http://localhost:10101/register"
-        payload = {
-          ...userData,
-          role: userType,
-          ...inmobiliariaData,
-      const payload = { ...userData, role: userType }
-      console.log("Payload sent to /api/admin/registro:", payload)
+        endpoint = "http://localhost:10101/register/register"
+        payload = { ...userData, role: userType }
+      } else {
+        // Cliente
+        endpoint = "http://localhost:10101/register/register"
+        payload = { ...userData, role: userType }
+      }
 
-      const response = await fetch("http://localhost:10101/register/register", {
+      console.log("Payload sent to endpoint:", payload)
+
+      const response = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -226,7 +258,8 @@ export const Registrarse = () => {
 
       if (response.ok) {
         if (userType === "administrador") {
-          const personId = data.data?.insertId || data.insertId || data.person_id || data.id || data.user_id || data.userId
+          const personId =
+            data.data?.insertId || data.insertId || data.person_id || data.id || data.user_id || data.userId
           console.log("Extracted personId:", personId)
 
           if (!personId || isNaN(Number(personId))) {
@@ -243,36 +276,7 @@ export const Registrarse = () => {
           }, 2000)
         }
       } else {
-        // Cliente
-        endpoint = "http://localhost:10101/register"
-        payload = { ...userData, role: userType }
-      }
-
-      console.log("Endpoint:", endpoint)
-      console.log("Payload completo:", payload)
-
-      const response = await fetch(endpoint, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      })
-
-      console.log("Status de respuesta:", response.status)
-
-      const data = await response.json()
-      console.log("Respuesta del servidor:", data)
-
-      if (response.ok) {
-        setSuccess("¡Cuenta creada exitosamente! Redirigiendo al login...")
-        setTimeout(() => {
-          navigate("/Login", {
-            state: { message: "Cuenta creada exitosamente. Ahora puedes iniciar sesión." },
-          })
-        }, 2000)
-      } else {
-        // Manejo mejorado de errores específicos para tokens
+        // Enhanced error handling for tokens
         let errorMessage = "Error al crear la cuenta"
 
         if (data.error) {
@@ -283,7 +287,7 @@ export const Registrarse = () => {
           errorMessage = data.details
         }
 
-        // Mensajes específicos para problemas de token
+        // Specific messages for token problems
         if (errorMessage.toLowerCase().includes("token")) {
           if (
             errorMessage.toLowerCase().includes("not found") ||
@@ -297,11 +301,58 @@ export const Registrarse = () => {
         }
 
         setError(errorMessage)
-        console.error("Error del servidor:", data)
       }
     } catch (error) {
-      console.error("Error durante el registro:", error)
-      setError("Error de conexión. Por favor, verifica que el servidor esté funcionando.")
+      console.error("Error during registration:", error)
+      setError("Error de conexión. Por favor, intenta de nuevo. Detalles: " + error.message)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleSubmitInmobiliaria = async () => {
+    setIsLoading(true)
+    setError("")
+    setSuccess("")
+
+    try {
+      const endpoint = "https://domuhouse.onrender.com/api/inmobiliarias"
+      const formData = new FormData()
+      formData.append("name", inmobiliariaData.nombre_inmobiliaria)
+      formData.append("nit", inmobiliariaData.nit)
+      formData.append("phone", inmobiliariaData.phone_inmobiliaria || userData.phone)
+      formData.append("email", inmobiliariaData.email_inmobiliaria || userData.email)
+      formData.append("num_properties", Number.parseInt(inmobiliariaData.num_properties, 10))
+      formData.append("department", inmobiliariaData.department)
+      formData.append("city", inmobiliariaData.city)
+      formData.append("adress", inmobiliariaData.address)
+      formData.append("description", inmobiliariaData.descripcion_inmobiliaria)
+      formData.append("person_id", registeredPersonId)
+      if (inmobiliariaData.logo) {
+        formData.append("logo", inmobiliariaData.logo)
+      }
+
+      console.log("Payload sent to /api/inmobiliarias:", Object.fromEntries(formData))
+
+      const response = await fetch(endpoint, {
+        method: "POST",
+        body: formData,
+      })
+
+      const data = await response.json()
+      console.log("Real estate response:", data)
+
+      if (response.ok) {
+        setSuccess("¡Inmobiliaria registrada exitosamente! Redirigiendo al login...")
+        setTimeout(() => {
+          redirectToLogin()
+        }, 2000)
+      } else {
+        setError(data.message || "Error al registrar la inmobiliaria. Respuesta: " + JSON.stringify(data))
+      }
+    } catch (error) {
+      console.error("Error during real estate registration:", error)
+      setError("Error de conexión. Por favor, intenta de nuevo. Detalles: " + error.message)
     } finally {
       setIsLoading(false)
     }
@@ -309,7 +360,6 @@ export const Registrarse = () => {
 
   const renderStep1 = () => (
     <div className="space-y-6">
-      {/* Selección de tipo de usuario */}
       <div className="space-y-4">
         <h3 className="text-lg font-medium text-gray-800 text-center">¿Qué tipo de cuenta necesitas?</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -335,7 +385,6 @@ export const Registrarse = () => {
         </div>
       </div>
 
-      {/* Formulario de datos personales */}
       <div className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
@@ -429,12 +478,12 @@ export const Registrarse = () => {
               className="absolute right-3 top-3.5 text-gray-500 hover:text-gray-700"
               disabled={isLoading}
             >
-              {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+              {showPassword ? <Eye size={20} /> : <EyeOff size={20} />}
             </button>
           </div>
         </div>
 
-        {/* Campo para agente - Token de invitación MEJORADO */}
+        {/* Enhanced token input for agents */}
         {userType === "agente" && (
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-3">
             <div className="flex items-center space-x-2">
@@ -503,6 +552,9 @@ export const Registrarse = () => {
         <Building className="mx-auto h-12 w-12 text-sky-500 mb-2" />
         <h3 className="text-lg font-medium text-gray-800">Información de tu Inmobiliaria</h3>
         <p className="text-sm text-gray-600">Completa los datos de tu empresa</p>
+        {registeredPersonId && (
+          <p className="text-xs text-green-600 mt-2">✓ Usuario registrado con ID: {registeredPersonId}</p>
+        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -519,6 +571,7 @@ export const Registrarse = () => {
             placeholder="Ej: Inmobiliaria Los Pinos"
             className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-sky-500 focus:outline-none transition-colors"
             disabled={isLoading}
+            required
           />
         </div>
 
@@ -535,13 +588,55 @@ export const Registrarse = () => {
             placeholder="123456789-1"
             className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-sky-500 focus:outline-none transition-colors"
             disabled={isLoading}
+            required
           />
         </div>
       </div>
 
+      {/* Enhanced logo upload section */}
+      <div>
+        <label htmlFor="logo" className="block text-sm font-medium text-gray-700 mb-1">
+          Logo de la inmobiliaria *
+        </label>
+        <div className="flex items-center space-x-4">
+          <label
+            htmlFor="logo"
+            className="inline-flex items-center px-4 py-2 bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <span>Seleccionar Logo</span>
+            <input
+              type="file"
+              id="logo"
+              name="logo"
+              accept="image/*"
+              onChange={handleInmobiliariaDataChange}
+              className="hidden"
+              disabled={isLoading}
+              required
+            />
+          </label>
+          {inmobiliariaData.logo && <span className="text-sm text-gray-600">{inmobiliariaData.logo.name}</span>}
+        </div>
+        {inmobiliariaData.logoPreview && (
+          <div className="mt-4">
+            <p className="text-sm font-medium text-gray-700 mb-2">Vista previa:</p>
+            <div className="w-32 h-32 border-2 border-gray-200 rounded-lg overflow-hidden flex items-center justify-center bg-gray-50">
+              <Image
+                src={inmobiliariaData.logoPreview || "/placeholder.svg"}
+                alt="Vista previa del logo"
+                width={128}
+                height={128}
+                className="max-w-full max-h-full object-contain"
+              />
+            </div>
+          </div>
+        )}
+        <p className="text-xs text-gray-500 mt-1">Sube una imagen en formato PNG o JPG (máximo 2MB)</p>
+      </div>
+
       <div>
         <label htmlFor="descripcion_inmobiliaria" className="block text-sm font-medium text-gray-700 mb-1">
-          Descripción de la empresa
+          Descripción de la empresa *
         </label>
         <textarea
           id="descripcion_inmobiliaria"
@@ -551,13 +646,14 @@ export const Registrarse = () => {
           placeholder="Breve descripción de tu inmobiliaria y servicios"
           className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-sky-500 focus:outline-none transition-colors h-24 resize-none"
           disabled={isLoading}
+          required
         />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label htmlFor="address" className="block text-sm font-medium text-gray-700 mb-1">
-            Dirección
+            Dirección *
           </label>
           <input
             type="text"
@@ -568,12 +664,13 @@ export const Registrarse = () => {
             placeholder="Dirección de la oficina"
             className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-sky-500 focus:outline-none transition-colors"
             disabled={isLoading}
+            required
           />
         </div>
 
         <div>
           <label htmlFor="city" className="block text-sm font-medium text-gray-700 mb-1">
-            Ciudad
+            Ciudad *
           </label>
           <input
             type="text"
@@ -581,39 +678,46 @@ export const Registrarse = () => {
             name="city"
             value={inmobiliariaData.city}
             onChange={handleInmobiliariaDataChange}
-            placeholder="Ciudad y departamento"
+            placeholder="Ej: Armenia"
             className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-sky-500 focus:outline-none transition-colors"
             disabled={isLoading}
+            required
           />
         </div>
       </div>
 
-      <div className="bg-gray-50 p-4 rounded-lg">
-        <p className="text-sm font-medium text-gray-700 mb-3">Logo de la inmobiliaria</p>
-        <div className="flex items-center space-x-4">
-          <div className="flex-shrink-0">
-            {inmobiliariaData.logo ? (
-              <img
-                src={URL.createObjectURL(inmobiliariaData.logo) || "/placeholder.svg"}
-                alt="Logo preview"
-                className="w-16 h-16 object-cover rounded-lg border-2 border-gray-200"
-              />
-            ) : (
-              <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center">
-                <Building className="h-8 w-8 text-gray-400" />
-              </div>
-            )}
-          </div>
-          <div className="flex-1">
-            <label className="block">
-              <input type="file" accept="image/*" onChange={handleLogoUpload} className="hidden" disabled={isLoading} />
-              <span className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 cursor-pointer transition-colors">
-                {inmobiliariaData.logo ? "Cambiar logo" : "Subir logo"}
-              </span>
-            </label>
-            <p className="text-xs text-gray-500 mt-1">Formatos: Solo imagenes PNG. Máximo 5MB</p>
-          </div>
-        </div>
+      <div>
+        <label htmlFor="department" className="block text-sm font-medium text-gray-700 mb-1">
+          Departamento *
+        </label>
+        <input
+          type="text"
+          id="department"
+          name="department"
+          value={inmobiliariaData.department}
+          onChange={handleInmobiliariaDataChange}
+          placeholder="Ej: Quindío"
+          className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-sky-500 focus:outline-none transition-colors"
+          disabled={isLoading}
+          required
+        />
+      </div>
+
+      <div>
+        <label htmlFor="num_properties" className="block text-sm font-medium text-gray-700 mb-1">
+          Número de propiedades *
+        </label>
+        <input
+          type="number"
+          id="num_properties"
+          name="num_properties"
+          value={inmobiliariaData.num_properties}
+          onChange={handleInmobiliariaDataChange}
+          placeholder="Ej: 3"
+          className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-sky-500 focus:outline-none transition-colors"
+          disabled={isLoading}
+          required
+        />
       </div>
 
       <div className="bg-gray-50 p-4 rounded-lg">
@@ -645,7 +749,6 @@ export const Registrarse = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-white to-blue-50 py-8 px-4">
       <div className="max-w-4xl mx-auto">
-        {/* Header */}
         <div className="text-center mb-8">
           <div className="flex items-center justify-center mb-4">
             <div className="w-32 h-30 rounded-xl flex items-center justify-center mr-3">
@@ -660,7 +763,6 @@ export const Registrarse = () => {
           <p className="text-gray-600">{currentStep === 1 ? "Crea tu cuenta" : "Registra tu inmobiliaria"}</p>
         </div>
 
-        {/* Progress indicator */}
         {userType === "administrador" && (
           <div className="flex items-center justify-center mb-8">
             <div className="flex items-center space-x-4">
@@ -683,9 +785,7 @@ export const Registrarse = () => {
           </div>
         )}
 
-        {/* Main form */}
-        <div className="bg-white rounded-2xl shadow-xl p-6 md:p-8 lg:p-12">
-          {/* Messages */}
+        <div className="bg-white rounded-2xl shadow-xl p-8 md:p-12">
           {error && (
             <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">{error}</div>
           )}
@@ -698,7 +798,6 @@ export const Registrarse = () => {
           <div className="max-w-full overflow-hidden">
             {currentStep === 1 ? renderStep1() : renderStep2()}
 
-            {/* Action buttons */}
             <div className="flex flex-col sm:flex-row justify-between gap-4 pt-8 mt-8 border-t border-gray-200">
               {currentStep === 2 && (
                 <button
@@ -737,13 +836,12 @@ export const Registrarse = () => {
             </div>
           </div>
 
-          {/* Login link */}
           <div className="text-center mt-6 pt-6 border-t border-gray-200">
             <p className="text-gray-600">
               ¿Ya tienes cuenta?{" "}
-              <Link to="/Login" className="text-sky-500 hover:text-sky-600 font-medium">
+              <button onClick={redirectToLogin} className="text-sky-500 hover:text-sky-600 font-medium">
                 Iniciar sesión
-              </Link>
+              </button>
             </p>
           </div>
         </div>

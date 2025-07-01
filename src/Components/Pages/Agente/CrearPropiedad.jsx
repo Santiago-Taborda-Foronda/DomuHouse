@@ -381,52 +381,6 @@ export default function CrearPropiedad() {
               <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Crear Propiedades</h1>
               <p className="text-gray-600 text-sm mt-1">Registra una nueva propiedad en el sistema</p>
             </div>
-      <Header hasSidebar={true} />
-      <div className="flex h-screen bg-gray-50">
-        {/* Mobile Sidebar Overlay */}
-        {sidebarOpen && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden" onClick={() => setSidebarOpen(false)} />
-        )}
-
-        {/* Sidebar */}
-        <div
-          className={`
-          fixed lg:static inset-y-0 left-0 z-50 transform transition-transform duration-300 ease-in-out lg:transform-none
-          ${sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
-        `}
-        >
-          <AgentSideBar
-            activeSection={activeSection}
-            setActiveSection={setActiveSection}
-            sidebarOpen={sidebarOpen}
-            setSidebarOpen={setSidebarOpen}
-          />
-        </div>
-
-        {/* Main Content */}
-        <div className="flex-1 overflow-auto">
-          {/* Mobile Header */}
-          <div className="lg:hidden bg-white border-b px-4 py-3 flex items-center justify-between">
-            <button onClick={() => setSidebarOpen(true)} className="p-2 rounded-md text-gray-600 hover:bg-gray-100">
-              <Menu className="w-6 h-6" />
-            </button>
-            <h1 className="text-lg font-semibold text-gray-800">Crear Propiedades</h1>
-            <div className="w-10" />
-          </div>
-
-          <div className="p-4 sm:p-6 lg:p-8">
-            {/* Header Section */}
-            <div className="mb-6">
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Crear Propiedades</h1>
-              {currentUser && (
-                <p className="text-gray-600 mt-2">
-                  Agente responsable:{" "}
-                  <span className="font-medium">
-                    {currentUser.first_name} {currentUser.last_name}
-                  </span>
-                </p>
-              )}
-            </div>
 
             {/* Mensajes de estado */}
             {submitError && (

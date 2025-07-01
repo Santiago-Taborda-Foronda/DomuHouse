@@ -1,8 +1,12 @@
+"use client"
+
 import { useState } from "react"
 import { Link, useNavigate } from "react-router"
 import { Eye, EyeOff, Building, User, UserCheck, ArrowLeft, ArrowRight, Copy, Check } from "lucide-react"
+import LogoDomuHouse from "../../../../assets/images/Logo-DomuHouse.png"
 
 export const Registrarse = () => {
+  
   const navigate = useNavigate()
   const [currentStep, setCurrentStep] = useState(1)
   const [showPassword, setShowPassword] = useState(false)
@@ -26,6 +30,7 @@ export const Registrarse = () => {
 
   // State for real estate form, including logo
   const [inmobiliariaData, setInmobiliariaData] = useState({
+    name_realestate: "",
     nombre_inmobiliaria: "",
     descripcion_inmobiliaria: "",
     nit: "",
@@ -99,13 +104,11 @@ export const Registrarse = () => {
       setError("El token es requerido para agentes")
       return false
     }
-
     // Validar formato del token si es necesario
     if (token.length < 3) {
       setError("El token debe tener al menos 3 caracteres")
       return false
     }
-
     return true
   }
 
@@ -136,7 +139,8 @@ export const Registrarse = () => {
   const validateStep2 = () => {
     if (userType !== "administrador") return true
 
-    if (!inmobiliariaData.nombre_inmobiliaria.trim()) {
+    const nombreInmobiliaria = inmobiliariaData.name_realestate || inmobiliariaData.nombre_inmobiliaria
+    if (!nombreInmobiliaria.trim()) {
       setError("El nombre de la inmobiliaria es obligatorio")
       return false
     }
@@ -202,7 +206,7 @@ export const Registrarse = () => {
   }
 
   const redirectToLogin = () => {
-      navigate.push("/login")
+    window.location.href = "/login"
   }
 
   const handleSubmit = async () => {
@@ -215,16 +219,13 @@ export const Registrarse = () => {
 
       if (userType === "agente") {
         endpoint = "http://localhost:10101/api/registro-agente"
-
         // Validar token antes de enviar
         if (!validateTokenBeforeSend()) {
           setIsLoading(false)
           return
         }
-
         // Asegurar que el token se envía correctamente
         const tokenToSend = userData.token.trim()
-
         payload = {
           name_person: userData.name_person.trim(),
           last_name: userData.last_name.trim(),
@@ -233,11 +234,10 @@ export const Registrarse = () => {
           password: userData.password,
           token: tokenToSend,
         }
-
         console.log("Enviando datos de agente:", payload)
         console.log("Token específico:", tokenToSend)
       } else if (userType === "administrador") {
-        endpoint = "http://localhost:10101/register/register"
+        endpoint = "http://localhost:10101/api/admin/registerAdmin"
         payload = { ...userData, role: userType }
       } else {
         // Cliente
@@ -278,7 +278,6 @@ export const Registrarse = () => {
       } else {
         // Enhanced error handling for tokens
         let errorMessage = "Error al crear la cuenta"
-
         if (data.error) {
           errorMessage = data.error
         } else if (data.message) {
@@ -316,42 +315,100 @@ export const Registrarse = () => {
     setSuccess("")
 
     try {
-      const endpoint = "https://domuhouse.onrender.com/api/inmobiliarias"
-      const formData = new FormData()
-      formData.append("name", inmobiliariaData.nombre_inmobiliaria)
-      formData.append("nit", inmobiliariaData.nit)
-      formData.append("phone", inmobiliariaData.phone_inmobiliaria || userData.phone)
-      formData.append("email", inmobiliariaData.email_inmobiliaria || userData.email)
-      formData.append("num_properties", Number.parseInt(inmobiliariaData.num_properties, 10))
-      formData.append("department", inmobiliariaData.department)
-      formData.append("city", inmobiliariaData.city)
-      formData.append("adress", inmobiliariaData.address)
-      formData.append("description", inmobiliariaData.descripcion_inmobiliaria)
-      formData.append("person_id", registeredPersonId)
-      if (inmobiliariaData.logo) {
-        formData.append("logo", inmobiliariaData.logo)
+      // Verificar que tenemos un person_id válido
+      if (!registeredPersonId) {
+        setError("No se ha registrado un usuario válido. Por favor, completa el paso 1.")
+        return
       }
 
-      console.log("Payload sent to /api/inmobiliarias:", Object.fromEntries(formData))
+      // Intentar con ambos endpoints
+      const endpoints = [
+        "http://localhost:10101/api/inmobiliarias/registerRealEstate",
+        "https://domuhouse.onrender.com/api/inmobiliarias",
+      ]
 
-      const response = await fetch(endpoint, {
-        method: "POST",
-        body: formData,
-      })
+      let success = false
+      let lastError = null
 
-      const data = await response.json()
-      console.log("Real estate response:", data)
+      for (const endpoint of endpoints) {
+        try {
+          let response
 
-      if (response.ok) {
-        setSuccess("¡Inmobiliaria registrada exitosamente! Redirigiendo al login...")
-        setTimeout(() => {
-          redirectToLogin()
-        }, 2000)
-      } else {
-        setError(data.message || "Error al registrar la inmobiliaria. Respuesta: " + JSON.stringify(data))
+          if (endpoint.includes("registerRealEstate")) {
+            // Preparar los datos según lo que espera el backend
+            const payload = {
+              name_realestate: inmobiliariaData.name_realestate || inmobiliariaData.nombre_inmobiliaria,
+              nit: inmobiliariaData.nit,
+              phone: inmobiliariaData.phone_inmobiliaria || userData.phone,
+              email: inmobiliariaData.email_inmobiliaria || userData.email,
+              num_properties: Number(inmobiliariaData.num_properties),
+              department: inmobiliariaData.department,
+              city: inmobiliariaData.city,
+              adress: inmobiliariaData.address, // Nota: tu backend usa "adress" no "address"
+              description: inmobiliariaData.descripcion_inmobiliaria,
+              person_id: Number(registeredPersonId),
+            }
+
+            console.log("Payload enviado a inmobiliaria:", payload)
+
+            response = await fetch(endpoint, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(payload),
+            })
+          } else {
+            // FormData para el otro endpoint
+            const formData = new FormData()
+            formData.append("name", inmobiliariaData.name_realestate || inmobiliariaData.nombre_inmobiliaria)
+            formData.append("nit", inmobiliariaData.nit)
+            formData.append("phone", inmobiliariaData.phone_inmobiliaria || userData.phone)
+            formData.append("email", inmobiliariaData.email_inmobiliaria || userData.email)
+            formData.append("num_properties", Number.parseInt(inmobiliariaData.num_properties, 10))
+            formData.append("department", inmobiliariaData.department)
+            formData.append("city", inmobiliariaData.city)
+            formData.append("adress", inmobiliariaData.address)
+            formData.append("description", inmobiliariaData.descripcion_inmobiliaria)
+            formData.append("person_id", registeredPersonId)
+
+            if (inmobiliariaData.logo) {
+              formData.append("logo", inmobiliariaData.logo)
+            }
+
+            console.log("Payload sent to /api/inmobiliarias:", Object.fromEntries(formData))
+
+            response = await fetch(endpoint, {
+              method: "POST",
+              body: formData,
+            })
+          }
+
+          console.log("Response status:", response.status)
+          const data = await response.json()
+          console.log("Response data:", data)
+
+          if (response.ok) {
+            setSuccess("¡Inmobiliaria registrada exitosamente! Redirigiendo al login...")
+            setTimeout(() => {
+              redirectToLogin()
+            }, 2000)
+            success = true
+            break
+          } else {
+            lastError = data.message || "Error al registrar la inmobiliaria"
+          }
+        } catch (err) {
+          console.error(`Error with endpoint ${endpoint}:`, err)
+          lastError = err.message
+        }
+      }
+
+      if (!success) {
+        setError(lastError || "Error al registrar la inmobiliaria en todos los endpoints")
       }
     } catch (error) {
-      console.error("Error during real estate registration:", error)
+      console.error("Error al registrar inmobiliaria:", error)
       setError("Error de conexión. Por favor, intenta de nuevo. Detalles: " + error.message)
     } finally {
       setIsLoading(false)
@@ -492,7 +549,6 @@ export const Registrarse = () => {
                 Token de invitación *
               </label>
             </div>
-
             <div className="space-y-2">
               <div className="relative">
                 <textarea
@@ -516,7 +572,6 @@ export const Registrarse = () => {
                   </button>
                 )}
               </div>
-
               {userData.token && (
                 <div className="bg-white border border-blue-200 rounded-md p-2">
                   <div className="flex items-center justify-between text-xs">
@@ -529,7 +584,6 @@ export const Registrarse = () => {
                 </div>
               )}
             </div>
-
             <div className="space-y-1 text-xs">
               <p className="text-blue-700 flex items-center">
                 <span className="w-1 h-1 bg-blue-500 rounded-full mr-2"></span>
@@ -566,8 +620,14 @@ export const Registrarse = () => {
             type="text"
             id="nombre_inmobiliaria"
             name="nombre_inmobiliaria"
-            value={inmobiliariaData.nombre_inmobiliaria}
-            onChange={handleInmobiliariaDataChange}
+            value={inmobiliariaData.nombre_inmobiliaria || inmobiliariaData.name_realestate}
+            onChange={(e) => {
+              setInmobiliariaData({
+                ...inmobiliariaData,
+                nombre_inmobiliaria: e.target.value,
+                name_realestate: e.target.value,
+              })
+            }}
             placeholder="Ej: Inmobiliaria Los Pinos"
             className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-sky-500 focus:outline-none transition-colors"
             disabled={isLoading}
@@ -593,7 +653,7 @@ export const Registrarse = () => {
         </div>
       </div>
 
-      {/* Enhanced logo upload section */}
+      {/* Aesthetically styled logo upload section */}
       <div>
         <label htmlFor="logo" className="block text-sm font-medium text-gray-700 mb-1">
           Logo de la inmobiliaria *
@@ -621,12 +681,10 @@ export const Registrarse = () => {
           <div className="mt-4">
             <p className="text-sm font-medium text-gray-700 mb-2">Vista previa:</p>
             <div className="w-32 h-32 border-2 border-gray-200 rounded-lg overflow-hidden flex items-center justify-center bg-gray-50">
-              <Image
+              <img
                 src={inmobiliariaData.logoPreview || "/placeholder.svg"}
                 alt="Vista previa del logo"
-                width={128}
-                height={128}
-                className="max-w-full max-h-full object-contain"
+                className="max-w-full max-h-full object-contain w-32 h-32"
               />
             </div>
           </div>
@@ -721,7 +779,7 @@ export const Registrarse = () => {
       </div>
 
       <div className="bg-gray-50 p-4 rounded-lg">
-        <p className="text-sm text-gray-600 mb-2">Información de contacto adicional (opcional)</p>
+        <p className="text-sm text-gray-600 mb-2">Información de contacto adicional</p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <input
             type="tel"
@@ -752,9 +810,7 @@ export const Registrarse = () => {
         <div className="text-center mb-8">
           <div className="flex items-center justify-center mb-4">
             <div className="w-32 h-30 rounded-xl flex items-center justify-center mr-3">
-              <div className="w-20 h-20 bg-sky-500 rounded-lg flex items-center justify-center">
-                <Building className="h-12 w-12 text-white" />
-              </div>
+              <img src={LogoDomuHouse || "/placeholder.svg"} alt="LogoDomuHouse" className="w-30 h-auto" />
             </div>
             <h1 className="text-3xl font-bold text-sky-600">
               DOMU<span className="text-gray-800">HOUSE</span>

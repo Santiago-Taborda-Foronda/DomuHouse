@@ -25,13 +25,17 @@ export default function CrearPropiedad() {
     address: "",
     type: "",
     description: "",
-
     // Campos numéricos específicos
     rooms: "",
     bathrooms: "",
     area: "",
     price: "",
 
+    // Información del agente
+    agentName: "",
+    agentPhone: "",
+    agentEmail: "",
+    agentWhatsapp: "",
     // Información adicional
     propertyType: "Venta", // Cambiado para consistencia con el backend
     additionalRoomInfo: "",
@@ -101,7 +105,6 @@ export default function CrearPropiedad() {
       ...prev,
       [name]: value,
     }))
-
     // Update map address when address field changes
     if (name === "address") {
       setFullAddress(value || "Bogotá, Colombia")
@@ -112,6 +115,7 @@ export default function CrearPropiedad() {
     const files = Array.from(e.target.files)
     const imageUrls = files.map((file) => URL.createObjectURL(file))
 
+    // Para mostrar preview
     setSelectedImages((prev) => [...prev, ...imageUrls])
     setImageFiles((prev) => [...prev, ...files])
   }
@@ -202,6 +206,7 @@ export default function CrearPropiedad() {
   const handleSubmit = async (e) => {
     e.preventDefault()
 
+    // Resetear estados
     setSubmitError("")
     setSubmitSuccess(false)
 
@@ -237,6 +242,35 @@ export default function CrearPropiedad() {
       formDataToSend.append("total_area", Number.parseInt(formData.total_area) || Number.parseInt(formData.area))
       formDataToSend.append("latitude", formData.latitude || "0")
       formDataToSend.append("longitude", formData.longitude || "0")
+      // Preparar datos de la propiedad para el backend
+      const propertyData = {
+        // Información básica
+        title: formData.title.trim(),
+        address: formData.address.trim(),
+        type: formData.type,
+        description: formData.description.trim(),
+        propertyType: formData.propertyType, // 'venta' o 'alquiler'
+        // Características numéricas (convertir a números)
+        rooms: Number.parseInt(formData.rooms),
+        bathrooms: Number.parseInt(formData.bathrooms),
+        area: Number.parseInt(formData.area),
+        price: formData.price.replace(/[^\d]/g, ""), // Limpiar precio de caracteres no numéricos
+        // Información del agente
+        agent: {
+          name: formData.agentName.trim(),
+          phone: formData.agentPhone.trim(),
+          email: formData.agentEmail.trim().toLowerCase(),
+          whatsapp: formData.agentWhatsapp.trim() || formData.agentPhone.trim(),
+        },
+        // Información adicional
+        additionalRoomInfo: formData.additionalRoomInfo.trim(),
+        // Metadatos
+        createdAt: new Date().toISOString(),
+        status: "active", // o el estado que manejen en el backend
+      }
+
+      // Agregar datos JSON al FormData
+      formDataToSend.append("propertyData", JSON.stringify(propertyData))
 
       // Agregar imágenes al FormData
       imageFiles.forEach((file) => {
@@ -368,10 +402,7 @@ export default function CrearPropiedad() {
           setActiveSection={setActiveSection}
         />
 
-        {/* Overlay para móvil cuando el sidebar está abierto */}
-        {sidebarOpen && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden" onClick={() => setSidebarOpen(false)} />
-        )}
+        {/* OVERLAY DUPLICADO ELIMINADO - El AgentSideBar ya maneja su propio overlay */}
 
         {/* Contenido principal con margen izquierdo para el sidebar */}
         <main className="lg:ml-72 pt-16">
@@ -415,22 +446,43 @@ export default function CrearPropiedad() {
                     {/* Información básica */}
                   <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-gray-100">
                     <h3 className="text-lg font-semibold text-gray-700 border-b pb-2 mb-4">Información Básica</h3>
-                      <div className="space-y-4">
-                          <input
-                          type="text"
-                          name="title"
-                          placeholder="Título de la Propiedad *"
-                          value={formData.title}
+                    <div className="space-y-4">
+                      <input
+                        type="text"
+                        name="title"
+                        placeholder="Título de la Propiedad *"
+                        value={formData.title}
+                        onChange={handleInputChange}
+                        required
+                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
+                      />
+                      <input
+                        type="text"
+                        name="address"
+                        placeholder="Dirección Completa *"
+                        value={formData.address}
+                        onChange={handleInputChange}
+                        required
+                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
+                      />
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <select
+                          name="type"
+                          value={formData.type}
                           onChange={handleInputChange}
                           required
                           className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
-                        />
-
-                        <input
-                          type="text"
-                          name="address"
-                          placeholder="Dirección Completa *"
-                          value={formData.address}
+                        >
+                          <option value="">Tipo de Propiedad *</option>
+                          <option value="casa">Casa</option>
+                          <option value="apartamento">Apartamento</option>
+                          <option value="local">Local Comercial</option>
+                          <option value="oficina">Oficina</option>
+                          <option value="terreno">Terreno</option>
+                        </select>
+                        <select
+                          name="propertyType"
+                          value={formData.propertyType}
                           onChange={handleInputChange}
                           required
                           className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
@@ -506,37 +558,54 @@ export default function CrearPropiedad() {
                     {/* Características de la propiedad */}
                   <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-gray-100">
                     <h3 className="text-lg font-semibold text-gray-700 border-b pb-2 mb-4">Características</h3>
-                      <div className="space-y-4">
-                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                          <input
-                            type="number"
-                            name="rooms"
-                            placeholder="Habitaciones *"
-                            value={formData.rooms}
-                            onChange={handleInputChange}
-                            required
-                            min="0"
-                            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
-                          />
-
-                          <input
-                            type="number"
-                            name="bathrooms"
-                            placeholder="Baños *"
-                            value={formData.bathrooms}
-                            onChange={handleInputChange}
-                            required
-                            min="0"
-                            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
-                          />
-
-                          <input
-                        type="number"
-                        name="parking_spaces"
-                        placeholder="Parqueaderos"
-                        value={formData.parking_spaces}
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <input
+                          type="number"
+                          name="rooms"
+                          placeholder="Habitaciones *"
+                          value={formData.rooms}
+                          onChange={handleInputChange}
+                          required
+                          min="0"
+                          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
+                        />
+                        <input
+                          type="number"
+                          name="bathrooms"
+                          placeholder="Baños *"
+                          value={formData.bathrooms}
+                          onChange={handleInputChange}
+                          required
+                          min="0"
+                          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
+                        />
+                        <input
+                          type="number"
+                          name="area"
+                          placeholder="Área (m²) *"
+                          value={formData.area}
+                          onChange={handleInputChange}
+                          required
+                          min="1"
+                          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
+                        />
+                      </div>
+                      <input
+                        type="text"
+                        name="additionalRoomInfo"
+                        placeholder="Información Adicional de Habitaciones"
+                        value={formData.additionalRoomInfo}
                         onChange={handleInputChange}
-                        min="0"
+                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
+                      />
+                      <input
+                        type="text"
+                        name="price"
+                        placeholder="Precio (sin símbolo $) *"
+                        value={formData.price}
+                        onChange={handleInputChange}
+                        required
                         className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
                       />
                     </div>
@@ -598,18 +667,16 @@ export default function CrearPropiedad() {
                         required
                         className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
                       />
-
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                          <input
-                            type="number"
-                            name="latitude"
-                            placeholder="Latitud"
-                            value={formData.latitude}
-                            onChange={handleInputChange}
-                            step="any"
-                            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
-                          />
-
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <input
+                          type="tel"
+                          name="agentPhone"
+                          placeholder="Teléfono *"
+                          value={formData.agentPhone}
+                          onChange={handleInputChange}
+                          required
+                          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
+                        />
                         <input
                           type="tel"
                           name="agentWhatsapp"
@@ -619,7 +686,6 @@ export default function CrearPropiedad() {
                           className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
                         />
                       </div>
-
                       <input
                         type="email"
                         name="agentEmail"
@@ -715,7 +781,6 @@ export default function CrearPropiedad() {
                       <span>📊</span>
                       Solicitar Valoración Automática
                     </button>
-
                     {precioEstimado && (
                       <p className="text-xs text-gray-500 text-center mt-2">
                         * El precio se ha actualizado automáticamente en el formulario

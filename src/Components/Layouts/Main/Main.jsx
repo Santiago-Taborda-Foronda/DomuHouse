@@ -2,6 +2,7 @@ import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import Casa from "../../../assets/images/casLujo2.jpg"
 import Casa2 from "../../../assets/images/Casa2.jpg"
+
 import { LuSettings2 } from "react-icons/lu"
 import { ChatDomu } from "../../UI/ChatDomu/ChatDomu"
 import { Button } from "../../UI/Button/Button"
@@ -116,6 +117,8 @@ export const Main = () => {
       setIsLoading(true)
       try {
         const res = await fetch(`${API_BASE_URL}/api/properties/approved`)
+
+        const res = await fetch("https://domuhouse.onrender.com/api/properties/obtener")
 
         if (!res.ok) {
           throw new Error(`HTTP error! status: ${res.status}`)

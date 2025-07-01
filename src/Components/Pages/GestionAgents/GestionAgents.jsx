@@ -5,7 +5,7 @@ import { Eye, Edit, Trash2, Search, Filter, Users, Star, Phone, Mail, Shield } f
 import { Header } from "../../Layouts/Header/Header"
 import { SidebarInmobiliaria } from "../../Layouts/SidebarInmobiliaria/SidebarInmobiliaria"
 import { useNavigate } from "react-router-dom"
-import { AgentDetailsModal } from "../AgentDetailsModal/AgentDetailsModal.JSX"
+import { AgentDetailsModal } from "../AgentDetailsModal/AgentDetailsModal"
 import { AgentEditModal } from "../AgentEditModal/AgentEditModal"
 
 // Datos de agentes simulados iniciales

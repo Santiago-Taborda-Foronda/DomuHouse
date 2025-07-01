@@ -29,7 +29,7 @@ export const Footer = () => {
             <li><a href="#" className="hover:underline">Inicio</a></li>
             <li><a href="#" className="hover:underline">Propiedades</a></li>
             <li><a href="#" className="hover:underline">Contacto</a></li>
-            <li><a href="#" className="hover:underline">Métodos de pago</a></li>
+            <li><a href="/metodos-pago" className="hover:underline">Métodos de pago</a></li>
             <li>
               <Link to="/Privacidad" className="hover:underline">
                 Políticas de privacidad

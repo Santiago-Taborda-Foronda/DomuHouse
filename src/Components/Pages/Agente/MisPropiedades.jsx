@@ -8,7 +8,6 @@ import { useNavigate } from "react-router-dom"
 
 export default function MisPropiedades() {
   const navigate = useNavigate()
-
   const [activeSection, setActiveSection] = useState("Mis Propiedades")
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [searchTerm, setSearchTerm] = useState("")
@@ -151,7 +150,6 @@ export default function MisPropiedades() {
     try {
       // Simulación de eliminación
       await new Promise((resolve) => setTimeout(resolve, 1000))
-
       setProperties(properties.filter((p) => p.id !== selectedProperty.id))
       setShowDeleteModal(false)
       setSelectedProperty(null)
@@ -169,7 +167,6 @@ export default function MisPropiedades() {
     try {
       // Simulación de actualización
       await new Promise((resolve) => setTimeout(resolve, 1500))
-
       const updatedProperties = properties.map((p) => {
         if (p.id === selectedProperty.id) {
           return {
@@ -187,10 +184,8 @@ export default function MisPropiedades() {
         }
         return p
       })
-
       setProperties(updatedProperties)
       setSubmitSuccess(true)
-
       setTimeout(() => {
         setShowEditModal(false)
         setSelectedProperty(null)
@@ -251,10 +246,7 @@ export default function MisPropiedades() {
           setActiveSection={setActiveSection}
         />
 
-        {/* Overlay para móvil cuando el sidebar está abierto */}
-        {sidebarOpen && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden" onClick={() => setSidebarOpen(false)} />
-        )}
+        {/* OVERLAY DUPLICADO ELIMINADO - El AgentSideBar ya maneja su propio overlay */}
 
         {/* Contenido principal con margen izquierdo para el sidebar */}
         <main className="lg:ml-72 pt-16">
@@ -282,7 +274,6 @@ export default function MisPropiedades() {
                 <Search className="w-5 h-5 text-gray-400" />
                 <h3 className="font-semibold text-gray-800">Filtros de búsqueda</h3>
               </div>
-
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Búsqueda</label>
@@ -297,7 +288,6 @@ export default function MisPropiedades() {
                     />
                   </div>
                 </div>
-
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Estado</label>
                   <select
@@ -540,7 +530,6 @@ export default function MisPropiedades() {
                     <X className="w-5 h-5" />
                   </button>
                 </div>
-
                 <div className="space-y-4 sm:space-y-6">
                   <div className="flex flex-col sm:flex-row items-start gap-4">
                     <div className="w-full sm:w-32 h-24 bg-gray-100 rounded-xl overflow-hidden">
@@ -563,7 +552,6 @@ export default function MisPropiedades() {
                       </span>
                     </div>
                   </div>
-
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="bg-gray-50 p-4 rounded-xl">
                       <label className="block text-sm font-medium text-gray-700 mb-1">Área:</label>
@@ -582,12 +570,10 @@ export default function MisPropiedades() {
                       <p className="text-gray-900 font-semibold">{selectedProperty.date}</p>
                     </div>
                   </div>
-
                   <div className="bg-gray-50 p-4 rounded-xl">
                     <label className="block text-sm font-medium text-gray-700 mb-2">Descripción:</label>
                     <p className="text-gray-900">{selectedProperty.description}</p>
                   </div>
-
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="bg-gray-50 p-4 rounded-xl">
                       <label className="block text-sm font-medium text-gray-700 mb-1">Agente:</label>

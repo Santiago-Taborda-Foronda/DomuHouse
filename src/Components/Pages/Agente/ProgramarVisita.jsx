@@ -1,15 +1,22 @@
 "use client"
 
 import { useState } from "react"
+
 import { Calendar, User, Home, Phone, MapPin } from "lucide-react"
+
 import AgentSideBar from "./Components/AgentSideBar"
+
 import { Header } from "../../Layouts/Header/Header"
 
 export default function ProgramarVisita() {
   const [activeSection, setActiveSection] = useState("Programar Visitas")
+
   const [sidebarOpen, setSidebarOpen] = useState(false)
+
   const [isSubmitting, setIsSubmitting] = useState(false)
+
   const [submitError, setSubmitError] = useState("")
+
   const [submitSuccess, setSubmitSuccess] = useState(false)
 
   const toggleAgentSidebar = () => {
@@ -18,40 +25,60 @@ export default function ProgramarVisita() {
 
   const [formData, setFormData] = useState({
     clienteName: "",
+
     clientePhone: "",
+
     clienteEmail: "",
+
     propiedad: "",
+
     fecha: "",
+
     hora: "",
+
     tipoVisita: "presencial",
+
     notas: "",
+
     direccion: "",
+
     agenteName: "",
+
     agentePhone: "",
   })
 
   // Datos de ejemplo para propiedades disponibles
+
   const propiedadesDisponibles = [
     { id: 1, nombre: "Casa 01", direccion: "Calle 123 #45-67, Bogotá", tipo: "Casa" },
+
     { id: 2, nombre: "Casa 02", direccion: "Carrera 45 #12-34, Bogotá", tipo: "Casa" },
+
     { id: 3, nombre: "Casa 03", direccion: "Avenida 68 #23-45, Bogotá", tipo: "Casa" },
+
     { id: 4, nombre: "Apartamento 01", direccion: "Calle 85 #15-30, Bogotá", tipo: "Apartamento" },
+
     { id: 5, nombre: "Local Comercial 01", direccion: "Carrera 7 #32-16, Bogotá", tipo: "Local" },
   ]
 
   const handleInputChange = (e) => {
     const { name, value } = e.target
+
     setFormData((prev) => ({
       ...prev,
+
       [name]: value,
     }))
 
     // Auto-completar dirección cuando se selecciona una propiedad
+
     if (name === "propiedad") {
       const selectedProperty = propiedadesDisponibles.find((prop) => prop.nombre === value)
+
       if (selectedProperty) {
         setFormData((prev) => ({
           ...prev,
+
           direccion: selectedProperty.direccion,
         }))
       }
@@ -64,23 +91,30 @@ export default function ProgramarVisita() {
     for (const field of requiredFields) {
       if (!formData[field]) {
         setSubmitError(`El campo ${getFieldLabel(field)} es requerido`)
+
         return false
       }
     }
 
     // Validar email si se proporciona
+
     if (formData.clienteEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.clienteEmail)) {
       setSubmitError("El email del cliente no es válido")
+
       return false
     }
 
     // Validar que la fecha no sea en el pasado
+
     const selectedDate = new Date(formData.fecha)
+
     const today = new Date()
+
     today.setHours(0, 0, 0, 0)
 
     if (selectedDate < today) {
       setSubmitError("La fecha de la visita no puede ser en el pasado")
+
       return false
     }
 
@@ -90,13 +124,20 @@ export default function ProgramarVisita() {
   const getFieldLabel = (field) => {
     const labels = {
       clienteName: "Nombre del Cliente",
+
       clientePhone: "Teléfono del Cliente",
+
       propiedad: "Propiedad",
+
       fecha: "Fecha",
+
       hora: "Hora",
+
       agenteName: "Nombre del Agente",
+
       agentePhone: "Teléfono del Agente",
     }
+
     return labels[field] || field
   }
 
@@ -104,6 +145,7 @@ export default function ProgramarVisita() {
     e.preventDefault()
 
     setSubmitError("")
+
     setSubmitSuccess(false)
 
     if (!validateForm()) {
@@ -114,28 +156,41 @@ export default function ProgramarVisita() {
 
     try {
       // Preparar datos para el backend
+
       const visitData = {
         cliente: {
           nombre: formData.clienteName.trim(),
+
           telefono: formData.clientePhone.trim(),
+
           email: formData.clienteEmail.trim(),
         },
+
         propiedad: {
           nombre: formData.propiedad,
+
           direccion: formData.direccion,
         },
+
         fechaHora: `${formData.fecha}T${formData.hora}`,
+
         tipoVisita: formData.tipoVisita,
+
         notas: formData.notas.trim(),
+
         agente: {
           nombre: formData.agenteName.trim(),
+
           telefono: formData.agentePhone.trim(),
         },
+
         estado: "programada",
+
         creadoEn: new Date().toISOString(),
       }
 
       // Simulación de envío al backend
+
       await new Promise((resolve) => setTimeout(resolve, 1500))
 
       console.log("Visita programada:", visitData)
@@ -143,11 +198,13 @@ export default function ProgramarVisita() {
       setSubmitSuccess(true)
 
       // Limpiar formulario después del éxito
+
       setTimeout(() => {
         resetForm()
       }, 2000)
     } catch (error) {
       console.error("Error al programar visita:", error)
+
       setSubmitError("Error al programar la visita. Intenta de nuevo.")
     } finally {
       setIsSubmitting(false)
@@ -157,38 +214,56 @@ export default function ProgramarVisita() {
   const resetForm = () => {
     setFormData({
       clienteName: "",
+
       clientePhone: "",
+
       clienteEmail: "",
+
       propiedad: "",
+
       fecha: "",
+
       hora: "",
+
       tipoVisita: "presencial",
+
       notas: "",
+
       direccion: "",
+
       agenteName: "",
+
       agentePhone: "",
     })
+
     setSubmitError("")
+
     setSubmitSuccess(false)
   }
 
   // Generar opciones de hora
+
   const generateTimeOptions = () => {
     const times = []
+
     for (let hour = 8; hour <= 18; hour++) {
       for (let minute = 0; minute < 60; minute += 30) {
         const timeString = `${hour.toString().padStart(2, "0")}:${minute.toString().padStart(2, "0")}`
+
         times.push(timeString)
       }
     }
+
     return times
   }
 
   return (
     <>
       <Header toggleAgentSidebar={toggleAgentSidebar} />
+
       <div className="min-h-screen bg-gray-50">
         {/* Sidebar fijo siempre visible en desktop */}
+
         <div className="hidden lg:block fixed left-0 top-16 h-[calc(100vh-4rem)] w-72 bg-white shadow-lg border-r border-gray-200 overflow-y-auto z-30">
           <AgentSideBar
             activeSection={activeSection}
@@ -200,6 +275,7 @@ export default function ProgramarVisita() {
         </div>
 
         {/* Sidebar móvil con overlay */}
+
         <AgentSideBar
           sidebarOpen={sidebarOpen}
           setSidebarOpen={setSidebarOpen}
@@ -208,23 +284,22 @@ export default function ProgramarVisita() {
           setActiveSection={setActiveSection}
         />
 
-        {/* Overlay para móvil cuando el sidebar está abierto */}
-        {sidebarOpen && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden" onClick={() => setSidebarOpen(false)} />
-        )}
-
         {/* Contenido principal con margen izquierdo para el sidebar */}
+
         <main className="lg:ml-72 pt-16">
           <div className="p-4 sm:p-6 lg:p-8">
             {/* Header de la página */}
+
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 sm:mb-8">
               <div>
                 <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Programar Visita</h1>
+
                 <p className="text-gray-600 text-sm mt-1">Agenda una nueva visita para tus clientes</p>
               </div>
             </div>
 
             {/* Mensajes de estado */}
+
             {submitError && (
               <div className="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 sm:px-6 py-3 sm:py-4 rounded-xl shadow-sm">
                 {submitError}
@@ -238,19 +313,23 @@ export default function ProgramarVisita() {
             )}
 
             {/* Formulario principal */}
+
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
               <form onSubmit={handleSubmit} className="p-4 sm:p-6 lg:p-8">
                 <div className="space-y-6 sm:space-y-8">
                   {/* Información del Cliente */}
+
                   <div className="space-y-4 sm:space-y-6">
                     <div className="flex items-center gap-2 mb-4">
                       <User className="w-5 h-5 text-[#2F8EAC]" />
+
                       <h3 className="font-semibold text-gray-800">Información del Cliente</h3>
                     </div>
 
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">Nombre Completo *</label>
+
                         <input
                           type="text"
                           name="clienteName"
@@ -264,6 +343,7 @@ export default function ProgramarVisita() {
 
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">Teléfono *</label>
+
                         <input
                           type="tel"
                           name="clientePhone"
@@ -278,6 +358,7 @@ export default function ProgramarVisita() {
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">Email (Opcional)</label>
+
                       <input
                         type="email"
                         name="clienteEmail"
@@ -290,17 +371,21 @@ export default function ProgramarVisita() {
                   </div>
 
                   {/* Separador visual */}
+
                   <div className="border-t border-gray-100"></div>
 
                   {/* Información de la Propiedad */}
+
                   <div className="space-y-4 sm:space-y-6">
                     <div className="flex items-center gap-2 mb-4">
                       <Home className="w-5 h-5 text-[#2F8EAC]" />
+
                       <h3 className="font-semibold text-gray-800">Información de la Propiedad</h3>
                     </div>
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">Seleccionar Propiedad *</label>
+
                       <select
                         name="propiedad"
                         value={formData.propiedad}
@@ -309,6 +394,7 @@ export default function ProgramarVisita() {
                         className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#2F8EAC] focus:border-[#2F8EAC] transition-colors"
                       >
                         <option value="">Selecciona una propiedad</option>
+
                         {propiedadesDisponibles.map((propiedad) => (
                           <option key={propiedad.id} value={propiedad.nombre}>
                             {propiedad.nombre} - {propiedad.tipo}
@@ -320,8 +406,10 @@ export default function ProgramarVisita() {
                     {formData.direccion && (
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">Dirección</label>
+
                         <div className="flex items-center gap-3 px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl">
                           <MapPin className="w-4 h-4 text-gray-400 flex-shrink-0" />
+
                           <span className="text-gray-700 text-sm">{formData.direccion}</span>
                         </div>
                       </div>
@@ -329,18 +417,22 @@ export default function ProgramarVisita() {
                   </div>
 
                   {/* Separador visual */}
+
                   <div className="border-t border-gray-100"></div>
 
                   {/* Información de la Visita */}
+
                   <div className="space-y-4 sm:space-y-6">
                     <div className="flex items-center gap-2 mb-4">
                       <Calendar className="w-5 h-5 text-[#2F8EAC]" />
+
                       <h3 className="font-semibold text-gray-800">Detalles de la Visita</h3>
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">Fecha *</label>
+
                         <input
                           type="date"
                           name="fecha"
@@ -354,6 +446,7 @@ export default function ProgramarVisita() {
 
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">Hora *</label>
+
                         <select
                           name="hora"
                           value={formData.hora}
@@ -362,6 +455,7 @@ export default function ProgramarVisita() {
                           className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#2F8EAC] focus:border-[#2F8EAC] transition-colors"
                         >
                           <option value="">Selecciona una hora</option>
+
                           {generateTimeOptions().map((time) => (
                             <option key={time} value={time}>
                               {time}
@@ -372,6 +466,7 @@ export default function ProgramarVisita() {
 
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">Tipo de Visita</label>
+
                         <select
                           name="tipoVisita"
                           value={formData.tipoVisita}
@@ -379,6 +474,7 @@ export default function ProgramarVisita() {
                           className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#2F8EAC] focus:border-[#2F8EAC] transition-colors"
                         >
                           <option value="presencial">Presencial</option>
+
                           <option value="virtual">Virtual</option>
                         </select>
                       </div>
@@ -386,6 +482,7 @@ export default function ProgramarVisita() {
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">Notas Adicionales</label>
+
                       <textarea
                         name="notas"
                         value={formData.notas}
@@ -398,18 +495,22 @@ export default function ProgramarVisita() {
                   </div>
 
                   {/* Separador visual */}
+
                   <div className="border-t border-gray-100"></div>
 
                   {/* Información del Agente */}
+
                   <div className="space-y-4 sm:space-y-6">
                     <div className="flex items-center gap-2 mb-4">
                       <Phone className="w-5 h-5 text-[#2F8EAC]" />
+
                       <h3 className="font-semibold text-gray-800">Información del Agente</h3>
                     </div>
 
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">Nombre del Agente *</label>
+
                         <input
                           type="text"
                           name="agenteName"
@@ -423,6 +524,7 @@ export default function ProgramarVisita() {
 
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">Teléfono del Agente *</label>
+
                         <input
                           type="tel"
                           name="agentePhone"
@@ -437,9 +539,11 @@ export default function ProgramarVisita() {
                   </div>
 
                   {/* Separador visual */}
+
                   <div className="border-t border-gray-100"></div>
 
                   {/* Botones de Acción */}
+
                   <div className="flex flex-col sm:flex-row justify-between gap-4 pt-4">
                     <button
                       type="button"
@@ -448,6 +552,7 @@ export default function ProgramarVisita() {
                     >
                       Limpiar Formulario
                     </button>
+
                     <button
                       type="submit"
                       disabled={isSubmitting}

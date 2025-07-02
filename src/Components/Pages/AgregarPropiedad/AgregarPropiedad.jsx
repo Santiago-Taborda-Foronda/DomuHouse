@@ -11,20 +11,16 @@ const AgregarPropiedad = () => {
     address: "",
     type: "",
     description: "",
-
     // Campos numéricos específicos
     rooms: "",
     bathrooms: "",
     area: "",
     price: "",
-
     // ID del agente seleccionado (en lugar de datos manuales)
     selectedAgentId: "",
-
     // Información adicional
     propertyType: "Venta",
     additionalRoomInfo: "",
-
     // Nuevos campos para backend
     socioeconomic_stratum: "",
     city: "",
@@ -39,13 +35,13 @@ const AgregarPropiedad = () => {
   const [agents, setAgents] = useState([])
   const [loadingAgents, setLoadingAgents] = useState(true)
   const [agentsError, setAgentsError] = useState("")
-
   const [selectedImages, setSelectedImages] = useState([])
   const [imageFiles, setImageFiles] = useState([])
   const [precioEstimado, setPrecioEstimado] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState("")
   const [submitSuccess, setSubmitSuccess] = useState(false)
+  const [debugInfo, setDebugInfo] = useState(null) // Para mostrar información de depuración
 
   // Cargar lista de agentes al montar el componente
   useEffect(() => {
@@ -56,27 +52,133 @@ const AgregarPropiedad = () => {
     try {
       setLoadingAgents(true)
       setAgentsError("")
+      setDebugInfo(null)
 
-      // Llamada al API para obtener agentes de la inmobiliaria
-      // Aquí deberías usar el ID de la inmobiliaria del usuario logueado
-      const response = await fetch("http://localhost:10101/api/agents/by-company", {
+      // Intentar obtener información del usuario logueado de diferentes fuentes
+      let userData = null
+      let userId = null
+      let token = null
+
+      // Intento 1: localStorage
+      try {
+        userData = JSON.parse(localStorage.getItem("userData") || "{}")
+        userId = userData.id || userData.person_id || userData.user_id
+        token = localStorage.getItem("token") || ""
+      } catch (e) {
+        console.warn("Error al obtener datos de usuario desde localStorage:", e)
+      }
+
+      // Intento 2: sessionStorage
+      if (!userId) {
+        try {
+          userData = JSON.parse(sessionStorage.getItem("userData") || "{}")
+          userId = userData.id || userData.person_id || userData.user_id
+          token = sessionStorage.getItem("token") || ""
+        } catch (e) {
+          console.warn("Error al obtener datos de usuario desde sessionStorage:", e)
+        }
+      }
+
+      // Intento 3: cookies (simplificado)
+      if (!userId && document.cookie.includes("userId=")) {
+        const match = document.cookie.match(/userId=([^;]+)/)
+        if (match) userId = match[1]
+      }
+
+      // Guardar información de depuración
+      const debugData = {
+        userData,
+        userId,
+        hasToken: !!token,
+      }
+
+      console.log("Información de usuario para la solicitud:", debugData)
+      setDebugInfo(debugData)
+
+      // Preparar headers para la solicitud
+      const headers = {
+        "Content-Type": "application/json",
+      }
+
+      // Agregar token si existe
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`
+      }
+
+      // Agregar userId si existe
+      if (userId) {
+        headers["X-User-Id"] = userId.toString()
+      }
+
+      // OPCIÓN 1: Llamada al API con la URL exacta solicitada
+      console.log("Intentando fetch a http://localhost:10101/api/agentes")
+      let response = await fetch("http://localhost:10101/api/agentes", {
         method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          // Agregar headers de autenticación si es necesario
-        },
+        headers,
         credentials: "include",
       })
 
+      // Si falla, intentar con la URL original como respaldo
       if (!response.ok) {
-        throw new Error("Error al cargar los agentes")
+        console.log("Primer intento fallido, probando URL alternativa")
+        response = await fetch("http://localhost:10101/api/agents/by-company", {
+          method: "GET",
+          headers,
+          credentials: "include",
+        })
       }
 
-      const agentsData = await response.json()
+      if (!response.ok) {
+        throw new Error(`Error al cargar los agentes: ${response.status} ${response.statusText}`)
+      }
+
+      const responseData = await response.json()
+      console.log("Respuesta del API de agentes:", responseData)
+
+      // Intentar extraer los agentes de diferentes estructuras posibles
+      let agentsData = []
+
+      if (Array.isArray(responseData)) {
+        agentsData = responseData
+      } else if (responseData.data && Array.isArray(responseData.data)) {
+        agentsData = responseData.data
+      } else if (responseData.agentes && Array.isArray(responseData.agentes)) {
+        agentsData = responseData.agentes
+      } else if (responseData.agents && Array.isArray(responseData.agents)) {
+        agentsData = responseData.agents
+      } else {
+        // Si no podemos identificar la estructura, intentar buscar cualquier array en la respuesta
+        const possibleArrays = Object.values(responseData).filter((val) => Array.isArray(val))
+        if (possibleArrays.length > 0) {
+          // Usar el primer array encontrado
+          agentsData = possibleArrays[0]
+        } else {
+          throw new Error("No se pudo identificar la estructura de datos de agentes en la respuesta")
+        }
+      }
+
+      // Verificar que los agentes tengan la estructura esperada
+      if (agentsData.length > 0) {
+        // Verificar si los agentes tienen la estructura esperada
+        const firstAgent = agentsData[0]
+        if (!firstAgent.person_id) {
+          // Intentar mapear a la estructura esperada si es posible
+          agentsData = agentsData.map((agent) => ({
+            person_id: agent.id || agent.person_id || agent.agentId || agent.agent_id,
+            first_name: agent.first_name || agent.firstName || agent.nombre || agent.name?.split(" ")[0] || "",
+            last_name:
+              agent.last_name || agent.lastName || agent.apellido || agent.name?.split(" ").slice(1).join(" ") || "",
+            email: agent.email || agent.correo || "",
+            phone: agent.phone || agent.telefono || agent.phoneNumber || "",
+          }))
+        }
+      }
+
+      console.log("Agentes procesados:", agentsData)
       setAgents(agentsData)
     } catch (error) {
       console.error("Error fetching agents:", error)
-      setAgentsError("Error al cargar la lista de agentes")
+      setAgentsError(`Error al cargar la lista de agentes: ${error.message}`)
 
       // Datos de ejemplo para desarrollo (remover en producción)
       setAgents([
@@ -107,6 +209,7 @@ const AgregarPropiedad = () => {
     }
   }
 
+  // Resto del código permanece igual...
   const handleInputChange = (e) => {
     const { name, value } = e.target
     setFormData((prev) => ({
@@ -118,7 +221,6 @@ const AgregarPropiedad = () => {
   const handleImageUpload = (e) => {
     const files = Array.from(e.target.files)
     const imageUrls = files.map((file) => URL.createObjectURL(file))
-
     setSelectedImages((prev) => [...prev, ...imageUrls])
     setImageFiles((prev) => [...prev, ...files])
   }
@@ -208,7 +310,6 @@ const AgregarPropiedad = () => {
   // Función para envío al backend
   const handleSubmit = async (e) => {
     e.preventDefault()
-
     setSubmitError("")
     setSubmitSuccess(false)
 
@@ -231,7 +332,6 @@ const AgregarPropiedad = () => {
 
       // Usar el ID del agente seleccionado en lugar de datos manuales
       formDataToSend.append("person_id", formData.selectedAgentId)
-
       formDataToSend.append("property_type_id", getPropertyTypeId(formData.type))
       formDataToSend.append("socioeconomic_stratum", formData.socioeconomic_stratum || "3")
       formDataToSend.append("city", formData.city.trim())
@@ -264,7 +364,6 @@ const AgregarPropiedad = () => {
 
       const result = await response.json()
       console.log("Propiedad creada exitosamente:", result)
-
       setSubmitSuccess(true)
 
       // Limpiar formulario después del éxito
@@ -318,7 +417,6 @@ const AgregarPropiedad = () => {
       const basePrice = Math.random() * 500000 + 200000
       const formattedPrice = new Intl.NumberFormat("es-CO").format(basePrice)
       setPrecioEstimado(formattedPrice)
-
       setFormData((prev) => ({
         ...prev,
         price: formattedPrice,
@@ -333,13 +431,17 @@ const AgregarPropiedad = () => {
     window.history.back()
   }
 
+  // Función para recargar manualmente los agentes
+  const handleReloadAgents = () => {
+    fetchAgents()
+  }
+
   // Obtener información del agente seleccionado para mostrar
-  const selectedAgent = agents.find((agent) => agent.person_id.toString() === formData.selectedAgentId)
+  const selectedAgent = agents.find((agent) => agent.person_id?.toString() === formData.selectedAgentId)
 
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
-
       <div className="max-w-7xl mx-auto p-6">
         <div className="mb-6">
           <button
@@ -362,8 +464,22 @@ const AgregarPropiedad = () => {
         )}
 
         {agentsError && (
-          <div className="mb-6 bg-yellow-50 border border-yellow-200 text-yellow-700 px-4 py-3 rounded-xl">
-            {agentsError}
+          <div className="mb-6 bg-yellow-50 border border-yellow-200 text-yellow-700 px-4 py-3 rounded-xl flex flex-col">
+            <div className="flex justify-between items-center">
+              <span>{agentsError}</span>
+              <button
+                onClick={handleReloadAgents}
+                className="bg-yellow-100 hover:bg-yellow-200 text-yellow-800 px-3 py-1 rounded-lg text-sm"
+              >
+                Reintentar
+              </button>
+            </div>
+            {debugInfo && (
+              <details className="mt-2 text-xs">
+                <summary className="cursor-pointer">Mostrar información de depuración</summary>
+                <pre className="mt-2 p-2 bg-yellow-100 rounded overflow-auto">{JSON.stringify(debugInfo, null, 2)}</pre>
+              </details>
+            )}
           </div>
         )}
 
@@ -376,7 +492,6 @@ const AgregarPropiedad = () => {
                 {/* Información básica */}
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold text-gray-700 border-b pb-2">Información Básica</h3>
-
                   <input
                     type="text"
                     name="title"
@@ -386,7 +501,6 @@ const AgregarPropiedad = () => {
                     required
                     className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
-
                   <input
                     type="text"
                     name="address"
@@ -396,7 +510,6 @@ const AgregarPropiedad = () => {
                     required
                     className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
-
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <input
                       type="text"
@@ -407,7 +520,6 @@ const AgregarPropiedad = () => {
                       required
                       className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
-
                     <input
                       type="text"
                       name="neighborhood"
@@ -418,7 +530,6 @@ const AgregarPropiedad = () => {
                       className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                   </div>
-
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <select
                       name="type"
@@ -434,7 +545,6 @@ const AgregarPropiedad = () => {
                       <option value="oficina">Oficina</option>
                       <option value="terreno">Terreno</option>
                     </select>
-
                     <select
                       name="propertyType"
                       value={formData.propertyType}
@@ -446,7 +556,6 @@ const AgregarPropiedad = () => {
                       <option value="Arriendo con opción de compra">Arriendo con opción de compra</option>
                     </select>
                   </div>
-
                   <select
                     name="socioeconomic_stratum"
                     value={formData.socioeconomic_stratum}
@@ -466,7 +575,6 @@ const AgregarPropiedad = () => {
                 {/* Características de la propiedad */}
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold text-gray-700 border-b pb-2">Características</h3>
-
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <input
                       type="number"
@@ -478,7 +586,6 @@ const AgregarPropiedad = () => {
                       min="0"
                       className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
-
                     <input
                       type="number"
                       name="bathrooms"
@@ -489,7 +596,6 @@ const AgregarPropiedad = () => {
                       min="0"
                       className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
-
                     <input
                       type="number"
                       name="parking_spaces"
@@ -500,7 +606,6 @@ const AgregarPropiedad = () => {
                       className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                   </div>
-
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <input
                       type="number"
@@ -512,7 +617,6 @@ const AgregarPropiedad = () => {
                       min="1"
                       className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
-
                     <input
                       type="number"
                       name="total_area"
@@ -523,7 +627,6 @@ const AgregarPropiedad = () => {
                       className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                   </div>
-
                   <input
                     type="text"
                     name="additionalRoomInfo"
@@ -532,7 +635,6 @@ const AgregarPropiedad = () => {
                     onChange={handleInputChange}
                     className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
-
                   <input
                     type="text"
                     name="price"
@@ -547,7 +649,6 @@ const AgregarPropiedad = () => {
                 {/* Ubicación GPS (opcional) */}
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold text-gray-700 border-b pb-2">Ubicación GPS (Opcional)</h3>
-
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <input
                       type="number"
@@ -558,7 +659,6 @@ const AgregarPropiedad = () => {
                       step="any"
                       className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
-
                     <input
                       type="number"
                       name="longitude"
@@ -574,7 +674,6 @@ const AgregarPropiedad = () => {
                 {/* Selección del agente responsable */}
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold text-gray-700 border-b pb-2">Agente Responsable</h3>
-
                   {loadingAgents ? (
                     <div className="flex items-center justify-center py-4">
                       <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
@@ -617,7 +716,6 @@ const AgregarPropiedad = () => {
                           </div>
                         </div>
                       )}
-
                       {agents.length === 0 && !loadingAgents && (
                         <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
                           <p className="text-yellow-700">
@@ -661,7 +759,6 @@ const AgregarPropiedad = () => {
               {/* Sección de imágenes */}
               <div className="bg-white rounded-2xl p-6 shadow-sm">
                 <h2 className="text-lg font-semibold text-gray-800 mb-4">Imágenes de la Propiedad *</h2>
-
                 <div className="border-2 border-dashed border-gray-300 rounded-xl p-6">
                   {selectedImages.length > 0 ? (
                     <div className="space-y-4">
@@ -695,7 +792,6 @@ const AgregarPropiedad = () => {
                       <p className="text-gray-500 mb-4">No hay imágenes seleccionadas</p>
                     </div>
                   )}
-
                   <input
                     type="file"
                     multiple
@@ -719,7 +815,6 @@ const AgregarPropiedad = () => {
                   <p className="text-lg font-semibold text-gray-800 mb-2">Valoración Automática</p>
                   {precioEstimado && <p className="text-2xl font-bold text-green-600">${precioEstimado}</p>}
                 </div>
-
                 <button
                   type="button"
                   onClick={handleSolicitarValoracion}
@@ -728,7 +823,6 @@ const AgregarPropiedad = () => {
                   <span>📊</span>
                   Solicitar Valoración Automática
                 </button>
-
                 {precioEstimado && (
                   <p className="text-xs text-gray-500 text-center mt-2">
                     * El precio se ha actualizado automáticamente en el formulario

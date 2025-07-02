@@ -108,14 +108,14 @@ export const Main = () => {
 
   const toggleAdvanced = () => setShowAdvanced(!showAdvanced)
 
-  const API_BASE_URL = "http://localhost:10101"
+  // const API_BASE_URL = "http://localhost:10101"
 
   // Cargar propiedades iniciales
   useEffect(() => {
     const fetchProperties = async () => {
       setIsLoading(true)
       try {
-        const res = await fetch(`${API_BASE_URL}/api/properties/approved`)
+        const res = await fetch(`http://localhost:10101/api/properties/approved`)
 
         if (!res.ok) {
           throw new Error(`HTTP error! status: ${res.status}`)

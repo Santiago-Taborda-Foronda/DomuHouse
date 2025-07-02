@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
-import { SidebarInmobiliaria } from '../../Layouts/SidebarInmobiliaria/SidebarInmobiliaria'
-import { Header } from '../../Layouts/Header/Header'
+import { SidebarInmobiliaria } from '../../../Components/Layouts/SidebarInmobiliaria/SidebarInmobiliaria.jsx'
+import { Header } from '../../../Components/Layouts/Header/Header.jsx'
 import {TrendingUp, Users, DollarSign, Calendar, Award, BarChart3, PieChart, Target,ArrowUpRight,ArrowDownRight,Filter,Download,Building2,UserCheck,Phone,Mail} from 'lucide-react'
 
 // Datos simulados para los reportes

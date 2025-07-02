@@ -33,7 +33,7 @@ import { Contract } from './Components/Pages/contract/contract'
 import { VentasAlquileresAdmin } from './Components/Pages/VentasAlquileresAdmin/VentasAlquileresAdmin'
 import { ClientesAdmin } from './Components/Pages/ClientesAdmin/ClientesAdmin'
 import { AgendaAdmin } from './Components/Pages/AgendaAdmin/AgendaAdmin'
-import { ReportesInmobiliaria } from "./Components/Pages/ReportesInmobiliaria/ReportesInmobiliaria";
+
 import { GenerarTokenAgente } from './Components/Pages/GenerarTokenAgente/GenerarTokenAgente'
 import { MetodosPagoPage } from './Components/Pages/MetodosPagoPage/MetodosPagoPage'
 
@@ -43,6 +43,7 @@ import { AnalyticsGlobales } from "./Components/Pages/SuperAdmin/AnalyticsGlobal
 import { GestionInmobiliarias } from "./Components/Pages/SuperAdmin/GestionInmobiliarias/GestionInmobiliarias"
 import { GestionAdministradores } from "./Components/Pages/SuperAdmin/GestionAdministradores/GestionAdministradores"
 import { EditarInmobiliaria } from './Components/Pages/EditarInmobiliaria/EditarInmobiliaria'
+import { ReportesInmobiliaria } from './Components/Pages/ReportesInmobiliaria/ReportesInmobiliaria'
 
 // import { ConfiguracionSistema } from "./Components/Pages/SuperAdmin/ConfiguracionSistema/ConfiguracionSistema"
 // import { FacturacionSuscripciones } from "./Components/Pages/SuperAdmin/FacturacionSuscripciones/FacturacionSuscripciones"

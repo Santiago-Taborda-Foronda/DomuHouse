@@ -19,7 +19,7 @@ export const ChatDomu = () => {
     setMessages((prev) => [...prev, userMessage]);
 
     try {
-      const response = await axios.post("http://localhost:10101/ia/ingresar-inmueble", {
+      const response = await axios.post("https://domuhouse-express.onrender.com/ia/ingresar-inmueble", {
         descripcion: inputText,
       });
 

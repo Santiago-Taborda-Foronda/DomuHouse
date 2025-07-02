@@ -2,11 +2,6 @@ import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import Casa from "../../../assets/images/casLujo2.jpg"
 import Casa2 from "../../../assets/images/Casa2.jpg"
-
-
-import { useState, useEffect } from "react"
-import { useNavigate } from "react-router-dom"
-
 import { LuSettings2 } from "react-icons/lu"
 import { ChatDomu } from "../../UI/ChatDomu/ChatDomu"
 import { Button } from "../../UI/Button/Button"
@@ -113,15 +108,12 @@ export const Main = () => {
 
   const toggleAdvanced = () => setShowAdvanced(!showAdvanced)
 
-  const API_BASE_URL = "http://localhost:10101"
 
   // Cargar propiedades iniciales
   useEffect(() => {
     const fetchProperties = async () => {
       setIsLoading(true)
       try {
-        const res = await fetch(`${API_BASE_URL}/api/properties/approved`)
-
         const res = await fetch("https://domuhouse.onrender.com/api/properties/obtener")
 
         if (!res.ok) {

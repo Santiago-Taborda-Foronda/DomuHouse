@@ -4,7 +4,6 @@ import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import Casa from "../../../assets/images/casLujo2.jpg"
 import Casa2 from "../../../assets/images/Casa2.jpg"
-
 import { LuSettings2 } from "react-icons/lu"
 import { ChatDomu } from "../../UI/ChatDomu/ChatDomu"
 import { Button } from "../../UI/Button/Button"
@@ -26,29 +25,28 @@ const PropertyCard = ({ address, title, rooms, bathrooms, area, price, type, age
 
   const operationStyle = getOperationStyle(type)
 
-  // Función para obtener las iniciales del nombre del agente
+  // ✅ FUNCIÓN MEJORADA PARA LAS INICIALES
   const getAgentInitials = (name) => {
-    if (!name || name === "Agente") return "AG"
-
+    if (!name || name.trim() === "" || name === "Agente") return "AG"
+    
     return name
+      .trim()
       .split(" ")
-      .map((n) => n[0])
+      .filter(n => n.length > 0) // Filtrar espacios vacíos
+      .map(n => n[0])
       .join("")
       .substring(0, 2)
       .toUpperCase()
   }
 
-  // Función para formatear el nombre del agente
+  // ✅ FUNCIÓN MEJORADA PARA FORMATEAR EL NOMBRE
   const formatAgentName = (name) => {
-    if (!name || name === "Agente") return "Agente"
-
-    // Si el nombre es muy largo, lo truncamos
-    if (name.length > 20) {
-      return name.substring(0, 17) + "..."
-    }
-
-    return name
+    if (!name || name.trim() === "") return "Agente"
+    return name.trim()
   }
+
+  // ✅ DEBUG: Agregar console.log para verificar
+  console.log("PropertyCard recibió:", { agentName, title })
 
   return (
     <div
@@ -100,7 +98,6 @@ const PropertyCard = ({ address, title, rooms, bathrooms, area, price, type, age
             </div>
             <div className="flex flex-col">
               <span className="text-xs sm:text-sm text-gray-700 font-medium">{formatAgentName(agentName)}</span>
-              {agentName && agentName !== "Agente" && <span className="text-xs text-gray-500">Agente</span>}
             </div>
           </div>
           <span className="text-base sm:text-lg font-bold text-gray-900">${price}</span>
@@ -131,21 +128,30 @@ export const Main = () => {
 
   const toggleAdvanced = () => setShowAdvanced(!showAdvanced)
 
+  // ✅ DEBUG: Para verificar propiedades cargadas
+  useEffect(() => {
+    if (properties.length > 0) {
+      console.log("🔍 Propiedades cargadas:", properties.slice(0, 2).map(p => ({
+        id: p.property_id,
+        title: p.property_title,
+        agent_name: p.agent_name,
+        name_person: p.name_person,
+        last_name: p.last_name
+      })))
+    }
+  }, [properties])
 
   // Cargar propiedades iniciales
   useEffect(() => {
     const fetchProperties = async () => {
       setIsLoading(true)
       try {
-
-            const res = await fetch("http://localhost:10101/api/properties/approved")
-
+        const res = await fetch("http://localhost:10101/api/properties/approved")
         if (!res.ok) {
           throw new Error(`HTTP error! status: ${res.status}`)
         }
         const data = await res.json()
         console.log("Datos recibidos:", data)
-
         if (data.success && Array.isArray(data.properties)) {
           setProperties(data.properties)
         } else if (Array.isArray(data)) {
@@ -169,7 +175,6 @@ export const Main = () => {
 
   const handleOperationTypeClick = async (operationType) => {
     console.log(`🏠 Filtro seleccionado: ${operationType}`)
-
     if (isLoading) {
       console.log("⏳ Ya hay una búsqueda en progreso...")
       return
@@ -184,8 +189,8 @@ export const Main = () => {
 
       const queryParams = new URLSearchParams()
       queryParams.append("operation_type", operationType)
-      const url = `${API_BASE_URL}/api/search/search?${queryParams.toString()}`
 
+      const url = `https://domuhouse-express.onrender.com/api/search/search?${queryParams.toString()}`
       console.log(`🔗 Fetching: ${url}`)
 
       const controller = new AbortController()
@@ -285,7 +290,7 @@ export const Main = () => {
         }
       })
 
-      const response = await fetch(`${API_BASE_URL}/api/search/search?${queryParams}`)
+      const response = await fetch(`https://domuhouse-express.onrender.com/api/search/search?${queryParams}`)
 
       if (!response.ok) {
         throw new Error(`Search failed: ${response.status}`)
@@ -318,7 +323,6 @@ export const Main = () => {
     }
 
     const propId = property.property_id || property.id
-
     if (!propId) {
       console.error("La propiedad no tiene un ID válido:", property)
       return
@@ -358,10 +362,10 @@ export const Main = () => {
     })
     setPriceRange(500000000)
     setShowAdvanced(false)
-
     setIsLoading(true)
+
     try {
-      const res = await fetch(`${API_BASE_URL}/api/properties/approved`)
+      const res = await fetch(`https://domuhouse-express.onrender.com/api/properties/approved`)
       if (!res.ok) {
         throw new Error(`HTTP error! status: ${res.status}`)
       }
@@ -416,7 +420,6 @@ export const Main = () => {
             >
               {isLoading && filters.operation_type === "Venta" ? "Buscando..." : "Venta"}
             </button>
-
             <button
               type="button"
               onClick={(e) => {
@@ -502,7 +505,6 @@ export const Main = () => {
                 <span className="sm:hidden">Búsqueda Avanzada</span>
                 <LuSettings2 className="text-lg lg:text-xl" />
               </button>
-
               <button
                 type="submit"
                 className="bg-[#2F8EAC] text-white rounded-full px-4 sm:px-6 lg:px-8 py-2 text-sm hover:bg-[#2F8EAC]/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300"
@@ -641,13 +643,21 @@ export const Main = () => {
             ) : properties.length > 0 ? (
               properties.map((property, index) => {
                 const uniqueId = property.property_id || property.id || property.ID || `property-${index}`
+                
+                // ✅ LÓGICA CORREGIDA PARA EL NOMBRE DEL AGENTE
+                const agentFullName = 
+                  property.agent_name?.trim() || // Primero intenta usar agent_name que viene de la BD
+                  (property.name_person && property.last_name 
+                    ? `${property.name_person.trim()} ${property.last_name.trim()}`.trim()
+                    : property.name_person?.trim() || property.last_name?.trim() || "Agente")
 
-                // Construir el nombre completo del agente
-                const agentFullName =
-                  property.agent_name ||
-                  (property.name_person && property.last_name
-                    ? `${property.name_person} ${property.last_name}`.trim()
-                    : property.name_person || property.last_name || "Agente")
+                console.log("🔍 Debug agente:", {
+                  property_id: property.property_id,
+                  agent_name: property.agent_name,
+                  name_person: property.name_person,
+                  last_name: property.last_name,
+                  agentFullName: agentFullName
+                })
 
                 return (
                   <PropertyCard
@@ -661,8 +671,15 @@ export const Main = () => {
                     area={property.built_area || property.area || 0}
                     price={property.price ? property.price.toLocaleString() : "0"}
                     type={property.operation_type || property.tipo_operacion}
-                    agentName={agentFullName}
-                    onClick={() => handlePropertyClick(property)}
+                    agentName={agentFullName} // ✅ Aquí se pasa el nombre correcto
+                    onClick={() => {
+                      console.log("🔍 Propiedad clickeada:", {
+                        id: property.property_id,
+                        agent_name: property.agent_name,
+                        agentFullName: agentFullName
+                      })
+                      handlePropertyClick(property)
+                    }}
                   />
                 )
               })

@@ -1,5 +1,6 @@
-"use client"
+"use client";
 
+import React, { useState, useEffect } from "react";
 import {
   X,
   LayoutDashboard,
@@ -14,49 +15,57 @@ import {
   UsersRound,
   Settings,
   Edit3,
-} from "lucide-react"
-import LogoDomuHouse from "../../../assets/images/Logo-DomuHouse.png"
-import { useNavigate, useLocation } from "react-router-dom"
+} from "lucide-react";
+import LogoDomuHouse from "../../../assets/images/Logo-DomuHouse.png";
+import { useNavigate, useLocation } from "react-router-dom";
+import axios from "axios"; // ⬅️ asegúrate también de tener esto si usas axios
+
+const truncateText = (text, maxLength) => {
+  if (!text) return '';
+  return text.length <= maxLength ? text : text.slice(0, maxLength) + '...';
+};
 
 export const SidebarInmobiliaria = ({ isOpen, toggleMenu, isAuthenticated, handleLogout, isFixedLayout = false }) => {
   const navigate = useNavigate()
-  const location = useLocation()
-
-  // Datos simulados de la inmobiliaria (en tu caso vendrían del contexto o props)
-  const inmobiliariaData = {
-    name: "Inmobiliaria Premium Real Estate Solutions",
-    nit: "900.123.456-7",
-    responsible: "María González",
-  }
-
-  // Función para truncar texto largo
-  const truncateText = (text, maxLength) => {
-    if (text.length <= maxLength) return text
-    return text.substring(0, maxLength) + "..."
-  }
-
-  // Función para verificar si una ruta está activa
-  const isActiveRoute = (route) => {
-    // Para la página de propiedades, también considerar rutas relacionadas
-    if (route === "/mi-inmobiliaria/propiedades") {
-      return (
-        location.pathname === route ||
-        location.pathname === "/mi-inmobiliaria" ||
-        location.pathname.startsWith("/mi-inmobiliaria/propiedades")
-      )
-    }
-    return location.pathname === route
-  }
-
-  // Función para manejar navegación
   const handleNavigation = (route) => {
-    navigate(route)
-    // Cerrar el sidebar en móviles después de navegar (solo si no es layout fijo)
-    if (!isFixedLayout && window.innerWidth < 1024) {
-      toggleMenu()
-    }
-  }
+  navigate(route);
+};
 
+  const location = useLocation()
+  const isActiveRoute = (route) => {
+  return location.pathname === route;
+};
+
+
+  const [inmobiliariaData, setInmobiliariaData] = useState({
+    name: "",
+    nit: "",
+    responsible: "",
+  });
+
+  useEffect(() => {
+    const fetchRealEstate = async () => {
+      try {
+        const user = JSON.parse(localStorage.getItem("user"));
+              console.log("👤 user from localStorage:", user); // 👈 asegúrate que tiene id
+
+        if (!user?.id) return;
+
+        const res = await axios.get(`http://localhost:10101/api/inmobiliarias/admin/${user.id}`);
+        console.log("📦 Datos de inmobiliaria:", res.data);
+        setInmobiliariaData({
+            name: res.data.name_realestate,
+            nit: res.data.nit,
+            responsible: res.data.responsible
+          });
+
+      } catch (error) {
+        console.error("Error al cargar la inmobiliaria:", error);
+      }
+    };
+
+    fetchRealEstate();
+  }, []);
   // Componente personalizado para elementos del menú con estado activo
   const MenuItem = ({ icon: Icon, label, route, subtitle = null }) => {
     const isActive = isActiveRoute(route)

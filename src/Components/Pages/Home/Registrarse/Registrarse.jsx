@@ -30,7 +30,6 @@ export const Registrarse = () => {
 
   // State for real estate form, including logo
   const [inmobiliariaData, setInmobiliariaData] = useState({
-    name_realestate: "",
     nombre_inmobiliaria: "",
     descripcion_inmobiliaria: "",
     nit: "",
@@ -310,9 +309,9 @@ export const Registrarse = () => {
   }
 
   const handleSubmitInmobiliaria = async () => {
-    setIsLoading(true)
-    setError("")
-    setSuccess("")
+  setIsLoading(true)
+  setError("")
+  setSuccess("")
 
     try {
       // Verificar que tenemos un person_id válido
@@ -408,12 +407,13 @@ export const Registrarse = () => {
       }
     } catch (error) {
       console.error("Error al registrar inmobiliaria:", error)
+      console.error("Error al registrar inmobiliaria:", error)
       setError("Error de conexión. Por favor, intenta de nuevo. Detalles: " + error.message)
     } finally {
       setIsLoading(false)
     }
   }
-
+  
   const renderStep1 = () => (
     <div className="space-y-6">
       <div className="space-y-4">
@@ -445,10 +445,14 @@ export const Registrarse = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label htmlFor="name_person" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="name_person" className="block text-sm font-medium text-gray-700 mb-1">
               Nombre *
             </label>
             <input
               type="text"
+              id="name_person"
+              name="name_person"
+              value={userData.name_person}
               id="name_person"
               name="name_person"
               value={userData.name_person}
@@ -612,21 +616,15 @@ export const Registrarse = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label htmlFor="nombre_inmobiliaria" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="name_realestate" className="block text-sm font-medium text-gray-700 mb-1">
             Nombre de la inmobiliaria *
           </label>
           <input
             type="text"
-            id="nombre_inmobiliaria"
-            name="nombre_inmobiliaria"
-            value={inmobiliariaData.nombre_inmobiliaria || inmobiliariaData.name_realestate}
-            onChange={(e) => {
-              setInmobiliariaData({
-                ...inmobiliariaData,
-                nombre_inmobiliaria: e.target.value,
-                name_realestate: e.target.value,
-              })
-            }}
+            id="name_realestate"
+            name="name_realestate"
+            value={inmobiliariaData.name_realestate}
+            onChange={handleInmobiliariaDataChange}
             placeholder="Ej: Inmobiliaria Los Pinos"
             className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-sky-500 focus:outline-none transition-colors"
             disabled={isLoading}
@@ -778,6 +776,7 @@ export const Registrarse = () => {
       </div>
 
       <div className="bg-gray-50 p-4 rounded-lg">
+        <p className="text-sm text-gray-600 mb-2">Información de contacto adicional</p>
         <p className="text-sm text-gray-600 mb-2">Información de contacto adicional</p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <input

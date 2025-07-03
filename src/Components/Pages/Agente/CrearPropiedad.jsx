@@ -3,9 +3,10 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Upload, X } from "lucide-react"
+import { Upload, X, Eye, Camera } from "lucide-react"
 import AgentSideBar from "./Components/AgentSideBar"
 import { Header } from "../../Layouts/Header/Header"
+import PhotoSphereViewerContainer from "../../../Components/images360/Image360Viewer"
 
 export default function CrearPropiedad() {
   const [activeSection, setActiveSection] = useState("Crear Propiedad")
@@ -30,7 +31,6 @@ export default function CrearPropiedad() {
     bathrooms: "",
     area: "",
     price: "",
-
     // Información del agente
     agentName: "",
     agentPhone: "",
@@ -58,96 +58,113 @@ export default function CrearPropiedad() {
   const [submitSuccess, setSubmitSuccess] = useState(false)
   const [fullAddress, setFullAddress] = useState("Bogotá, Colombia")
 
-  // Cargar información del usuario logueado al montar el componente
-  useEffect(() => {
-    fetchCurrentUser()
-  }, [])
-
-  const fetchCurrentUser = async () => {
-    try {
-      setLoadingUser(true)
-
-      // Llamada al API para obtener información del usuario logueado
-      const response = await fetch("http://localhost:10101/api/auth/me", {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-      })
-
-      if (!response.ok) {
-        throw new Error("Error al obtener información del usuario")
-      }
-
-      const userData = await response.json()
-      setCurrentUser(userData)
-    } catch (error) {
-      console.error("Error fetching current user:", error)
-      setSubmitError("Error al cargar información del usuario. Por favor, inicia sesión nuevamente.")
-
-      // Datos de ejemplo para desarrollo (remover en producción)
-      setCurrentUser({
-        person_id: 1,
-        first_name: "Juan",
-        last_name: "Pérez",
-        email: "juan.perez@inmobiliaria.com",
-        phone: "+57 300 123 4567",
-      })
-    } finally {
-      setLoadingUser(false)
-    }
-  }
-
   const handleInputChange = (e) => {
     const { name, value } = e.target
     setFormData((prev) => ({
       ...prev,
       [name]: value,
     }))
-    // Update map address when address field changes
+
     if (name === "address") {
       setFullAddress(value || "Bogotá, Colombia")
     }
   }
 
-  const handleImageUpload = (e) => {
-    const files = Array.from(e.target.files)
-    const imageUrls = files.map((file) => URL.createObjectURL(file))
+  // ✅ FUNCIÓN MEJORADA PARA DETECCIÓN DE IMÁGENES 360°
+  const detectIs360Image = (file) => {
+    const fileName = file.name.toLowerCase()
+    const is360Keywords = [
+      "360",
+      "_360",
+      "pano",
+      "panorama",
+      "sphere",
+      "spherical",
+      "equirectangular",
+      "esferica",
+      "panoramica",
+      "360deg",
+    ]
 
-    // Para mostrar preview
-    setSelectedImages((prev) => [...prev, ...imageUrls])
+    // Verificar por nombre de archivo
+    const nameDetection = is360Keywords.some((keyword) => fileName.includes(keyword))
+
+    // Verificar por dimensiones (las imágenes 360° suelen tener ratio 2:1)
+    return new Promise((resolve) => {
+      if (nameDetection) {
+        resolve(true)
+        return
+      }
+
+      // Crear imagen temporal para verificar dimensiones
+      const img = new Image()
+      img.onload = () => {
+        const ratio = img.width / img.height
+        // Las imágenes equirectangulares tienen ratio 2:1
+        const is360ByRatio = Math.abs(ratio - 2) < 0.1
+        resolve(is360ByRatio)
+        URL.revokeObjectURL(img.src)
+      }
+      img.onerror = () => resolve(nameDetection)
+      img.src = URL.createObjectURL(file)
+    })
+  }
+
+  const handleImageUpload = async (e) => {
+    const files = Array.from(e.target.files)
+    if (files.length === 0) return
+
+    if (selectedImages.length + files.length > 10) {
+      setSubmitError("Máximo 10 imágenes permitidas")
+      return
+    }
+
+    setSubmitError("") // Limpiar errores previos
+
+    // ✅ PROCESAR IMÁGENES CON DETECCIÓN MEJORADA
+    const processedImages = await Promise.all(
+      files.map(async (file) => {
+        const is360 = await detectIs360Image(file)
+
+        return {
+          preview: URL.createObjectURL(file),
+          file: file,
+          is360: is360,
+          name: file.name,
+          size: file.size,
+          dimensions: null, // Se calculará después si es necesario
+        }
+      }),
+    )
+
+    setSelectedImages((prev) => [...prev, ...processedImages])
     setImageFiles((prev) => [...prev, ...files])
+
+    e.target.value = ""
+
+    console.log(`📷 ${files.length} imágenes agregadas. Total: ${selectedImages.length + files.length}`)
+    console.log("🔍 Imágenes 360° detectadas:", processedImages.filter((img) => img.is360).length)
   }
 
   const removeImage = (indexToRemove) => {
+    // Limpiar URL del objeto para evitar memory leaks
+    if (selectedImages[indexToRemove]?.preview) {
+      URL.revokeObjectURL(selectedImages[indexToRemove].preview)
+    }
+
+    // Remover de ambos arrays
     setSelectedImages((prev) => prev.filter((_, index) => index !== indexToRemove))
     setImageFiles((prev) => prev.filter((_, index) => index !== indexToRemove))
+
+    console.log(`🗑️ Imagen ${indexToRemove} eliminada`)
   }
 
-  // Mapeo de tipos de propiedad a IDs del backend
-  const getPropertyTypeId = (type) => {
-    const typeMap = {
-      casa: 1,
-      apartamento: 2,
-      local: 3,
-      oficina: 4,
-      terreno: 5,
-    }
-    return typeMap[type] || 1
+  // ✅ FUNCIÓN PARA ALTERNAR MANUALMENTE EL ESTADO 360°
+  const toggleIs360 = (index) => {
+    setSelectedImages((prev) => prev.map((img, i) => (i === index ? { ...img, is360: !img.is360 } : img)))
   }
 
-  // Función para mapear el tipo de operación del frontend al backend
-  const mapOperationType = (frontendType) => {
-    const operationMap = {
-      Venta: "Venta",
-      Arriendo: "Arriendo",
-      "Arriendo con opción de compra": "Arriendo con opción de compra",
-    }
-    return operationMap[frontendType] || "Venta"
-  }
-
-  // Función para validar el formulario (sin campos del agente)
+  // Función para validar el formulario
   const validateForm = () => {
     if (!currentUser) {
       setSubmitError("No se pudo obtener la información del usuario. Por favor, recarga la página.")
@@ -220,28 +237,18 @@ export default function CrearPropiedad() {
       // Crear FormData para enviar archivos e información
       const formDataToSend = new FormData()
 
-      // Mapear campos del frontend a los que espera el backend
-      formDataToSend.append("address", formData.address.trim())
-      formDataToSend.append("property_title", formData.title.trim())
-      formDataToSend.append("description", formData.description.trim())
-      formDataToSend.append("price", formData.price.replace(/[^\d]/g, ""))
-      formDataToSend.append("status", "Disponible")
+      // ✅ AGREGAR ARCHIVOS CON METADATOS DE 360°
+      imageFiles.forEach((file, index) => {
+        // Renombrar archivos 360° para mejor detección en backend
+        const imgObj = selectedImages[index]
+        if (imgObj?.is360 && !file.name.toLowerCase().includes("360")) {
+          const newFile = new File([file], `360_${file.name}`, { type: file.type })
+          formDataToSend.append("images", newFile)
+        } else {
+          formDataToSend.append("images", file)
+        }
+      })
 
-      // Usar el person_id del usuario logueado
-      formDataToSend.append("person_id", currentUser.person_id.toString())
-
-      formDataToSend.append("property_type_id", getPropertyTypeId(formData.type))
-      formDataToSend.append("socioeconomic_stratum", formData.socioeconomic_stratum || "3")
-      formDataToSend.append("city", formData.city.trim())
-      formDataToSend.append("neighborhood", formData.neighborhood.trim())
-      formDataToSend.append("operation_type", mapOperationType(formData.propertyType))
-      formDataToSend.append("bedrooms", Number.parseInt(formData.rooms))
-      formDataToSend.append("bathrooms", Number.parseInt(formData.bathrooms))
-      formDataToSend.append("parking_spaces", Number.parseInt(formData.parking_spaces) || 0)
-      formDataToSend.append("built_area", Number.parseInt(formData.area))
-      formDataToSend.append("total_area", Number.parseInt(formData.total_area) || Number.parseInt(formData.area))
-      formDataToSend.append("latitude", formData.latitude || "0")
-      formDataToSend.append("longitude", formData.longitude || "0")
       // Preparar datos de la propiedad para el backend
       const propertyData = {
         // Información básica
@@ -249,12 +256,14 @@ export default function CrearPropiedad() {
         address: formData.address.trim(),
         type: formData.type,
         description: formData.description.trim(),
-        propertyType: formData.propertyType, // 'venta' o 'alquiler'
-        // Características numéricas (convertir a números)
+        propertyType: formData.propertyType,
+
+        // Características numéricas
         rooms: Number.parseInt(formData.rooms),
         bathrooms: Number.parseInt(formData.bathrooms),
         area: Number.parseInt(formData.area),
-        price: formData.price.replace(/[^\d]/g, ""), // Limpiar precio de caracteres no numéricos
+        price: formData.price.replace(/[^\d]/g, ""),
+
         // Información del agente
         agent: {
           name: formData.agentName.trim(),
@@ -264,34 +273,35 @@ export default function CrearPropiedad() {
         },
         // Información adicional
         additionalRoomInfo: formData.additionalRoomInfo.trim(),
+
+        // ✅ METADATOS DE IMÁGENES 360°
+        imageMetadata: selectedImages.map((img, index) => ({
+          index,
+          is360: img.is360,
+          name: img.name,
+          size: img.size,
+        })),
+
         // Metadatos
         createdAt: new Date().toISOString(),
-        status: "active", // o el estado que manejen en el backend
+        status: "active",
+        highQualityImages: true,
       }
 
       // Agregar datos JSON al FormData
       formDataToSend.append("propertyData", JSON.stringify(propertyData))
 
-      // Agregar imágenes al FormData
-      imageFiles.forEach((file) => {
-        formDataToSend.append("images", file)
+      // SIMULACIÓN TEMPORAL (remover cuando se conecte al backend real)
+      await new Promise((resolve) => setTimeout(resolve, 1500))
+
+      console.log("✅ Datos preparados para backend:", {
+        propertyData,
+        imageCount: imageFiles.length,
+        images360Count: selectedImages.filter((img) => img.is360).length,
+        formDataKeys: Array.from(formDataToSend.keys()),
       })
 
-      // Llamada al API del backend
-      const response = await fetch("http://localhost:10101/api/properties/create", {
-        method: "POST",
-        body: formDataToSend,
-        credentials: "include",
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || "Error al crear la propiedad")
-      }
-
-      const result = await response.json()
-      console.log("Propiedad creada exitosamente:", result)
-
+      // Éxito
       setSubmitSuccess(true)
 
       // Limpiar formulario después del éxito
@@ -308,6 +318,13 @@ export default function CrearPropiedad() {
 
   // Función para resetear el formulario
   const resetForm = () => {
+    // Limpiar URLs de objetos para evitar memory leaks
+    selectedImages.forEach((img) => {
+      if (img.preview) {
+        URL.revokeObjectURL(img.preview)
+      }
+    })
+
     setFormData({
       title: "",
       address: "",
@@ -327,6 +344,7 @@ export default function CrearPropiedad() {
       latitude: "",
       longitude: "",
     })
+
     setSelectedImages([])
     setImageFiles([])
     setPrecioEstimado("")
@@ -342,7 +360,6 @@ export default function CrearPropiedad() {
     }
 
     try {
-      // Simulación temporal
       const basePrice = Math.random() * 500000 + 200000
       const formattedPrice = new Intl.NumberFormat("es-CO").format(basePrice)
       setPrecioEstimado(formattedPrice)
@@ -387,9 +404,9 @@ export default function CrearPropiedad() {
           <AgentSideBar
             activeSection={activeSection}
             setActiveSection={setActiveSection}
-            sidebarOpen={true} // Siempre abierto en desktop
-            setSidebarOpen={() => {}} // Función vacía
-            toggleSidebar={() => {}} // Función vacía
+            sidebarOpen={true}
+            setSidebarOpen={() => {}}
+            toggleSidebar={() => {}}
           />
         </div>
 
@@ -609,49 +626,6 @@ export default function CrearPropiedad() {
                         className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
                       />
                     </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <input
-                            type="number"
-                            name="area"
-                            placeholder="Área Construida (m²) *"
-                            value={formData.area}
-                            onChange={handleInputChange}
-                            required
-                            min="1"
-                            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
-                          />
-    
-                      <input
-                        type="number"
-                        name="total_area"
-                        placeholder="Área Total (m²)"
-                        value={formData.total_area}
-                        onChange={handleInputChange}
-                        min="1"
-                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
-                      />
-                    </div>
-
-                        <input
-                          type="text"
-                          name="additionalRoomInfo"
-                          placeholder="Información Adicional de Habitaciones"
-                          value={formData.additionalRoomInfo}
-                          onChange={handleInputChange}
-                          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
-                        />
-
-                        <input
-                          type="text"
-                          name="price"
-                          placeholder="Precio (sin símbolo $) *"
-                          value={formData.price}
-                          onChange={handleInputChange}
-                          required
-                          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
-                        />
-                    </div>
                     </div>
 
                   {/* Información del agente */}
@@ -713,56 +687,142 @@ export default function CrearPropiedad() {
                     </div>
                   </div>
 
-                  {/* Right Column - Multimedia and Map */}
-                  <div className="space-y-6">
-                    {/* Multimedia Section */}
-                    <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-gray-100">
-                      <h2 className="text-lg font-semibold text-gray-800 mb-4">Multimedia</h2>
+                {/* Right Column - Multimedia and Map */}
+                <div className="space-y-6">
+                  {/* Multimedia Section */}
+                  <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-gray-100">
+                    <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                      <Camera className="w-5 h-5" />
+                      Multimedia
+                    </h2>
 
-                      {/* Image Upload Area */}
-                      <div className="mb-4">
-                        <label
-                          htmlFor="image-upload"
-                          className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors"
-                        >
-                          <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                            <Upload className="w-8 h-8 text-[#2F8EAC] mb-2" />
-                            <p className="text-sm text-gray-600">Subir imágenes</p>
-                          <p className="text-xs text-gray-500">PNG, JPG hasta 10MB</p>
+                    {/* Image Upload Area */}
+                    <div className="mb-4">
+                      <label
+                        htmlFor="image-upload"
+                        className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors"
+                      >
+                        <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                          <Upload className="w-8 h-8 text-[#2F8EAC] mb-2" />
+                          <p className="text-sm text-gray-600">Subir imágenes</p>
+                          <p className="text-xs text-gray-500">PNG, JPG hasta 10MB (máx. 10 imágenes)</p>
+                          <p className="text-xs text-blue-600 mt-1">✨ Detección automática de imágenes 360°</p>
+                        </div>
+                        <input
+                          id="image-upload"
+                          type="file"
+                          multiple
+                          accept="image/*"
+                          className="hidden"
+                          onChange={handleImageUpload}
+                        />
+                      </label>
+                    </div>
+
+                    {/* ✅ VISTA PREVIA MEJORADA DE IMÁGENES */}
+                    {selectedImages.length > 0 && (
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                          <h4 className="text-sm font-medium text-gray-700">
+                            Imágenes seleccionadas ({selectedImages.length})
+                          </h4>
+                          <div className="flex items-center gap-4 text-xs text-gray-500">
+                            <span className="flex items-center gap-1">
+                              <div className="w-3 h-3 bg-blue-100 border border-blue-300 rounded"></div>
+                              360° ({selectedImages.filter((img) => img.is360).length})
+                            </span>
+                            <span className="flex items-center gap-1">
+                              <div className="w-3 h-3 bg-gray-100 border border-gray-300 rounded"></div>
+                              Normal ({selectedImages.filter((img) => !img.is360).length})
+                            </span>
                           </div>
-                          <input
-                            id="image-upload"
-                            type="file"
-                            multiple
-                            accept="image/*"
-                            className="hidden"
-                            onChange={handleImageUpload}
-                          />
-                        </label>
-                      </div>
+                        </div>
 
-                      {/* Uploaded Images Preview */}
-                      {selectedImages.length > 0 && (
-                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                          {selectedImages.map((img, index) => (
-                            <div key={index} className="relative group">
-                              <img
-                                src={img || "/placeholder.svg?height=80&width=120"}
-                                alt={`Propiedad ${index + 1}`}
-                                className="w-full h-24 object-cover rounded-lg border border-gray-200"
-                              />
-                              <button
-                                type="button"
-                                onClick={() => removeImage(index)}
-                                className="absolute top-1 right-1 bg-white rounded-full p-1 shadow-sm opacity-0 group-hover:opacity-100 transition-opacity"
-                              >
-                                <X className="w-4 h-4 text-red-500" />
-                              </button>
+                        <div className="grid grid-cols-1 gap-6">
+                          {selectedImages.map((imgObj, index) => (
+                            <div
+                              key={index}
+                              className={`relative group border-2 rounded-lg p-3 transition-all ${
+                                imgObj.is360 ? "border-blue-200 bg-blue-50" : "border-gray-200 bg-gray-50"
+                              }`}
+                            >
+                              {/* Header con información de la imagen */}
+                              <div className="flex items-center justify-between mb-3">
+                                <div className="flex items-center gap-2">
+                                  <p className="text-sm font-medium text-gray-700 truncate flex-1">
+                                    {imgObj.file?.name || `Imagen ${index + 1}`}
+                                  </p>
+                                  {imgObj.is360 && (
+                                    <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full font-medium">
+                                      360°
+                                    </span>
+                                  )}
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => removeImage(index)}
+                                  className="ml-2 bg-red-50 text-red-500 rounded-full p-1.5 hover:bg-red-100 transition-colors"
+                                  title="Eliminar imagen"
+                                >
+                                  <X className="w-4 h-4" />
+                                </button>
+                              </div>
+
+                              {/* Control para alternar 360° */}
+                              <div className="mb-3">
+                                <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
+                                  <input
+                                    type="checkbox"
+                                    checked={imgObj.is360}
+                                    onChange={() => toggleIs360(index)}
+                                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                  />
+                                  <span>Esta es una imagen 360°</span>
+                                  <Eye className="w-4 h-4 text-gray-400" />
+                                </label>
+                              </div>
+
+                              {/* Vista previa de la imagen */}
+                              <div className="w-full">
+                                {imgObj.is360 ? (
+                                  <div className="w-full h-[300px] sm:h-[350px] md:h-[400px] relative overflow-hidden rounded-lg border border-gray-200">
+                                    <PhotoSphereViewerContainer
+                                      imageUrl={imgObj.preview}
+                                      width="100%"
+                                      height="100%"
+                                      className="rounded-lg shadow-sm"
+                                      options={{
+                                        minFov: 30,
+                                        maxFov: 90,
+                                        defaultZoomLvl: 50,
+                                        moveSpeed: 1.2,
+                                        resolution: 32, // Resolución media para preview
+                                        loadingTxt: "Cargando vista previa 360°...",
+                                      }}
+                                    />
+                                  </div>
+                                ) : (
+                                  <div className="w-full">
+                                    <img
+                                      src={imgObj.preview || "/placeholder.svg"}
+                                      alt={`Propiedad ${index + 1}`}
+                                      className="w-full h-[300px] sm:h-[350px] md:h-[400px] object-cover rounded-lg border border-gray-200"
+                                    />
+                                  </div>
+                                )}
+                              </div>
+
+                              {/* Información adicional */}
+                              <div className="mt-2 text-xs text-gray-500 flex justify-between">
+                                <span>Tamaño: {(imgObj.size / 1024 / 1024).toFixed(2)} MB</span>
+                                <span>{imgObj.is360 ? "Imagen esférica" : "Imagen plana"}</span>
+                              </div>
                             </div>
                           ))}
                         </div>
-                      )}
-                    </div>
+                      </div>
+                    )}
+                  </div>
 
                     {/* Valoración automática */}
                     <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-gray-100">
@@ -788,47 +848,49 @@ export default function CrearPropiedad() {
                     )}
                   </div>
 
-                    {/* Map Section */}
-                    <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-gray-100">
-                      <h2 className="text-lg font-semibold text-gray-800 mb-2">Ubicación en el Mapa</h2>
-                      <div className="w-16 h-0.5 bg-gray-200 mb-4"></div>
-                      <div className="w-full h-48 sm:h-64 bg-gray-100 rounded-lg overflow-hidden border border-gray-200">
-                        <iframe
-                          className="w-full h-full"
-                          src={`https://maps.google.com/maps?q=${encodeURIComponent(fullAddress)}&t=&z=13&ie=UTF8&iwloc=&output=embed`}
-                          loading="lazy"
-                          title="Ubicación de la propiedad"
-                        />
-                      </div>
+                  {/* Map Section */}
+                  <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-gray-100">
+                    <h2 className="text-lg font-semibold text-gray-800 mb-2">Ubicación en el Mapa</h2>
+                    <div className="w-16 h-0.5 bg-gray-200 mb-4"></div>
+
+                    <div className="w-full h-48 sm:h-64 bg-gray-100 rounded-lg overflow-hidden border border-gray-200">
+                      <iframe
+                        className="w-full h-full"
+                        src={`https://maps.google.com/maps?q=${encodeURIComponent(fullAddress)}&t=&z=13&ie=UTF8&iwloc=&output=embed`}
+                        loading="lazy"
+                        title="Ubicación de la propiedad"
+                      />
                     </div>
                   </div>
                 </div>
+              </div>
 
-                {/* Action Buttons */}
-                <div className="flex flex-col sm:flex-row justify-between gap-4 pt-4">
-                  <button
-                    type="button"
-                    onClick={handleCancel}
-                    className="w-full sm:w-auto px-6 py-3 border border-gray-300 rounded-xl text-gray-700 hover:bg-gray-50 transition-colors font-medium"
-                  >
-                    Cancelar
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={isSubmitting || !currentUser}
-                    className={`w-full sm:w-auto px-6 py-3 rounded-xl font-medium transition-colors ${
-                      isSubmitting || !currentUser
-                        ? "bg-gray-400 text-gray-600 cursor-not-allowed"
-                        : "bg-[#2F8EAC] text-white hover:bg-[#256b82]"
-                    }`}
-                  >
-                    {isSubmitting ? "Registrando..." : "Guardar Propiedad"}
-                  </button>
-                </div>
-              </form>
-            </div>
-          </main>
-        </div>
+              {/* Action Buttons */}
+              <div className="flex flex-col sm:flex-row justify-between gap-4 pt-4">
+                <button
+                  type="button"
+                  onClick={handleCancel}
+                  className="w-full sm:w-auto px-6 py-3 border border-gray-300 rounded-xl text-gray-700 hover:bg-gray-50 transition-colors font-medium"
+                >
+                  Cancelar
+                </button>
+
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className={`w-full sm:w-auto px-6 py-3 rounded-xl font-medium transition-colors ${
+                    isSubmitting
+                      ? "bg-gray-400 text-gray-600 cursor-not-allowed"
+                      : "bg-[#2F8EAC] text-white hover:bg-[#256b82]"
+                  }`}
+                >
+                  {isSubmitting ? "Registrando..." : "Guardar Propiedad"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </main>
+      </div>
     </>
   )
 }

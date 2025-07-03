@@ -8,83 +8,11 @@ import { useNavigate } from "react-router-dom"
 import { AgentDetailsModal } from "../AgentDetailsModal/AgentDetailsModal"
 import { AgentEditModal } from "../AgentEditModal/AgentEditModal"
 
-// Datos de agentes simulados iniciales
-const agentesIniciales = [
-  {
-    id: 1,
-    name: "Karina Tabares",
-    email: "karina25@gmail.com",
-    phone: "3214567890",
-    propertyCount: 8,
-    rating: 5,
-    status: "Activo",
-    specialties: ["Ventas", "Alquileres"],
-    avatar: null,
-    createdAt: "2024-01-15T10:00:00Z",
-    totalSales: 15,
-    description: "Especialista en propiedades residenciales con más de 5 años de experiencia",
-  },
-  {
-    id: 2,
-    name: "Mariano Quiroga",
-    email: "mariano23@gmail.com",
-    phone: "3214567891",
-    propertyCount: 7,
-    rating: 4,
-    status: "Activo",
-    specialties: ["Comercial", "Terrenos"],
-    avatar: null,
-    createdAt: "2024-01-10T14:30:00Z",
-    totalSales: 12,
-    description: "Experto en propiedades comerciales y desarrollo de terrenos",
-  },
-  {
-    id: 3,
-    name: "Nathaly Rodriguez",
-    email: "nathaly2@gmail.com",
-    phone: "3214567892",
-    propertyCount: 10,
-    rating: 5,
-    status: "Activo",
-    specialties: ["Lujo", "Inversión"],
-    avatar: null,
-    createdAt: "2024-01-08T09:15:00Z",
-    totalSales: 20,
-    description: "Especialista en propiedades de lujo y asesoramiento en inversiones",
-  },
-  {
-    id: 4,
-    name: "Manuel Vargas",
-    email: "manuel26@gmail.com",
-    phone: "3214567893",
-    propertyCount: 12,
-    rating: 4,
-    status: "Activo",
-    specialties: ["Residencial", "Primera Vivienda"],
-    avatar: null,
-    createdAt: "2024-01-05T16:45:00Z",
-    totalSales: 18,
-    description: "Experto en ayudar a familias a encontrar su primera vivienda",
-  },
-  {
-    id: 5,
-    name: "Santiago Taborda",
-    email: "santiago30@gmail.com",
-    phone: "3214567894",
-    propertyCount: 9,
-    rating: 4,
-    status: "Inactivo",
-    specialties: ["Alquileres", "Administración"],
-    avatar: null,
-    createdAt: "2024-01-03T11:20:00Z",
-    totalSales: 8,
-    description: "Especialista en gestión de alquileres y administración de propiedades",
-  },
-]
-
 export const GestionAgents = () => {
   const navigate = useNavigate()
-  const [agentes, setAgentes] = useState(agentesIniciales)
+  const [agentes, setAgentes] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
   const [filtros, setFiltros] = useState({
     estado: "",
     especialidad: "",
@@ -95,7 +23,6 @@ export const GestionAgents = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   // Estado de autenticación simulado
   const [isAuthenticated, setIsAuthenticated] = useState(true)
-
   // Estados para los modales
   const [selectedAgent, setSelectedAgent] = useState(null)
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false)
@@ -106,13 +33,63 @@ export const GestionAgents = () => {
     setIsSidebarOpen(!isSidebarOpen)
   }
 
-  // Función para cargar agentes (preparada para backend)
+  // Función para cargar agentes desde el backend
   const cargarAgentes = async () => {
     try {
-      // AQUÍ SE CONECTARÁ CON EL BACKEND
-      // Por ahora mantenemos los agentes iniciales
+      setLoading(true)
+      setError(null)
+
+    const token = localStorage.getItem("authToken")
+      if (!token) {
+        setError("Token no disponible. Por favor, inicia sesión nuevamente.")
+        setLoading(false)
+        return
+      }
+
+      const response = await fetch("http://localhost:10101/api/agentes-info", {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      })
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.message || `Error ${response.status}: ${response.statusText}`)
+      }
+
+      const data = await response.json()
+      console.log("Datos recibidos del backend:", data)
+
+      // Verificar si data es un array
+      if (!Array.isArray(data)) {
+        throw new Error("Los datos recibidos no son un array válido")
+      }
+
+      // Adaptar los datos del backend al formato esperado en el frontend
+      const agentesAdaptados = data.map((agente) => ({
+        id: agente.person_id.toString(),
+        name: `${agente.name_person} ${agente.last_name}`.trim(),
+        email: agente.email,
+        phone: agente.phone,
+        propertyCount: Math.floor(Math.random() * 10 + 1), // Reemplazar si tienes este dato
+        rating: Math.floor(Math.random() * 5 + 1), // Reemplazar si tienes este dato
+        status: "Activo", // Reemplazar si viene del backend
+        specialties: ["General"], // Reemplazar si viene del backend
+        avatar: null,
+        createdAt: "2024-01-01T00:00:00Z",
+        totalSales: 0,
+        description: "Agente inmobiliario",
+      }))
+
+      setAgentes(agentesAdaptados)
+      console.log("Agentes cargados exitosamente:", agentesAdaptados)
     } catch (error) {
       console.error("Error al cargar agentes:", error)
+      setError(`Error al cargar agentes: ${error.message}`)
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -128,14 +105,31 @@ export const GestionAgents = () => {
     }
 
     try {
-      // AQUÍ SE CONECTARÁ CON EL BACKEND
-      // Por ahora eliminamos localmente
-      setAgentes((prev) => prev.filter((agente) => agente.id !== id))
+      const token = localStorage.getItem("token")
+      if (!token) {
+        alert("Token no disponible")
+        return
+      }
 
+      const response = await fetch(`http://localhost:10101/api/agents/${id}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.message || "Error al eliminar agente")
+      }
+
+      // Eliminar localmente después de confirmar eliminación en el backend
+      setAgentes((prev) => prev.filter((agente) => agente.id !== id))
       console.log(`Agente ${id} eliminado exitosamente`)
     } catch (error) {
       console.error("Error al eliminar agente:", error)
-      alert("Error al eliminar el agente")
+      alert(`Error al eliminar el agente: ${error.message}`)
     }
   }
 
@@ -158,14 +152,41 @@ export const GestionAgents = () => {
   }
 
   // Función para guardar cambios del agente
-  const handleSaveAgent = (updatedAgent) => {
-    setAgentes((prev) => prev.map((agent) => (agent.id === updatedAgent.id ? updatedAgent : agent)))
-    console.log("Agente actualizado:", updatedAgent)
+  const handleSaveAgent = async (updatedAgent) => {
+    try {
+      const token = localStorage.getItem("token")
+      if (!token) {
+        alert("Token no disponible")
+        return
+      }
+
+      const response = await fetch(`http://localhost:10101/api/agents/${updatedAgent.id}`, {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(updatedAgent),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.message || "Error al actualizar agente")
+      }
+
+      // Actualizar localmente después de confirmar actualización en el backend
+      setAgentes((prev) => prev.map((agent) => (agent.id === updatedAgent.id ? updatedAgent : agent)))
+      console.log("Agente actualizado:", updatedAgent)
+    } catch (error) {
+      console.error("Error al actualizar agente:", error)
+      alert(`Error al actualizar el agente: ${error.message}`)
+    }
   }
 
   // Función para manejar logout
   const handleLogout = () => {
     console.log("Cerrando sesión...")
+    localStorage.removeItem("token")
     setIsAuthenticated(false)
   }
 
@@ -187,7 +208,8 @@ export const GestionAgents = () => {
 
     const cumpleEspecialidad =
       !filtros.especialidad ||
-      agente.specialties.some((spec) => spec.toLowerCase().includes(filtros.especialidad.toLowerCase()))
+      (Array.isArray(agente.specialties) &&
+        agente.specialties.some((spec) => spec.toLowerCase().includes(filtros.especialidad.toLowerCase())))
 
     return cumpleBusqueda && cumpleEstado && cumpleEspecialidad
   })
@@ -212,7 +234,77 @@ export const GestionAgents = () => {
   }
 
   // Obtener especialidades únicas para el filtro
-  const especialidadesUnicas = [...new Set(agentes.flatMap((a) => a.specialties))]
+  const especialidadesUnicas = [
+    ...new Set(agentes.filter((a) => Array.isArray(a.specialties)).flatMap((a) => a.specialties)),
+  ]
+
+  // Mostrar loading
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Header hasSidebar={true} toggleSidebar={toggleSidebar} />
+        <div className="flex pt-16">
+          <div className="hidden lg:block fixed left-0 top-16 h-[calc(100vh-4rem)] w-72 bg-white shadow-lg border-r border-gray-200 overflow-y-auto z-30">
+            <SidebarInmobiliaria
+              isOpen={true}
+              toggleMenu={() => {}}
+              isAuthenticated={isAuthenticated}
+              handleLogout={handleLogout}
+              isFixedLayout={true}
+            />
+          </div>
+          <main className="flex-1 lg:ml-72 transition-all duration-300">
+            <div className="p-4 sm:p-6">
+              <div className="flex items-center justify-center min-h-[400px]">
+                <div className="text-center">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#2F8EAC] mx-auto mb-4"></div>
+                  <p className="text-gray-600">Cargando agentes...</p>
+                </div>
+              </div>
+            </div>
+          </main>
+        </div>
+      </div>
+    )
+  }
+
+  // Mostrar error
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Header hasSidebar={true} toggleSidebar={toggleSidebar} />
+        <div className="flex pt-16">
+          <div className="hidden lg:block fixed left-0 top-16 h-[calc(100vh-4rem)] w-72 bg-white shadow-lg border-r border-gray-200 overflow-y-auto z-30">
+            <SidebarInmobiliaria
+              isOpen={true}
+              toggleMenu={() => {}}
+              isAuthenticated={isAuthenticated}
+              handleLogout={handleLogout}
+              isFixedLayout={true}
+            />
+          </div>
+          <main className="flex-1 lg:ml-72 transition-all duration-300">
+            <div className="p-4 sm:p-6">
+              <div className="flex items-center justify-center min-h-[400px]">
+                <div className="text-center">
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-6 max-w-md">
+                    <h3 className="text-lg font-semibold text-red-800 mb-2">Error al cargar agentes</h3>
+                    <p className="text-red-600 mb-4">{error}</p>
+                    <button
+                      onClick={cargarAgentes}
+                      className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
+                    >
+                      Reintentar
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </main>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -381,7 +473,11 @@ export const GestionAgents = () => {
                                 </div>
                                 <div>
                                   <div className="text-sm font-semibold text-gray-900">{agente.name}</div>
-                                  <div className="text-xs text-gray-500">{agente.specialties.join(", ")}</div>
+                                  <div className="text-xs text-gray-500">
+                                    {Array.isArray(agente.specialties)
+                                      ? agente.specialties.join(", ")
+                                      : agente.specialties}
+                                  </div>
                                   <span
                                     className={`inline-flex px-2 py-1 text-xs font-medium rounded-full mt-1 ${getEstadoColor(agente.status)}`}
                                   >
@@ -459,7 +555,11 @@ export const GestionAgents = () => {
                               <div className="flex items-start justify-between">
                                 <div>
                                   <h3 className="text-sm font-semibold text-gray-900 truncate">{agente.name}</h3>
-                                  <p className="text-xs text-gray-500 mt-1">{agente.specialties.join(", ")}</p>
+                                  <p className="text-xs text-gray-500 mt-1">
+                                    {Array.isArray(agente.specialties)
+                                      ? agente.specialties.join(", ")
+                                      : agente.specialties}
+                                  </p>
                                 </div>
                                 <span
                                   className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${getEstadoColor(agente.status)}`}
@@ -469,6 +569,7 @@ export const GestionAgents = () => {
                               </div>
                             </div>
                           </div>
+
                           <div className="space-y-2 mb-3">
                             <div className="flex items-center gap-2 text-sm text-gray-600">
                               <Mail className="w-4 h-4 flex-shrink-0" />
@@ -479,6 +580,7 @@ export const GestionAgents = () => {
                               <span>{agente.phone}</span>
                             </div>
                           </div>
+
                           <div className="flex items-center justify-between mb-3">
                             <div className="flex items-center gap-4">
                               <div className="text-center">
@@ -488,6 +590,7 @@ export const GestionAgents = () => {
                               <div className="flex items-center gap-1">{renderStars(agente.rating)}</div>
                             </div>
                           </div>
+
                           <div className="flex items-center justify-end gap-2">
                             <button
                               onClick={() => verAgente(agente.id)}

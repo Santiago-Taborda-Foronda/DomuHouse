@@ -9,7 +9,7 @@ import { ChatDomu } from "../../UI/ChatDomu/ChatDomu"
 import { Button } from "../../UI/Button/Button"
 import "../../../App"
 
-const PropertyCard = ({ address, title, rooms, bathrooms, area, price, type, agentName, onClick }) => {
+const PropertyCard = ({ address, title, rooms, bathrooms, area, price, type, agentName, imageUrl, onClick }) => {
   // Función para obtener el color y texto de la etiqueta según el tipo
   const getOperationStyle = (operationType) => {
     switch (operationType?.toLowerCase()) {
@@ -28,12 +28,12 @@ const PropertyCard = ({ address, title, rooms, bathrooms, area, price, type, age
   // ✅ FUNCIÓN MEJORADA PARA LAS INICIALES
   const getAgentInitials = (name) => {
     if (!name || name.trim() === "" || name === "Agente") return "AG"
-    
+
     return name
       .trim()
       .split(" ")
-      .filter(n => n.length > 0) // Filtrar espacios vacíos
-      .map(n => n[0])
+      .filter((n) => n.length > 0) // Filtrar espacios vacíos
+      .map((n) => n[0])
       .join("")
       .substring(0, 2)
       .toUpperCase()
@@ -45,8 +45,31 @@ const PropertyCard = ({ address, title, rooms, bathrooms, area, price, type, age
     return name.trim()
   }
 
-  // ✅ DEBUG: Agregar console.log para verificar
-  console.log("PropertyCard recibió:", { agentName, title })
+  // ✅ FUNCIÓN PARA MANEJAR ERRORES DE IMAGEN
+  const handleImageError = (e) => {
+    console.log("Error cargando imagen:", imageUrl)
+    e.target.src = Casa // Fallback a imagen por defecto
+  }
+
+  // ✅ FUNCIÓN MEJORADA PARA MANEJAR URLs DE CLOUDINARY
+  const getImageUrl = () => {
+    if (!imageUrl) return Casa
+
+    // Si ya es una URL completa de Cloudinary o cualquier servicio, usarla directamente
+    if (imageUrl.startsWith("http://") || imageUrl.startsWith("https://")) {
+      return imageUrl
+    }
+
+    // Si es una ruta relativa, construir la URL completa
+    if (imageUrl.startsWith("/")) {
+      return `https://domuhouse-express.onrender.com${imageUrl}`
+    }
+
+    // Si no tiene protocolo ni slash inicial, asumir que es una ruta relativa
+    return `https://domuhouse-express.onrender.com/${imageUrl}`
+  }
+
+  console.log("PropertyCard recibió:", { agentName, title, imageUrl })
 
   return (
     <div
@@ -55,7 +78,13 @@ const PropertyCard = ({ address, title, rooms, bathrooms, area, price, type, age
     >
       {/* Imagen de la propiedad con etiqueta de tipo */}
       <div className="relative w-full h-40 sm:h-44 md:h-48 lg:h-52">
-        <img src={Casa || "/placeholder.svg"} alt="Propiedad" className="w-full h-full object-cover" />
+        <img
+          src={getImageUrl() || "/placeholder.svg"}
+          alt={title || "Propiedad"}
+          className="w-full h-full object-cover"
+          onError={handleImageError}
+          loading="lazy"
+        />
         {/* Etiqueta de tipo de operación */}
         <div
           className={`absolute top-3 right-3 ${operationStyle.bg} text-white px-3 py-1 rounded-full text-xs sm:text-sm font-medium`}
@@ -131,27 +160,37 @@ export const Main = () => {
   // ✅ DEBUG: Para verificar propiedades cargadas
   useEffect(() => {
     if (properties.length > 0) {
-      console.log("🔍 Propiedades cargadas:", properties.slice(0, 2).map(p => ({
-        id: p.property_id,
-        title: p.property_title,
-        agent_name: p.agent_name,
-        name_person: p.name_person,
-        last_name: p.last_name
-      })))
+      console.log(
+        "🔍 Propiedades cargadas:",
+        properties.slice(0, 2).map((p) => ({
+          id: p.property_id,
+          title: p.property_title,
+          agent_name: p.agent_name,
+          name_person: p.name_person,
+          last_name: p.last_name,
+          // ✅ Agregar debug de imágenes
+          main_image_url: p.main_image_url,
+          image_url: p.image_url,
+          has_images: p.has_images,
+          image_count: p.image_count,
+        })),
+      )
     }
   }, [properties])
 
-  // Cargar propiedades iniciales
+  // ✅ Cargar propiedades con imágenes principales
   useEffect(() => {
     const fetchProperties = async () => {
       setIsLoading(true)
       try {
-        const res = await fetch("http://localhost:10101/api/properties/approved")
+        // ✅ Usar la nueva ruta que incluye las imágenes principales
+        const res = await fetch("https://domuhouse-express.onrender.com/api/properties/with-images")
         if (!res.ok) {
           throw new Error(`HTTP error! status: ${res.status}`)
         }
         const data = await res.json()
-        console.log("Datos recibidos:", data)
+        console.log("Datos recibidos con imágenes:", data)
+
         if (data.success && Array.isArray(data.properties)) {
           setProperties(data.properties)
         } else if (Array.isArray(data)) {
@@ -163,8 +202,25 @@ export const Main = () => {
         setError(null)
       } catch (error) {
         console.error("Error al cargar propiedades:", error)
-        setError("Error al cargar propiedades: " + error.message)
-        setProperties([])
+        // ✅ Fallback a la ruta original si la nueva no existe
+        try {
+          console.log("🔄 Intentando con ruta original...")
+          const fallbackRes = await fetch("http://localhost:10101/api/properties/approved")
+          if (fallbackRes.ok) {
+            const fallbackData = await fallbackRes.json()
+            if (fallbackData.success && Array.isArray(fallbackData.properties)) {
+              setProperties(fallbackData.properties)
+            } else if (Array.isArray(fallbackData)) {
+              setProperties(fallbackData)
+            }
+            setError(null)
+          } else {
+            throw new Error("Ambas rutas fallaron")
+          }
+        } catch (fallbackError) {
+          setError("Error al cargar propiedades: " + error.message)
+          setProperties([])
+        }
       } finally {
         setIsLoading(false)
       }
@@ -323,6 +379,7 @@ export const Main = () => {
     }
 
     const propId = property.property_id || property.id
+
     if (!propId) {
       console.error("La propiedad no tiene un ID válido:", property)
       return
@@ -362,20 +419,34 @@ export const Main = () => {
     })
     setPriceRange(500000000)
     setShowAdvanced(false)
-    setIsLoading(true)
 
+    setIsLoading(true)
     try {
-      const res = await fetch(`https://domuhouse-express.onrender.com/api/properties/approved`)
+      // ✅ Usar la nueva ruta con imágenes
+      const res = await fetch(`https://domuhouse-express.onrender.com/api/properties/with-images`)
       if (!res.ok) {
-        throw new Error(`HTTP error! status: ${res.status}`)
-      }
-      const data = await res.json()
-      if (data.success && Array.isArray(data.properties)) {
-        setProperties(data.properties)
-      } else if (Array.isArray(data)) {
-        setProperties(data)
+        // Fallback a la ruta original
+        const fallbackRes = await fetch(`https://domuhouse-express.onrender.com/api/properties/approved`)
+        if (!fallbackRes.ok) {
+          throw new Error(`HTTP error! status: ${fallbackRes.status}`)
+        }
+        const fallbackData = await fallbackRes.json()
+        if (fallbackData.success && Array.isArray(fallbackData.properties)) {
+          setProperties(fallbackData.properties)
+        } else if (Array.isArray(fallbackData)) {
+          setProperties(fallbackData)
+        } else {
+          setProperties([])
+        }
       } else {
-        setProperties([])
+        const data = await res.json()
+        if (data.success && Array.isArray(data.properties)) {
+          setProperties(data.properties)
+        } else if (Array.isArray(data)) {
+          setProperties(data)
+        } else {
+          setProperties([])
+        }
       }
       setError(null)
     } catch (error) {
@@ -384,6 +455,80 @@ export const Main = () => {
     } finally {
       setIsLoading(false)
     }
+  }
+
+  // ✅ FUNCIÓN PARA OBTENER LA IMAGEN PRINCIPAL DE LA PROPIEDAD
+  const getPropertyImage = (property) => {
+    // ✅ Priorizar los nuevos campos procesados por la API
+    if (property.main_image_url) {
+      return property.main_image_url
+    }
+
+    if (property.image_url) {
+      return property.image_url
+    }
+
+    // ✅ Fallback: intentar extraer de los campos originales
+    const possibleImageFields = [
+      "image",
+      "images",
+      "main_image",
+      "primary_image",
+      "featured_image",
+      "property_images",
+      "photo_url",
+      "picture_url",
+    ]
+
+    for (const field of possibleImageFields) {
+      const imageValue = property[field]
+
+      if (imageValue) {
+        // Si es un string JSON, intentar parsearlo
+        if (typeof imageValue === "string" && imageValue.trim() !== "") {
+          try {
+            const parsedImages = JSON.parse(imageValue)
+
+            // Si es un array, tomar la primera imagen
+            if (Array.isArray(parsedImages) && parsedImages.length > 0) {
+              return parsedImages[0]
+            }
+
+            // Si es un objeto con estructura normales/esféricas
+            if (typeof parsedImages === "object") {
+              if (parsedImages.normales && Array.isArray(parsedImages.normales) && parsedImages.normales.length > 0) {
+                return parsedImages.normales[0]
+              }
+              if (
+                parsedImages.esfericas &&
+                Array.isArray(parsedImages.esfericas) &&
+                parsedImages.esfericas.length > 0
+              ) {
+                return parsedImages.esfericas[0]
+              }
+            }
+          } catch (parseError) {
+            // Si no se puede parsear, asumir que es una URL directa
+            if (imageValue.startsWith("http") || imageValue.startsWith("/")) {
+              return imageValue
+            }
+          }
+        }
+
+        // Si es un array directamente
+        if (Array.isArray(imageValue) && imageValue.length > 0) {
+          return imageValue[0].url || imageValue[0].image_url || imageValue[0]
+        }
+
+        // Si es un objeto con url
+        if (typeof imageValue === "object" && imageValue.url) {
+          return imageValue.url
+        }
+      }
+    }
+
+    // Si no se encuentra ninguna imagen, devolver null para usar el fallback
+    return null
   }
 
   return (
@@ -420,6 +565,7 @@ export const Main = () => {
             >
               {isLoading && filters.operation_type === "Venta" ? "Buscando..." : "Venta"}
             </button>
+
             <button
               type="button"
               onClick={(e) => {
@@ -505,6 +651,7 @@ export const Main = () => {
                 <span className="sm:hidden">Búsqueda Avanzada</span>
                 <LuSettings2 className="text-lg lg:text-xl" />
               </button>
+
               <button
                 type="submit"
                 className="bg-[#2F8EAC] text-white rounded-full px-4 sm:px-6 lg:px-8 py-2 text-sm hover:bg-[#2F8EAC]/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300"
@@ -611,6 +758,7 @@ export const Main = () => {
         <h3 className="text-base xs:text-lg sm:text-xl lg:text-2xl text-[#2F8EAC] text-center font-medium">
           Propiedades Destacadas
         </h3>
+
         <h2 className="text-xl xs:text-2xl sm:text-3xl lg:text-4xl font-bold text-center px-3 xs:px-4 sm:px-6 lg:px-8 leading-tight mb-4 xs:mb-6 sm:mb-8">
           Recomendaciones Para Ti
         </h2>
@@ -643,20 +791,29 @@ export const Main = () => {
             ) : properties.length > 0 ? (
               properties.map((property, index) => {
                 const uniqueId = property.property_id || property.id || property.ID || `property-${index}`
-                
+
                 // ✅ LÓGICA CORREGIDA PARA EL NOMBRE DEL AGENTE
-                const agentFullName = 
+                const agentFullName =
                   property.agent_name?.trim() || // Primero intenta usar agent_name que viene de la BD
-                  (property.name_person && property.last_name 
+                  (property.name_person && property.last_name
                     ? `${property.name_person.trim()} ${property.last_name.trim()}`.trim()
                     : property.name_person?.trim() || property.last_name?.trim() || "Agente")
 
-                console.log("🔍 Debug agente:", {
+                // ✅ OBTENER LA IMAGEN DE LA PROPIEDAD
+                const propertyImage = getPropertyImage(property)
+
+                console.log("🔍 Debug propiedad:", {
                   property_id: property.property_id,
+                  title: property.property_title,
                   agent_name: property.agent_name,
                   name_person: property.name_person,
                   last_name: property.last_name,
-                  agentFullName: agentFullName
+                  agentFullName: agentFullName,
+                  propertyImage: propertyImage,
+                  main_image_url: property.main_image_url,
+                  image_url: property.image_url,
+                  has_images: property.has_images,
+                  image_count: property.image_count,
                 })
 
                 return (
@@ -672,11 +829,13 @@ export const Main = () => {
                     price={property.price ? property.price.toLocaleString() : "0"}
                     type={property.operation_type || property.tipo_operacion}
                     agentName={agentFullName} // ✅ Aquí se pasa el nombre correcto
+                    imageUrl={propertyImage} // ✅ Aquí se pasa la imagen de la propiedad
                     onClick={() => {
                       console.log("🔍 Propiedad clickeada:", {
                         id: property.property_id,
                         agent_name: property.agent_name,
-                        agentFullName: agentFullName
+                        agentFullName: agentFullName,
+                        image: propertyImage,
                       })
                       handlePropertyClick(property)
                     }}

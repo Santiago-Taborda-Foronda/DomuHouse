@@ -37,35 +37,45 @@ export const SidebarInmobiliaria = ({ isOpen, toggleMenu, isAuthenticated, handl
 };
 
 
-  const [inmobiliariaData, setInmobiliariaData] = useState({
-    name: "",
-    nit: "",
-    responsible: "",
-  });
+ const [inmobiliariaData, setInmobiliariaData] = useState({
+  name_realestate: "",
+  nit: "",
+  responsible: ""
+});
 
-  useEffect(() => {
-    const fetchRealEstate = async () => {
-      try {
-        const user = JSON.parse(localStorage.getItem("user"));
-              console.log("👤 user from localStorage:", user); // 👈 asegúrate que tiene id
 
-        if (!user?.id) return;
 
-        const res = await axios.get(`http://localhost:10101/api/inmobiliarias/admin/${user.id}`);
-        console.log("📦 Datos de inmobiliaria:", res.data);
-        setInmobiliariaData({
-            name: res.data.name_realestate,
-            nit: res.data.nit,
-            responsible: res.data.responsible
-          });
+useEffect(() => {
+  const fetchRealEstate = async () => {
+    try {
+      const interval = setInterval(() => {
+      const user = JSON.parse(localStorage.getItem("userData"));
+        if (user?.id) {
+          clearInterval(interval); // detener cuando se encuentre
+          console.log("👤 user from localStorage (sidebar):", user);
 
-      } catch (error) {
-        console.error("Error al cargar la inmobiliaria:", error);
-      }
-    };
+          axios.get(`http://localhost:10101/api/admin/${user.id}/real-estate`)
+            .then((res) => {
+              console.log("📦 Datos de inmobiliaria:", res.data);
+              setInmobiliariaData(res.data);
+            })
+            .catch((error) => {
+              console.error("Error al cargar la inmobiliaria:", error);
+            });
+        }
+      }, 100); // revisar cada 100ms
+    } catch (error) {
+      console.error("❌ Error en interval:", error);
+    }
+  };
 
-    fetchRealEstate();
-  }, []);
+  fetchRealEstate();
+}, []);
+
+
+
+  
+ 
   // Componente personalizado para elementos del menú con estado activo
   const MenuItem = ({ icon: Icon, label, route, subtitle = null }) => {
     const isActive = isActiveRoute(route)
@@ -97,7 +107,7 @@ export const SidebarInmobiliaria = ({ isOpen, toggleMenu, isAuthenticated, handl
         <div className="text-center mb-8 pb-4 border-b border-gray-100">
           {/* Nombre de la inmobiliaria */}
           <h1 className="text-lg font-bold text-[#2F8EAC] title-montserrat leading-tight mb-1">
-            {truncateText(inmobiliariaData.name, 40)}
+            {truncateText(inmobiliariaData.name_realestate, 40)}
           </h1>
           {/* Portal de Administrador como subtítulo */}
           <p className="text-sm text-gray-600 title-montserrat">Portal de Administrador</p>

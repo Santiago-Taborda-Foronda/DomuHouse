@@ -205,7 +205,7 @@ export const Main = () => {
         // ✅ Fallback a la ruta original si la nueva no existe
         try {
           console.log("🔄 Intentando con ruta original...")
-          const fallbackRes = await fetch("http://localhost:10101/api/properties/approved")
+          const fallbackRes = await fetch("https://domuhouse-express.onrender.com/api/properties/approved")
           if (fallbackRes.ok) {
             const fallbackData = await fallbackRes.json()
             if (fallbackData.success && Array.isArray(fallbackData.properties)) {

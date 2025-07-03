@@ -150,6 +150,7 @@ export const VentasAlquileresAdmin = () => {
     const propiedadesDisponibles = propiedades.filter((p) => p.estado === "Disponible").length
     const propiedadesOcupadas = propiedades.filter((p) => p.estado === "Ocupado").length
 
+    
     return {
       totalVentas: ventasEstesMes,
       totalAlquileres: alquileresActivos,

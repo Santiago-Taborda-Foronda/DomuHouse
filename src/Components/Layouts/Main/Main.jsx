@@ -1,3 +1,5 @@
+"use client"
+
 import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import Casa from "../../../assets/images/casLujo2.jpg"
@@ -22,6 +24,29 @@ const PropertyCard = ({ address, title, rooms, bathrooms, area, price, type, age
   }
 
   const operationStyle = getOperationStyle(type)
+
+  // ✅ FUNCIÓN MEJORADA PARA LAS INICIALES
+  const getAgentInitials = (name) => {
+    if (!name || name.trim() === "" || name === "Agente") return "AG"
+    
+    return name
+      .trim()
+      .split(" ")
+      .filter(n => n.length > 0) // Filtrar espacios vacíos
+      .map(n => n[0])
+      .join("")
+      .substring(0, 2)
+      .toUpperCase()
+  }
+
+  // ✅ FUNCIÓN MEJORADA PARA FORMATEAR EL NOMBRE
+  const formatAgentName = (name) => {
+    if (!name || name.trim() === "") return "Agente"
+    return name.trim()
+  }
+
+  // ✅ DEBUG: Agregar console.log para verificar
+  console.log("PropertyCard recibió:", { agentName, title })
 
   return (
     <div
@@ -69,15 +94,11 @@ const PropertyCard = ({ address, title, rooms, bathrooms, area, price, type, age
         <div className="flex items-center justify-between mt-2 sm:mt-3">
           <div className="flex items-center gap-2 sm:gap-3">
             <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-[#2F8EAC] to-[#1e6b7a] flex items-center justify-center text-white text-xs sm:text-sm font-bold shadow-md">
-              {agentName
-                ? agentName
-                    .split(" ")
-                    .map((n) => n[0])
-                    .join("")
-                    .substring(0, 2)
-                : "AG"}
+              {getAgentInitials(agentName)}
             </div>
-            <span className="text-xs sm:text-sm text-gray-700 font-medium">{agentName}</span>
+            <div className="flex flex-col">
+              <span className="text-xs sm:text-sm text-gray-700 font-medium">{formatAgentName(agentName)}</span>
+            </div>
           </div>
           <span className="text-base sm:text-lg font-bold text-gray-900">${price}</span>
         </div>
@@ -88,7 +109,6 @@ const PropertyCard = ({ address, title, rooms, bathrooms, area, price, type, age
 
 export const Main = () => {
   const navigate = useNavigate()
-
   const [showAdvanced, setShowAdvanced] = useState(false)
   const [priceRange, setPriceRange] = useState(250000000)
   const [properties, setProperties] = useState([])
@@ -108,21 +128,30 @@ export const Main = () => {
 
   const toggleAdvanced = () => setShowAdvanced(!showAdvanced)
 
+  // ✅ DEBUG: Para verificar propiedades cargadas
+  useEffect(() => {
+    if (properties.length > 0) {
+      console.log("🔍 Propiedades cargadas:", properties.slice(0, 2).map(p => ({
+        id: p.property_id,
+        title: p.property_title,
+        agent_name: p.agent_name,
+        name_person: p.name_person,
+        last_name: p.last_name
+      })))
+    }
+  }, [properties])
 
   // Cargar propiedades iniciales
   useEffect(() => {
     const fetchProperties = async () => {
       setIsLoading(true)
       try {
-        const res = await fetch("https://domuhouse.onrender.com/api/properties/obtener")
-
+        const res = await fetch("http://localhost:10101/api/properties/approved")
         if (!res.ok) {
           throw new Error(`HTTP error! status: ${res.status}`)
         }
-
         const data = await res.json()
         console.log("Datos recibidos:", data)
-
         if (data.success && Array.isArray(data.properties)) {
           setProperties(data.properties)
         } else if (Array.isArray(data)) {
@@ -131,7 +160,6 @@ export const Main = () => {
           console.warn("Formato de datos inesperado:", data)
           setProperties([])
         }
-
         setError(null)
       } catch (error) {
         console.error("Error al cargar propiedades:", error)
@@ -141,112 +169,94 @@ export const Main = () => {
         setIsLoading(false)
       }
     }
+
     fetchProperties()
   }, [])
 
-  // ✅ FUNCIÓN MEJORADA PARA MANEJAR CLICKS DE TIPO DE OPERACIÓN
- const handleOperationTypeClick = async (operationType) => {
-  console.log(`🏠 Filtro seleccionado: ${operationType}`)
+  const handleOperationTypeClick = async (operationType) => {
+    console.log(`🏠 Filtro seleccionado: ${operationType}`)
+    if (isLoading) {
+      console.log("⏳ Ya hay una búsqueda en progreso...")
+      return
+    }
 
-  // Prevenir múltiples clicks mientras se carga
-  if (isLoading) {
-    console.log("⏳ Ya hay una búsqueda en progreso...")
-    return
+    setIsLoading(true)
+    setError(null)
+
+    try {
+      const newFilters = { ...filters, operation_type: operationType }
+      setFilters(newFilters)
+
+      const queryParams = new URLSearchParams()
+      queryParams.append("operation_type", operationType)
+
+      const url = `https://domuhouse-express.onrender.com/api/search/search?${queryParams.toString()}`
+      console.log(`🔗 Fetching: ${url}`)
+
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 15000)
+
+      const response = await fetch(url, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        signal: controller.signal,
+      })
+
+      clearTimeout(timeoutId)
+
+      if (!response.ok) {
+        const errorText = await response.text()
+        console.error(`❌ Error response: ${errorText}`)
+        throw new Error(`HTTP Error: ${response.status} - ${response.statusText}. Details: ${errorText}`)
+      }
+
+      const data = await response.json()
+      console.log(`📊 Datos recibidos para ${operationType}:`, data)
+
+      let propertiesToSet = []
+      if (Array.isArray(data)) {
+        propertiesToSet = data
+      } else if (data && data.success && Array.isArray(data.properties)) {
+        propertiesToSet = data.properties
+      } else if (data && data.properties && Array.isArray(data.properties)) {
+        propertiesToSet = data.properties
+      } else if (data && data.data && Array.isArray(data.data)) {
+        propertiesToSet = data.data
+      } else if (data && data.results && Array.isArray(data.results)) {
+        propertiesToSet = data.results
+      } else {
+        console.warn("❌ Formato de datos inesperado:", data)
+        propertiesToSet = []
+      }
+
+      setProperties(propertiesToSet)
+
+      if (propertiesToSet.length === 0) {
+        console.warn(`⚠️ No se encontraron propiedades para ${operationType}`)
+        setError(`No se encontraron propiedades en ${operationType.toLowerCase()}`)
+      } else {
+        console.log(`✅ ${propertiesToSet.length} propiedades encontradas para ${operationType}`)
+        setError(null)
+      }
+    } catch (error) {
+      console.error(`❌ Error al filtrar por ${operationType}:`, error)
+      if (error.name === "AbortError") {
+        setError("La búsqueda tardó demasiado tiempo. Intenta nuevamente.")
+      } else if (error.message.includes("Failed to fetch")) {
+        setError("Error de conexión. Verifica que el servidor esté funcionando en el puerto 10101.")
+      } else if (error.message.includes("NetworkError")) {
+        setError("Error de red. Verifica tu conexión a internet.")
+      } else {
+        setError(`Error al filtrar propiedades: ${error.message}`)
+      }
+    } finally {
+      setIsLoading(false)
+    }
   }
 
-  setIsLoading(true)
-  setError(null)
-
-  try {
-    // ✅ FIX: Actualizar los filtros correctamente
-    const newFilters = { ...filters, operation_type: operationType }
-    setFilters(newFilters)
-
-    // ✅ FIX: Construir la URL correctamente
-    const queryParams = new URLSearchParams()
-    queryParams.append("operation_type", operationType)
-
-    const url = `${API_BASE_URL}/api/search/search?${queryParams.toString()}`
-    console.log(`🔗 Fetching: ${url}`)
-
-    // ✅ FIX: Hacer la petición correctamente
-    const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), 15000) // Aumentar timeout
-
-    const response = await fetch(url, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        // ✅ Agregar headers adicionales si es necesario
-        "Accept": "application/json",
-      },
-      signal: controller.signal,
-    })
-
-    clearTimeout(timeoutId)
-
-    console.log(`📊 Response status: ${response.status}`)
-    console.log(`📊 Response headers:`, response.headers)
-
-    if (!response.ok) {
-      // ✅ FIX: Manejo de errores más específico
-      const errorText = await response.text()
-      console.error(`❌ Error response: ${errorText}`)
-      throw new Error(`HTTP Error: ${response.status} - ${response.statusText}. Details: ${errorText}`)
-    }
-
-    const data = await response.json()
-    console.log(`📊 Datos recibidos para ${operationType}:`, data)
-
-    // ✅ FIX: Procesamiento de respuesta más robusto
-    let propertiesToSet = []
-
-    if (Array.isArray(data)) {
-      propertiesToSet = data
-    } else if (data && data.success && Array.isArray(data.properties)) {
-      propertiesToSet = data.properties
-    } else if (data && data.properties && Array.isArray(data.properties)) {
-      propertiesToSet = data.properties
-    } else if (data && data.data && Array.isArray(data.data)) {
-      propertiesToSet = data.data
-    } else if (data && data.results && Array.isArray(data.results)) {
-      propertiesToSet = data.results
-    } else {
-      console.warn("❌ Formato de datos inesperado:", data)
-      propertiesToSet = []
-    }
-
-    setProperties(propertiesToSet)
-
-    if (propertiesToSet.length === 0) {
-      console.warn(`⚠️ No se encontraron propiedades para ${operationType}`)
-      setError(`No se encontraron propiedades en ${operationType.toLowerCase()}`)
-    } else {
-      console.log(`✅ ${propertiesToSet.length} propiedades encontradas para ${operationType}`)
-      setError(null)
-    }
-
-  } catch (error) {
-    console.error(`❌ Error al filtrar por ${operationType}:`, error)
-
-    if (error.name === "AbortError") {
-      setError("La búsqueda tardó demasiado tiempo. Intenta nuevamente.")
-    } else if (error.message.includes("Failed to fetch")) {
-      setError("Error de conexión. Verifica que el servidor esté funcionando en el puerto 10101.")
-    } else if (error.message.includes("NetworkError")) {
-      setError("Error de red. Verifica tu conexión a internet.")
-    } else {
-      setError(`Error al filtrar propiedades: ${error.message}`)
-    }
-
-    // ✅ FIX: No limpiar las propiedades si hay error, mantener las anteriores
-    // setProperties([]) // Comentado para mantener propiedades anteriores
-  } finally {
-    setIsLoading(false)
-  }
-}
-
-  // ✅ FUNCIÓN DE BÚSQUEDA PRINCIPAL MEJORADA
   const handleSearch = async (e) => {
     e.preventDefault()
     setIsLoading(true)
@@ -259,7 +269,6 @@ export const Main = () => {
         price_max: priceRange,
       }
 
-      // Recoger datos del formulario
       if (formData.get("property_type")) searchParams.property_type = formData.get("property_type")
       if (formData.get("city")) searchParams.city = formData.get("city")
       if (formData.get("neighborhood")) searchParams.neighborhood = formData.get("neighborhood")
@@ -281,9 +290,7 @@ export const Main = () => {
         }
       })
 
-      console.log("🔗 Query string:", queryParams.toString())
-
-      const response = await fetch(`${API_BASE_URL}/api/search/search?${queryParams}`)
+      const response = await fetch(`https://domuhouse-express.onrender.com/api/search/search?${queryParams}`)
 
       if (!response.ok) {
         throw new Error(`Search failed: ${response.status}`)
@@ -310,14 +317,12 @@ export const Main = () => {
 
   const handlePropertyClick = (property) => {
     console.log("Propiedad seleccionada:", property)
-
     if (!property) {
       console.error("No se recibió ninguna propiedad")
       return
     }
 
     const propId = property.property_id || property.id
-
     if (!propId) {
       console.error("La propiedad no tiene un ID válido:", property)
       return
@@ -329,7 +334,6 @@ export const Main = () => {
           property: property,
         },
       })
-
       console.log(`Navegando a /propiedad/${propId}`)
     } catch (error) {
       console.error("Error al navegar:", error)
@@ -345,7 +349,6 @@ export const Main = () => {
 
   const resetFilters = async () => {
     console.log("🔄 Reseteando filtros...")
-
     setFilters({
       operation_type: "",
       property_type: "",
@@ -359,16 +362,14 @@ export const Main = () => {
     })
     setPriceRange(500000000)
     setShowAdvanced(false)
-
-    // Recargar todas las propiedades
     setIsLoading(true)
+
     try {
-      const res = await fetch(`${API_BASE_URL}/api/properties/approved`)
+      const res = await fetch(`https://domuhouse-express.onrender.com/api/properties/approved`)
       if (!res.ok) {
         throw new Error(`HTTP error! status: ${res.status}`)
       }
       const data = await res.json()
-
       if (data.success && Array.isArray(data.properties)) {
         setProperties(data.properties)
       } else if (Array.isArray(data)) {
@@ -385,62 +386,60 @@ export const Main = () => {
     }
   }
 
-    return (
-        <>
-        <div
+  return (
+    <>
+      <div
         className="relative h-[400px] xs:h-[450px] sm:h-[550px] md:h-[650px] lg:h-[750px] bg-cover bg-center flex flex-col justify-center items-center text-white text-center px-4 sm:px-6 md:px-8 lg:px-12"
         style={{ backgroundImage: `url(${Casa2})` }}
       >
-                <div className="absolute inset-0 bg-black/30 z-0"></div>
-
+        <div className="absolute inset-0 bg-black/30 z-0"></div>
         <div className="relative z-10 w-full flex flex-col justify-center items-center">
           {/* Título principal */}
           <h1 className="font-bold text-xl xs:text-2xl sm:text-3xl md:text-4xl lg:text-5xl mb-4 xs:mb-6 sm:mb-8 lg:mb-10 leading-tight">
             Encuentra Tu Lugar Ideal
           </h1>
 
-          {/* Botones de tipo de operación - MEJORADOS */}
+          {/* Botones de tipo de operación */}
           <div className="flex flex-row gap-3 sm:gap-4 mb-4 sm:mb-6">
-  <button
-    type="button" // ✅ FIX: Especificar type="button" para evitar submit del form
-    onClick={(e) => {
-      e.preventDefault() // ✅ FIX: Prevenir comportamiento por defecto
-      e.stopPropagation() // ✅ FIX: Evitar propagación del evento
-      if (!isLoading) {
-        console.log("🔥 Botón Venta clickado")
-        handleOperationTypeClick("Venta")
-      }
-    }}
-    disabled={isLoading}
-    className={`rounded-2xl px-4 xs:px-6 sm:px-8 lg:px-10 py-1.5 xs:py-2 text-xs xs:text-sm sm:text-base transition-all duration-300 ${
-      filters.operation_type === "Venta"
-        ? "bg-[#2F8EAC] text-white border-2 border-[#2F8EAC] shadow-lg transform scale-105"
-        : "bg-transparent border-2 border-white text-white hover:bg-white hover:text-[#2F8EAC] hover:scale-105"
-    } ${isLoading ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:shadow-lg"}`}
-  >
-    {isLoading && filters.operation_type === "Venta" ? "Buscando..." : "Venta"}
-  </button>
-  
-  <button
-    type="button" // ✅ FIX: Especificar type="button"
-    onClick={(e) => {
-      e.preventDefault() // ✅ FIX: Prevenir comportamiento por defecto
-      e.stopPropagation() // ✅ FIX: Evitar propagación del evento
-      if (!isLoading) {
-        console.log("🔥 Botón Arriendo clickado")
-        handleOperationTypeClick("Arriendo")
-      }
-    }}
-    disabled={isLoading}
-    className={`rounded-2xl px-4 xs:px-6 sm:px-8 lg:px-10 py-1.5 xs:py-2 text-xs xs:text-sm sm:text-base transition-all duration-300 ${
-      filters.operation_type === "Arriendo"
-        ? "bg-[#2F8EAC] text-white border-2 border-[#2F8EAC] shadow-lg transform scale-105"
-        : "bg-transparent border-2 border-white text-white hover:bg-white hover:text-[#2F8EAC] hover:scale-105"
-    } ${isLoading ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:shadow-lg"}`}
-  >
-    {isLoading && filters.operation_type === "Arriendo" ? "Buscando..." : "Arriendo"}
-  </button>
-</div>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                if (!isLoading) {
+                  console.log("🔥 Botón Venta clickado")
+                  handleOperationTypeClick("Venta")
+                }
+              }}
+              disabled={isLoading}
+              className={`rounded-2xl px-4 xs:px-6 sm:px-8 lg:px-10 py-1.5 xs:py-2 text-xs xs:text-sm sm:text-base transition-all duration-300 ${
+                filters.operation_type === "Venta"
+                  ? "bg-[#2F8EAC] text-white border-2 border-[#2F8EAC] shadow-lg transform scale-105"
+                  : "bg-transparent border-2 border-white text-white hover:bg-white hover:text-[#2F8EAC] hover:scale-105"
+              } ${isLoading ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:shadow-lg"}`}
+            >
+              {isLoading && filters.operation_type === "Venta" ? "Buscando..." : "Venta"}
+            </button>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                if (!isLoading) {
+                  console.log("🔥 Botón Arriendo clickado")
+                  handleOperationTypeClick("Arriendo")
+                }
+              }}
+              disabled={isLoading}
+              className={`rounded-2xl px-4 xs:px-6 sm:px-8 lg:px-10 py-1.5 xs:py-2 text-xs xs:text-sm sm:text-base transition-all duration-300 ${
+                filters.operation_type === "Arriendo"
+                  ? "bg-[#2F8EAC] text-white border-2 border-[#2F8EAC] shadow-lg transform scale-105"
+                  : "bg-transparent border-2 border-white text-white hover:bg-white hover:text-[#2F8EAC] hover:scale-105"
+              } ${isLoading ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:shadow-lg"}`}
+            >
+              {isLoading && filters.operation_type === "Arriendo" ? "Buscando..." : "Arriendo"}
+            </button>
+          </div>
 
           {/* Formulario de búsqueda */}
           <form
@@ -506,7 +505,6 @@ export const Main = () => {
                 <span className="sm:hidden">Búsqueda Avanzada</span>
                 <LuSettings2 className="text-lg lg:text-xl" />
               </button>
-
               <button
                 type="submit"
                 className="bg-[#2F8EAC] text-white rounded-full px-4 sm:px-6 lg:px-8 py-2 text-sm hover:bg-[#2F8EAC]/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300"
@@ -645,6 +643,21 @@ export const Main = () => {
             ) : properties.length > 0 ? (
               properties.map((property, index) => {
                 const uniqueId = property.property_id || property.id || property.ID || `property-${index}`
+                
+                // ✅ LÓGICA CORREGIDA PARA EL NOMBRE DEL AGENTE
+                const agentFullName = 
+                  property.agent_name?.trim() || // Primero intenta usar agent_name que viene de la BD
+                  (property.name_person && property.last_name 
+                    ? `${property.name_person.trim()} ${property.last_name.trim()}`.trim()
+                    : property.name_person?.trim() || property.last_name?.trim() || "Agente")
+
+                console.log("🔍 Debug agente:", {
+                  property_id: property.property_id,
+                  agent_name: property.agent_name,
+                  name_person: property.name_person,
+                  last_name: property.last_name,
+                  agentFullName: agentFullName
+                })
 
                 return (
                   <PropertyCard
@@ -658,8 +671,15 @@ export const Main = () => {
                     area={property.built_area || property.area || 0}
                     price={property.price ? property.price.toLocaleString() : "0"}
                     type={property.operation_type || property.tipo_operacion}
-                    agentName={property.agent_name || property.agente_nombre || "Agente"}
-                    onClick={() => handlePropertyClick(property)}
+                    agentName={agentFullName} // ✅ Aquí se pasa el nombre correcto
+                    onClick={() => {
+                      console.log("🔍 Propiedad clickeada:", {
+                        id: property.property_id,
+                        agent_name: property.agent_name,
+                        agentFullName: agentFullName
+                      })
+                      handlePropertyClick(property)
+                    }}
                   />
                 )
               })

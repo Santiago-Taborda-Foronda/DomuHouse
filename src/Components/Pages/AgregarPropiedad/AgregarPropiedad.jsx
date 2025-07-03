@@ -109,7 +109,7 @@ const AgregarPropiedad = () => {
 
       console.log("🚀 Intentando fetch a /api/agentes")
 
-      const response = await fetch("https://domuhouse-express.onrender.com/api/agentes", {
+      const response = await fetch("https://domuhouse.onrender.com/api/agentes", {
         method: "GET",
         headers: headers,
         // NO usar credentials: "include" para evitar problemas de CORS

@@ -5,8 +5,8 @@ import { Link, useNavigate } from "react-router"
 import { Eye, EyeOff, Building, User, UserCheck, ArrowLeft, ArrowRight, Copy, Check } from "lucide-react"
 import LogoDomuHouse from "../../../../assets/images/Logo-DomuHouse.png"
 
+
 export const Registrarse = () => {
-  
   const navigate = useNavigate()
   const [currentStep, setCurrentStep] = useState(1)
   const [showPassword, setShowPassword] = useState(false)
@@ -112,28 +112,28 @@ export const Registrarse = () => {
   }
 
   const validateStep1 = () => {
-    if (!userData.name_person.trim()) {
-      setError("El nombre es requerido")
-      return false
-    }
-    if (!userData.last_name.trim()) {
-      setError("Los apellidos son requeridos")
-      return false
-    }
-    if (!userData.email.trim()) {
-      setError("El email es requerido")
-      return false
-    }
-    if (userData.password.length < 6) {
-      setError("La contraseña debe tener al menos 6 caracteres")
-      return false
-    }
-    if (userType === "agente" && !userData.token.trim()) {
-      setError("El token es requerido para agentes")
-      return false
-    }
-    return true
+  if (!userData.name_person.trim()) {
+    setError("El nombre es requerido")
+    return false
   }
+  if (!userData.last_name.trim()) {
+    setError("Los apellidos son requeridos")
+    return false
+  }
+  if (!userData.email.trim()) {
+    setError("El email es requerido")
+    return false
+  }
+  if (userData.password.length < 6) {
+    setError("La contraseña debe tener al menos 6 caracteres")
+    return false
+  }
+  if (userType === "agente" && !userData.token.trim()) {
+    setError("El token es requerido para agentes")
+    return false
+  }
+  return true
+}
 
   const validateStep2 = () => {
     if (userType !== "administrador") return true
@@ -217,7 +217,9 @@ export const Registrarse = () => {
       let endpoint, payload
 
       if (userType === "agente") {
+
         endpoint = "https://domuhouse.onrender.com/api/registro-agente"
+
         // Validar token antes de enviar
         if (!validateTokenBeforeSend()) {
           setIsLoading(false)
@@ -899,3 +901,4 @@ export const Registrarse = () => {
     </div>
   )
 }
+

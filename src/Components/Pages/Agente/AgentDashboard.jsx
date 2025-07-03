@@ -1,697 +1,488 @@
-"use client"
-
-import { useState } from "react"
-import { Home, Star, Eye, Edit, Check, Heart, X } from "lucide-react"
+import { useState, useEffect, useCallback } from "react"
+import { Home, Calendar, MessageSquare, Clock } from "lucide-react"
 import AgentSideBar from "./Components/AgentSideBar"
 import { Outlet } from "react-router-dom"
 import { Header } from "../../Layouts/Header/Header"
 
 export default function AgentDashboard() {
+  /* ───────── control de navegación ───────── */
   const [activeSection, setActiveSection] = useState("Dashboard")
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [showViewModal, setShowViewModal] = useState(false)
-  const [showEditModal, setShowEditModal] = useState(false)
-  const [showFavoriteModal, setShowFavoriteModal] = useState(false)
-  const [selectedProperty, setSelectedProperty] = useState(null)
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [submitSuccess, setSubmitSuccess] = useState(false)
+  const toggleAgentSidebar = () => setSidebarOpen(!sidebarOpen)
 
-  const toggleAgentSidebar = () => {
-    setSidebarOpen(!sidebarOpen)
+  /* ───────── datos del backend ───────── */
+  const [agentId, setAgentId] = useState(null)
+  const [currentUser, setCurrentUser] = useState(null)
+  const [properties, setProperties] = useState([])
+  const [visits, setVisits] = useState([])
+  const [messages, setMessages] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+
+  /* ───────── nuevos estados para las secciones ───────── */
+  const [recentActivity, setRecentActivity] = useState([])
+  const [upcomingVisits, setUpcomingVisits] = useState([])
+
+  /* ───────── función para construir actividad reciente ───────── */
+  const buildRecentActivity = useCallback((visits, messages) => {
+    const activity = []
+
+    // Agregar mensajes a la actividad
+    if (messages && messages.length > 0) {
+      messages.forEach((msg) => {
+        activity.push({
+          id: `msg-${msg.message_id || msg.id || Math.random()}`,
+          type: "message",
+          title: `Nuevo mensaje de ${msg.sender_name || msg.client_name || "Cliente"}`,
+          subtitle: msg.property_title || msg.property_name || "Propiedad",
+          time: getRelativeTime(msg.created_at || msg.date),
+          icon: MessageSquare,
+          timestamp: new Date(msg.created_at || msg.date || Date.now()),
+        })
+      })
+    }
+
+    // Agregar visitas a la actividad (usando los campos exactos de tu VisitService)
+    if (visits && visits.length > 0) {
+      visits.forEach((visit) => {
+        let activityTitle = "Visita programada"
+        // Usar el campo visitStatus que devuelve tu backend
+        switch (visit.visitStatus) {
+          case "Confirmada":
+            activityTitle = "Visita confirmada"
+            break
+          case "Pendiente":
+            activityTitle = "Visita pendiente"
+            break
+          case "Cancelada":
+            activityTitle = "Visita cancelada"
+            break
+          default:
+            activityTitle = "Visita programada"
+        }
+
+        activity.push({
+          id: `visit-${visit.visitId || Math.random()}`,
+          type: "visit",
+          title: activityTitle,
+          subtitle: visit.propertyTitle || "Propiedad",
+          time: getRelativeTime(visit.visitDate),
+          icon: Calendar,
+          timestamp: new Date(visit.visitDate || Date.now()),
+        })
+      })
+    }
+
+    // Ordenar por timestamp (más reciente primero) y tomar solo los primeros 6
+    return activity.sort((a, b) => b.timestamp - a.timestamp).slice(0, 6)
+  }, [])
+
+  /* ───────── función para obtener tiempo relativo ───────── */
+  const getRelativeTime = (dateString) => {
+    if (!dateString) return "Hace poco"
+    const now = new Date()
+    const date = new Date(dateString)
+    const diffInMinutes = Math.floor((now - date) / (1000 * 60))
+
+    if (diffInMinutes < 1) return "Ahora"
+    if (diffInMinutes < 60) return `${diffInMinutes} min`
+
+    const diffInHours = Math.floor(diffInMinutes / 60)
+    if (diffInHours < 24) return `${diffInHours} hora${diffInHours > 1 ? "s" : ""}`
+
+    const diffInDays = Math.floor(diffInHours / 24)
+    if (diffInDays < 7) return `${diffInDays} día${diffInDays > 1 ? "s" : ""}`
+
+    return date.toLocaleDateString("es-ES")
   }
 
-  const stats = [
-    { label: "Propiedades", value: "7", subtitle: "Activas" },
-    { label: "Visitas", value: "4", subtitle: "Programadas" },
-    { label: "Contactados", value: "12", subtitle: "Este mes" },
+  /* ───────── función para formatear fecha y hora ───────── */
+  const formatDateTime = (dateString, timeString) => {
+    if (!dateString) return { date: "Sin fecha", time: "Sin hora" }
+
+    const date = new Date(dateString)
+    const formattedDate = date.toLocaleDateString("es-ES", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    })
+
+    let formattedTime = "Sin hora"
+    if (timeString) {
+      // Si timeString viene en formato HH:MM:SS desde tu backend
+      const timeParts = timeString.split(":")
+      if (timeParts.length >= 2) {
+        const hours = Number.parseInt(timeParts[0])
+        const minutes = timeParts[1]
+        const ampm = hours >= 12 ? "PM" : "AM"
+        const displayHours = hours % 12 || 12
+        formattedTime = `${displayHours}:${minutes} ${ampm}`
+      }
+    }
+
+    return { date: formattedDate, time: formattedTime }
+  }
+
+  /* ───────── función mejorada para determinar si una visita es futura ───────── */
+  const isFutureVisit = (visitDate, visitTime) => {
+    if (!visitDate) return false // sin fecha → no la muestro
+
+    const now = new Date()
+    const target = new Date(visitDate)
+
+    // Si hay hora específica, combinarla con la fecha
+    if (visitTime) {
+      const [h, m] = visitTime.split(":").map(Number)
+      if (!isNaN(h) && !isNaN(m)) {
+        target.setHours(h, m, 0, 0)
+      }
+    }
+
+    return target >= now
+  }
+
+  /* ───────── fetch principal ───────── */
+  const fetchAgentData = async (id) => {
+    try {
+      setLoading(true)
+      setError(null)
+      console.log("🔍 Cargando datos para agente ID:", id)
+
+      const [propertiesRes, visitsRes, messagesRes] = await Promise.all([
+        fetch(`http://localhost:10101/api/agents/${id}/properties`),
+        fetch(`http://localhost:10101/api/agents/${id}/visits`),
+        fetch(`http://localhost:10101/api/agents/${id}/messages?limit=10`),
+      ])
+
+      console.log("📡 Respuestas del servidor:", {
+        properties: propertiesRes.status,
+        visits: visitsRes.status,
+        messages: messagesRes.status,
+      })
+
+      // Verificar si las respuestas son exitosas
+      if (!propertiesRes.ok) {
+        console.warn("⚠️ Error en propiedades:", propertiesRes.status)
+      }
+      if (!visitsRes.ok) {
+        console.warn("⚠️ Error en visitas:", visitsRes.status)
+      }
+      if (!messagesRes.ok) {
+        console.warn("⚠️ Error en mensajes:", messagesRes.status)
+      }
+
+      // Obtener los datos JSON
+      const [propertiesRes_json, visitsRes_json, messagesRes_json] = await Promise.all([
+        propertiesRes.ok ? propertiesRes.json() : { properties: [] },
+        visitsRes.ok ? visitsRes.json() : { visits: [] },
+        messagesRes.ok ? messagesRes.json() : [],
+      ])
+
+      console.log("📊 Respuestas JSON completas:", {
+        propertiesResponse: propertiesRes_json,
+        visitsResponse: visitsRes_json,
+        messagesResponse: messagesRes_json,
+      })
+
+      // 🔹 Extraer los arrays correctamente según la estructura de tu backend
+      const validPropertiesData = Array.isArray(propertiesRes_json?.properties)
+        ? propertiesRes_json.properties
+        : Array.isArray(propertiesRes_json)
+          ? propertiesRes_json
+          : []
+
+      // 🔹 CORRECCIÓN: Las visitas vienen envueltas en un objeto { visits: [...] }
+      const rawVisits = visitsRes_json?.visits ?? visitsRes_json
+      const validVisitsData = Array.isArray(rawVisits) ? rawVisits : []
+
+      const validMessagesData = Array.isArray(messagesRes_json)
+        ? messagesRes_json
+        : Array.isArray(messagesRes_json?.messages)
+          ? messagesRes_json.messages
+          : []
+
+      console.log("📊 Datos recibidos:", {
+        properties: validPropertiesData,
+        visits: validVisitsData,
+        messages: validMessagesData,
+      })
+
+      console.log("✅ Datos validados:", {
+        propertiesCount: validPropertiesData.length,
+        visitsCount: validVisitsData.length,
+        messagesCount: validMessagesData.length,
+      })
+
+      setProperties(validPropertiesData)
+      setVisits(validVisitsData)
+      setMessages(validMessagesData)
+
+      // 🔷 Transformar visits para upcomingVisits (usando los campos exactos de tu VisitService)
+      const upcoming = validVisitsData
+        .filter((visit) => {
+          // Filtrar solo visitas futuras usando los campos de tu backend
+          return isFutureVisit(visit.visitDate, visit.visitTime)
+        })
+        .map((visit) => {
+          const { date, time } = formatDateTime(visit.visitDate, visit.visitTime)
+          return {
+            id: visit.visitId,
+            clientName: visit.clientName || "Cliente",
+            property: visit.propertyTitle || "Propiedad",
+            date: date,
+            time: time,
+            rawDate: visit.visitDate,
+            status: visit.visitStatus,
+            address: visit.propertyAddress,
+            clientPhone: visit.clientPhone,
+          }
+        })
+        .sort((a, b) => new Date(a.rawDate) - new Date(b.rawDate)) // Ordenar por fecha
+        .slice(0, 5) // Mostrar solo las próximas 5
+
+      console.log("🟢 upcomingVisits:", upcoming)
+      setUpcomingVisits(upcoming)
+
+      // 🔷 Construir actividad reciente con mensajes y visitas
+      const activity = buildRecentActivity(validVisitsData, validMessagesData)
+      setRecentActivity(activity)
+
+      console.log("🔷 Actividad reciente generada:", activity)
+      console.log("🔷 Próximas visitas generadas:", upcoming)
+    } catch (error) {
+      console.error("❌ Error cargando datos del agente:", error)
+      setError(`Error de conexión: ${error.message}`)
+      // 🔹 Establecer arrays vacíos en caso de error
+      setProperties([])
+      setVisits([])
+      setMessages([])
+      setRecentActivity([])
+      setUpcomingVisits([])
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  /* ───────── on mount ───────── */
+  useEffect(() => {
+    const stored = JSON.parse(localStorage.getItem("userData") || "{}")
+    const id = stored.person_id ?? stored.id
+
+    if (!id) {
+      setError("No se encontró el ID del agente.")
+      setLoading(false)
+      return
+    }
+
+    setAgentId(id)
+    setCurrentUser(stored)
+    fetchAgentData(id)
+  }, [buildRecentActivity])
+
+  /* ───────── métricas ───────── */
+  const metricCards = [
+    { title: "Propiedades", icon: Home, value: properties.length, subtitle: "Totales" },
+    { title: "Visitas", icon: Calendar, value: visits.length, subtitle: "Programadas" },
+    { title: "Mensajes", icon: MessageSquare, value: messages.length, subtitle: "Sin leer" },
   ]
 
-  const [recentProperties, setRecentProperties] = useState([
-    {
-      id: 1,
-      name: "Casa 01",
-      status: "Publicado",
-      date: "2024-03-20",
-      type: "Casa",
-      price: "$250,000,000",
-      location: "Zona Norte",
-      description: "Hermosa casa de 3 habitaciones con jardín amplio y garaje para 2 vehículos.",
-      area: "150 m²",
-      rooms: 3,
-      bathrooms: 2,
-      isFavorite: false,
-    },
-    {
-      id: 2,
-      name: "Casa 02",
-      status: "Pendiente",
-      date: "2024-03-20",
-      type: "Casa",
-      price: "$23,000,000",
-      location: "Centro",
-      description: "Casa moderna en el centro de la ciudad, cerca de centros comerciales.",
-      area: "120 m²",
-      rooms: 2,
-      bathrooms: 1,
-      isFavorite: true,
-    },
-    {
-      id: 3,
-      name: "Casa 03",
-      status: "Publicado",
-      date: "2024-03-03",
-      type: "Casa",
-      price: "$18,000,000",
-      location: "Zona Sur",
-      description: "Casa familiar con patio trasero y excelente ubicación.",
-      area: "180 m²",
-      rooms: 4,
-      bathrooms: 3,
-      isFavorite: false,
-    },
-    {
-      id: 4,
-      name: "Casa 04",
-      status: "Pendiente",
-      date: "2024-03-21",
-      type: "Casa",
-      price: "$19,000,000",
-      location: "Zona Este",
-      description: "Casa de dos pisos con terraza y vista panorámica.",
-      area: "200 m²",
-      rooms: 3,
-      bathrooms: 2,
-      isFavorite: false,
-    },
-  ])
-
-  const [editForm, setEditForm] = useState({
-    name: "",
-    price: "",
-    location: "",
-    description: "",
-    status: "",
-    type: "",
-    area: "",
-    rooms: "",
-    bathrooms: "",
-  })
-
-  // Función para ver detalles de la propiedad
-  const handleViewProperty = (property) => {
-    setSelectedProperty(property)
-    setShowViewModal(true)
+  /* ───────── vistas de carga / error ───────── */
+  if (loading) {
+    return (
+      <>
+        <Header toggleAgentSidebar={toggleAgentSidebar} />
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#2F8EAC] mx-auto mb-4"></div>
+            <p className="text-gray-600">Cargando dashboard...</p>
+          </div>
+        </div>
+      </>
+    )
   }
 
-  // Función para editar propiedad
-  const handleEditProperty = (property) => {
-    setSelectedProperty(property)
-    setEditForm({
-      name: property.name,
-      price: property.price,
-      location: property.location,
-      description: property.description,
-      status: property.status,
-      type: property.type,
-      area: property.area,
-      rooms: property.rooms.toString(),
-      bathrooms: property.bathrooms.toString(),
-    })
-    setShowEditModal(true)
-    setSubmitSuccess(false)
+  if (error) {
+    return (
+      <>
+        <Header toggleAgentSidebar={toggleAgentSidebar} />
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+          <div className="text-center">
+            <div className="bg-red-50 border border-red-200 text-red-700 px-6 py-4 rounded-xl max-w-md">
+              <h3 className="font-semibold mb-2">Error al cargar datos</h3>
+              <p>{error}</p>
+              <button
+                onClick={() => window.location.reload()}
+                className="mt-4 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
+              >
+                Reintentar
+              </button>
+            </div>
+          </div>
+        </div>
+      </>
+    )
   }
 
-  // Función para manejar favoritos
-  const handleToggleFavorite = (property) => {
-    setSelectedProperty(property)
-    setShowFavoriteModal(true)
-  }
-
-  // Función para confirmar favorito
-  const confirmToggleFavorite = async () => {
-    setIsSubmitting(true)
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-      const updatedProperties = recentProperties.map((p) => {
-        if (p.id === selectedProperty.id) {
-          return { ...p, isFavorite: !p.isFavorite }
-        }
-        return p
-      })
-      setRecentProperties(updatedProperties)
-      setShowFavoriteModal(false)
-      setSelectedProperty(null)
-    } catch (error) {
-      console.error("Error al actualizar favorito:", error)
-      alert("Error al actualizar favorito")
-    } finally {
-      setIsSubmitting(false)
-    }
-  }
-
-  // Función para guardar cambios de edición
-  const handleSaveEdit = async () => {
-    setIsSubmitting(true)
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 1500))
-      const updatedProperties = recentProperties.map((p) => {
-        if (p.id === selectedProperty.id) {
-          return {
-            ...p,
-            name: editForm.name,
-            price: editForm.price,
-            location: editForm.location,
-            description: editForm.description,
-            status: editForm.status,
-            type: editForm.type,
-            area: editForm.area,
-            rooms: Number.parseInt(editForm.rooms),
-            bathrooms: Number.parseInt(editForm.bathrooms),
-          }
-        }
-        return p
-      })
-      setRecentProperties(updatedProperties)
-      setSubmitSuccess(true)
-      setTimeout(() => {
-        setShowEditModal(false)
-        setSelectedProperty(null)
-        setSubmitSuccess(false)
-      }, 2000)
-    } catch (error) {
-      console.error("Error al actualizar propiedad:", error)
-      alert("Error al actualizar la propiedad")
-    } finally {
-      setIsSubmitting(false)
-    }
-  }
-
-  // Función para manejar cambios en el formulario de edición
-  const handleEditFormChange = (e) => {
-    const { name, value } = e.target
-    setEditForm((prev) => ({
-      ...prev,
-      [name]: value,
-    }))
-  }
-
-  // Función para cerrar modales
-  const closeModals = () => {
-    setShowViewModal(false)
-    setShowEditModal(false)
-    setShowFavoriteModal(false)
-    setSelectedProperty(null)
-    setSubmitSuccess(false)
-  }
-
-  const getStatusColor = (status) => {
-    return status === "Publicado" ? "bg-blue-100 text-blue-800" : "bg-blue-50 text-blue-950"
-  }
-
+  /* ───────── render principal ───────── */
   return (
     <>
       <Header toggleAgentSidebar={toggleAgentSidebar} />
-      <div className="min-h-screen bg-gray-50">
-        {/* Sidebar fijo siempre visible en desktop (igual que en mis-propiedades) */}
-        <div className="hidden lg:block fixed left-0 top-16 h-[calc(100vh-4rem)] w-72 bg-white shadow-lg border-r border-gray-200 overflow-y-auto z-30">
-          <AgentSideBar
-            activeSection={activeSection}
-            setActiveSection={setActiveSection}
-            sidebarOpen={true} // Siempre abierto en desktop
-            setSidebarOpen={() => {}} // Función vacía
-            toggleSidebar={() => {}} // Función vacía
-          />
-        </div>
 
-        {/* Sidebar móvil con overlay */}
+      {/* Sidebar desktop */}
+      <div className="hidden lg:block fixed left-0 top-16 h-[calc(100vh-4rem)] w-72 bg-white shadow-lg border-r border-gray-200 overflow-y-auto z-30">
         <AgentSideBar
-          sidebarOpen={sidebarOpen}
-          setSidebarOpen={setSidebarOpen}
-          toggleSidebar={toggleAgentSidebar}
           activeSection={activeSection}
           setActiveSection={setActiveSection}
+          sidebarOpen={true}
+          setSidebarOpen={() => {}}
+          toggleSidebar={() => {}}
         />
+      </div>
 
-        {/* OVERLAY DUPLICADO ELIMINADO - El AgentSideBar ya maneja su propio overlay */}
+      {/* Sidebar móvil con overlay */}
+      <AgentSideBar
+        sidebarOpen={sidebarOpen}
+        setSidebarOpen={setSidebarOpen}
+        toggleSidebar={toggleAgentSidebar}
+        activeSection={activeSection}
+        setActiveSection={setActiveSection}
+      />
 
-        {/* Contenido principal con margen izquierdo para el sidebar (igual que en mis-propiedades) */}
-        <main className="lg:ml-72 pt-16">
-          <div className="p-4 sm:p-6">
-            {/* Header de la página */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 sm:mb-8">
-              <div>
-                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Dashboard</h1>
-                <p className="text-gray-600 text-sm mt-1">Panel de control y estadísticas generales</p>
-              </div>
-            </div>
+      {/* Overlay para móvil cuando el sidebar está abierto */}
+      {sidebarOpen && (
+        <div className="fixed inset-0 bg-black/50 bg-opacity-50 z-40 lg:hidden" onClick={() => setSidebarOpen(false)} />
+      )}
 
-            {/* Cards de estadísticas */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
-              {stats.map((stat, index) => (
-                <div key={index} className="bg-white rounded-2xl shadow-sm p-4 sm:p-6 border border-gray-100">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="flex items-center space-x-2 mb-2">
-                        <Home className="w-4 h-4 sm:w-5 sm:h-5 text-[#2F8EAC]" />
-                        <span className="text-xl sm:text-2xl font-bold text-gray-800">{stat.value}</span>
-                      </div>
-                      <p className="text-xs sm:text-sm text-gray-600">{stat.subtitle}</p>
-                      <p className="text-sm sm:text-lg font-semibold text-gray-800">{stat.label}</p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Propiedades Recientes */}
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-              <div className="px-4 sm:px-6 py-4 border-b border-gray-100">
-                <h2 className="text-lg sm:text-xl font-semibold text-gray-800">Propiedades Recientes</h2>
-                <p className="text-xs sm:text-sm text-gray-500">Gestiona tus propiedades más recientes</p>
-              </div>
-
-              {/* Vista de tarjetas para móvil y tablet */}
-              <div className="block lg:hidden">
-                {recentProperties.map((property) => (
-                  <div key={property.id} className="p-4 sm:p-6 border-b border-gray-100 last:border-b-0">
-                    <div className="flex items-start space-x-3 sm:space-x-4">
-                      <div className="w-12 h-10 sm:w-16 sm:h-12 bg-gradient-to-br from-[#2F8EAC] to-blue-950 rounded-xl flex-shrink-0"></div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-start justify-between">
-                          <div className="min-w-0 flex-1">
-                            <p className="text-sm font-semibold text-gray-900 truncate">{property.name}</p>
-                            <p className="text-xs text-gray-500">{property.type}</p>
-                            <p className="text-xs text-gray-600 mt-1">{property.date}</p>
-                          </div>
-                          <div className="ml-2 flex-shrink-0">
-                            <span
-                              className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(property.status)}`}
-                            >
-                              {property.status}
-                            </span>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-1 sm:gap-2 mt-3">
-                          <button
-                            onClick={() => handleToggleFavorite(property)}
-                            className={`p-1.5 sm:p-2 rounded-lg transition-colors ${
-                              property.isFavorite ? "text-red-600 hover:bg-red-50" : "text-[#2F8EAC] hover:bg-blue-50"
-                            }`}
-                            title={property.isFavorite ? "Quitar de favoritos" : "Agregar a favoritos"}
-                          >
-                            {property.isFavorite ? (
-                              <Heart className="w-3 h-3 sm:w-4 sm:h-4 fill-current" />
-                            ) : (
-                              <Star className="w-3 h-3 sm:w-4 sm:h-4" />
-                            )}
-                          </button>
-                          <button
-                            onClick={() => handleViewProperty(property)}
-                            className="p-1.5 sm:p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                            title="Ver detalles"
-                          >
-                            <Eye className="w-3 h-3 sm:w-4 sm:h-4" />
-                          </button>
-                          <button
-                            onClick={() => handleEditProperty(property)}
-                            className="p-1.5 sm:p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
-                            title="Editar"
-                          >
-                            <Edit className="w-3 h-3 sm:w-4 sm:h-4" />
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {/* Vista de tabla para desktop */}
-              <div className="hidden lg:block overflow-x-auto">
-                <table className="w-full">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                        Propiedad
-                      </th>
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                        Estado
-                      </th>
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                        Fecha
-                      </th>
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                        Acciones
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-100">
-                    {recentProperties.map((property) => (
-                      <tr key={property.id} className="hover:bg-gray-50 transition-colors">
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex items-center gap-4">
-                            <div className="w-16 h-12 bg-gradient-to-br from-[#2F8EAC] to-blue-950 rounded-lg overflow-hidden">
-                              {/* Aquí podrías agregar una imagen si está disponible */}
-                            </div>
-                            <div>
-                              <div className="text-sm font-semibold text-gray-900">{property.name}</div>
-                              <div className="text-xs text-gray-500">{property.type}</div>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span
-                            className={`inline-flex px-3 py-1 text-xs font-medium rounded-full ${getStatusColor(property.status)}`}
-                          >
-                            {property.status}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{property.date}</td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex items-center gap-2">
-                            <button
-                              onClick={() => handleToggleFavorite(property)}
-                              className={`p-2 rounded-lg transition-colors ${
-                                property.isFavorite ? "text-red-600 hover:bg-red-50" : "text-[#2F8EAC] hover:bg-blue-50"
-                              }`}
-                              title={property.isFavorite ? "Quitar de favoritos" : "Agregar a favoritos"}
-                            >
-                              {property.isFavorite ? (
-                                <Heart className="w-4 h-4 fill-current" />
-                              ) : (
-                                <Star className="w-4 h-4" />
-                              )}
-                            </button>
-                            <button
-                              onClick={() => handleViewProperty(property)}
-                              className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                              title="Ver detalles"
-                            >
-                              <Eye className="w-4 h-4" />
-                            </button>
-                            <button
-                              onClick={() => handleEditProperty(property)}
-                              className="p-2 text-sky-600 hover:bg-green-50 rounded-lg transition-colors"
-                              title="Editar"
-                            >
-                              <Edit className="w-4 h-4" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+      {/* Contenido principal con margen izquierdo para el sidebar */}
+      <main className="lg:ml-72 pt-16">
+        <div className="p-4 sm:p-6">
+          {/* Header de la página */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 sm:mb-8">
+            <div>
+              <h1 className="text-3xl sm:text-4xl font-bold text-gray-900">Dashboard</h1>
+              <p className="text-gray-600 text-base mt-1">Panel de control y estadísticas generales</p>
+              {/* 🔹 Mostrar información del usuario */}
+              {currentUser && (
+                <p className="text-sm text-gray-500 mt-1">Bienvenido, {currentUser.name || currentUser.email}</p>
+              )}
             </div>
           </div>
-        </main>
 
-        {/* View Property Modal - Responsive */}
-        {showViewModal && selectedProperty && (
-          <div
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
-            onClick={(e) => {
-              if (e.target === e.currentTarget) {
-                closeModals()
-              }
-            }}
-          >
-            <div className="bg-white rounded-2xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-              <div className="p-4 sm:p-6">
-                <div className="flex items-center justify-between mb-4 sm:mb-6">
-                  <h2 className="text-lg sm:text-xl font-semibold text-gray-800">Detalles de la Propiedad</h2>
-                  <button onClick={closeModals} className="text-gray-400 hover:text-gray-600 transition-colors">
-                    <X className="w-5 h-5" />
-                  </button>
-                </div>
-                <div className="space-y-4 sm:space-y-6">
-                  <div className="flex flex-col sm:flex-row items-start gap-4">
-                    <div className="w-full sm:w-32 h-24 bg-gradient-to-br from-[#2F8EAC] to-blue-950 rounded-xl flex-shrink-0"></div>
-                    <div className="flex-1 w-full">
-                      <h3 className="text-lg font-semibold text-gray-900">{selectedProperty.name}</h3>
-                      <p className="text-gray-600">
-                        {selectedProperty.type} • {selectedProperty.location}
-                      </p>
-                      <p className="text-xl font-bold text-[#2F8EAC] mt-2">{selectedProperty.price}</p>
-                      <span
-                        className={`inline-flex px-3 py-1 text-xs font-medium rounded-full mt-2 ${getStatusColor(selectedProperty.status)}`}
-                      >
-                        {selectedProperty.status}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Área:</label>
-                      <p className="text-gray-900">{selectedProperty.area}</p>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Habitaciones:</label>
-                      <p className="text-gray-900">{selectedProperty.rooms}</p>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Baños:</label>
-                      <p className="text-gray-900">{selectedProperty.bathrooms}</p>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Fecha de publicación:</label>
-                      <p className="text-gray-900">{selectedProperty.date}</p>
-                    </div>
-                  </div>
+          {/* Cards de estadísticas */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-8 sm:mb-10">
+            {metricCards.map(({ title, icon: Icon, value, subtitle }) => (
+              <div key={title} className="bg-white rounded-2xl shadow-sm p-6 sm:p-8 border border-gray-100">
+                <div className="flex items-center justify-between">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Descripción:</label>
-                    <p className="text-gray-900">{selectedProperty.description}</p>
+                    <div className="flex items-center space-x-3 mb-3">
+                      <Icon className="w-6 h-6 sm:w-8 sm:h-8 text-sky-600" />
+                      <span className="text-3xl sm:text-4xl font-bold text-gray-800">{value}</span>
+                    </div>
+                    <p className="text-sm sm:text-base text-gray-600">{subtitle}</p>
+                    <p className="text-lg sm:text-xl font-semibold text-gray-800">{title}</p>
                   </div>
                 </div>
               </div>
-            </div>
+            ))}
           </div>
-        )}
 
-        {/* Edit Property Modal - Responsive */}
-        {showEditModal && selectedProperty && (
-          <div
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
-            onClick={(e) => {
-              if (e.target === e.currentTarget) {
-                closeModals()
-              }
-            }}
-          >
-            <div className="bg-white rounded-2xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-              <div className="p-4 sm:p-6">
-                <div className="flex items-center justify-between mb-4 sm:mb-6">
-                  <h2 className="text-lg sm:text-xl font-semibold text-gray-800">Editar Propiedad</h2>
-                  <button onClick={closeModals} className="text-gray-400 hover:text-gray-600 transition-colors">
-                    <X className="w-5 h-5" />
-                  </button>
-                </div>
-
-                {submitSuccess && (
-                  <div className="mb-4 sm:mb-6 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-xl">
-                    ¡Propiedad actualizada exitosamente!
+          {/* Nuevas secciones: Actividad Reciente y Próximas Visitas */}
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 mb-6">
+            {/* Actividad Reciente */}
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden lg:col-span-2">
+              <div className="px-4 sm:px-5 py-3 border-b border-gray-100">
+                <h2 className="text-lg sm:text-xl font-semibold text-gray-800">Actividad Reciente</h2>
+                <p className="text-xs sm:text-sm text-gray-500">Últimas interacciones con tus propiedades</p>
+              </div>
+              <div className="p-4 sm:p-5">
+                {recentActivity.length === 0 ? (
+                  <div className="text-center py-8">
+                    <Clock className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">No hay actividad reciente</h3>
+                    <p className="text-gray-500">Las actividades aparecerán aquí cuando ocurran.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {recentActivity.map((activity) => {
+                      const IconComponent = activity.icon
+                      return (
+                        <div key={activity.id} className="flex items-start space-x-3">
+                          <div className="flex-shrink-0">
+                            <div className="w-8 h-8 bg-sky-100 rounded-full flex items-center justify-center">
+                              <IconComponent className="w-4 h-4 text-sky-600" />
+                            </div>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-gray-900">{activity.title}</p>
+                            <p className="text-xs text-gray-500">{activity.subtitle}</p>
+                          </div>
+                          <div className="flex-shrink-0">
+                            <span className="text-xs text-gray-400">{activity.time}</span>
+                          </div>
+                        </div>
+                      )
+                    })}
                   </div>
                 )}
+              </div>
+            </div>
 
-                <div className="space-y-4 sm:space-y-6">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Nombre:</label>
-                      <input
-                        type="text"
-                        name="name"
-                        value={editForm.name}
-                        onChange={handleEditFormChange}
-                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#2F8EAC] focus:border-[#2F8EAC] transition-colors"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Precio:</label>
-                      <input
-                        type="text"
-                        name="price"
-                        value={editForm.price}
-                        onChange={handleEditFormChange}
-                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#2F8EAC] focus:border-[#2F8EAC] transition-colors"
-                      />
-                    </div>
+            {/* Próximas Visitas */}
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden lg:col-span-3">
+              <div className="px-4 sm:px-5 py-3 border-b border-gray-100">
+                <h2 className="text-lg sm:text-xl font-semibold text-gray-800">Próximas Visitas</h2>
+                <p className="text-xs sm:text-sm text-gray-500">Citas programadas</p>
+              </div>
+              <div className="p-4 sm:p-5">
+                {upcomingVisits.length === 0 ? (
+                  <div className="text-center py-8">
+                    <Calendar className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">No hay visitas programadas</h3>
+                    <p className="text-gray-500">Las citas aparecerán aquí cuando se programen.</p>
                   </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Ubicación:</label>
-                      <input
-                        type="text"
-                        name="location"
-                        value={editForm.location}
-                        onChange={handleEditFormChange}
-                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#2F8EAC] focus:border-[#2F8EAC] transition-colors"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Tipo:</label>
-                      <select
-                        name="type"
-                        value={editForm.type}
-                        onChange={handleEditFormChange}
-                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#2F8EAC] focus:border-[#2F8EAC] transition-colors"
-                      >
-                        <option value="Casa">Casa</option>
-                        <option value="Apartamento">Apartamento</option>
-                        <option value="Local">Local</option>
-                        <option value="Oficina">Oficina</option>
-                      </select>
-                    </div>
+                ) : (
+                  <div className="space-y-4">
+                    {upcomingVisits.map((visit) => (
+                      <div key={visit.id} className="flex items-start justify-between">
+                        <div className="flex items-start space-x-3">
+                          <div className="w-1 h-12 bg-sky-500 rounded-full flex-shrink-0"></div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-semibold text-gray-900">{visit.clientName}</p>
+                            <p className="text-xs text-gray-600">{visit.property}</p>
+                            <div className="flex items-center space-x-1 mt-1">
+                              <Calendar className="w-3 h-3 text-gray-400" />
+                              <span className="text-xs text-gray-500">{visit.date}</span>
+                            </div>
+                            {/* Mostrar estado de la visita */}
+                            {visit.status && (
+                              <span
+                                className={`inline-flex px-2 py-1 text-xs font-medium rounded-full mt-1 ${
+                                  visit.status === "Confirmada"
+                                    ? "bg-sky-100 text-sky-800"
+                                    : visit.status === "Pendiente"
+                                      ? "bg-indigo-100 text-indigo-800"
+                                      : "bg-red-100 text-red-800"
+                                }`}
+                              >
+                                {visit.status}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex-shrink-0 text-right">
+                          <span className="text-sm font-medium text-gray-900">{visit.time}</span>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Área:</label>
-                      <input
-                        type="text"
-                        name="area"
-                        value={editForm.area}
-                        onChange={handleEditFormChange}
-                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#2F8EAC] focus:border-[#2F8EAC] transition-colors"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Habitaciones:</label>
-                      <input
-                        type="number"
-                        name="rooms"
-                        value={editForm.rooms}
-                        onChange={handleEditFormChange}
-                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#2F8EAC] focus:border-[#2F8EAC] transition-colors"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Baños:</label>
-                      <input
-                        type="number"
-                        name="bathrooms"
-                        value={editForm.bathrooms}
-                        onChange={handleEditFormChange}
-                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#2F8EAC] focus:border-[#2F8EAC] transition-colors"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Estado:</label>
-                    <select
-                      name="status"
-                      value={editForm.status}
-                      onChange={handleEditFormChange}
-                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#2F8EAC] focus:border-[#2F8EAC] transition-colors"
-                    >
-                      <option value="Publicado">Publicado</option>
-                      <option value="Pendiente">Pendiente</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Descripción:</label>
-                    <textarea
-                      name="description"
-                      value={editForm.description}
-                      onChange={handleEditFormChange}
-                      rows={3}
-                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#2F8EAC] focus:border-[#2F8EAC] transition-colors"
-                    />
-                  </div>
-
-                  <div className="flex flex-col sm:flex-row gap-3 pt-4">
-                    <button
-                      onClick={closeModals}
-                      disabled={isSubmitting}
-                      className="w-full sm:flex-1 border border-gray-300 text-gray-700 py-3 px-4 rounded-xl hover:bg-gray-50 transition-colors font-medium"
-                    >
-                      Cancelar
-                    </button>
-                    <button
-                      onClick={handleSaveEdit}
-                      disabled={isSubmitting}
-                      className={`w-full sm:flex-1 py-3 px-4 rounded-xl font-medium transition-colors flex items-center justify-center gap-2 ${
-                        isSubmitting
-                          ? "bg-gray-400 text-gray-600 cursor-not-allowed"
-                          : "bg-[#2F8EAC] text-white hover:bg-[#267a95]"
-                      }`}
-                    >
-                      <Check className="w-4 h-4" />
-                      {isSubmitting ? "Guardando..." : "Guardar Cambios"}
-                    </button>
-                  </div>
-                </div>
+                )}
               </div>
             </div>
           </div>
-        )}
+        </div>
+      </main>
 
-        {/* Favorite Confirmation Modal - Responsive */}
-        {showFavoriteModal && selectedProperty && (
-          <div
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
-            onClick={(e) => {
-              if (e.target === e.currentTarget) {
-                closeModals()
-              }
-            }}
-          >
-            <div className="bg-white rounded-2xl shadow-xl max-w-md w-full">
-              <div className="p-4 sm:p-6">
-                <div className="flex items-center justify-between mb-4 sm:mb-6">
-                  <h2 className="text-base sm:text-lg font-semibold text-gray-800 flex items-center gap-2">
-                    {selectedProperty.isFavorite ? (
-                      <Heart className="w-5 h-5 text-red-500 fill-current" />
-                    ) : (
-                      <Star className="w-5 h-5 text-[#2F8EAC]" />
-                    )}
-                    {selectedProperty.isFavorite ? "Quitar de Favoritos" : "Agregar a Favoritos"}
-                  </h2>
-                  <button onClick={closeModals} className="text-gray-400 hover:text-gray-600 transition-colors">
-                    <X className="w-5 h-5" />
-                  </button>
-                </div>
-
-                <div className="mb-4 sm:mb-6">
-                  <p className="text-gray-600 mb-4">
-                    ¿Estás seguro de que deseas {selectedProperty.isFavorite ? "quitar" : "agregar"} la propiedad{" "}
-                    <strong>{selectedProperty.name}</strong> {selectedProperty.isFavorite ? "de" : "a"} tus favoritos?
-                  </p>
-                </div>
-
-                <div className="flex flex-col sm:flex-row gap-3">
-                  <button
-                    onClick={closeModals}
-                    disabled={isSubmitting}
-                    className="w-full sm:flex-1 border border-gray-300 text-gray-700 py-3 px-4 rounded-xl hover:bg-gray-50 transition-colors font-medium"
-                  >
-                    Cancelar
-                  </button>
-                  <button
-                    onClick={confirmToggleFavorite}
-                    disabled={isSubmitting}
-                    className={`w-full sm:flex-1 py-3 px-4 rounded-xl font-medium transition-colors flex items-center justify-center gap-2 ${
-                      isSubmitting
-                        ? "bg-gray-400 text-gray-600 cursor-not-allowed"
-                        : selectedProperty.isFavorite
-                          ? "bg-red-600 text-white hover:bg-red-700"
-                          : "bg-[#2F8EAC] text-white hover:bg-[#267a95]"
-                    }`}
-                  >
-                    {selectedProperty.isFavorite ? <Heart className="w-4 h-4" /> : <Star className="w-4 h-4" />}
-                    {isSubmitting ? "Procesando..." : selectedProperty.isFavorite ? "Quitar" : "Agregar"}
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        <Outlet />
-      </div>
+      <Outlet />
     </>
   )
 }

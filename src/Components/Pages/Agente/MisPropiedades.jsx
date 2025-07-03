@@ -1,95 +1,49 @@
-"use client"
-
-import { useState } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Eye, Edit, Trash2, Search, Plus, X, Check, AlertTriangle, Building2 } from "lucide-react"
 import AgentSideBar from "./Components/AgentSideBar"
 import { Header } from "../../Layouts/Header/Header"
 import { useNavigate } from "react-router-dom"
 
+/* ------------------- helpers ------------------- */
+const getStatusColor = (status) => {
+  switch (status) {
+    case "Disponible":
+      return "bg-blue-100 text-blue-800"
+    case "Vendida":
+      return "bg-indigo-100 text-indigo-800"
+    case "Alquilada":
+      return "bg-sky-200 text-sky-800"
+    default:
+      return "bg-gray-100 text-gray-800"
+  }
+}
+
 export default function MisPropiedades() {
+  /* ---------------- hooks & state ---------------- */
   const navigate = useNavigate()
+
+  /* user / agentId desde localStorage */
+  const [userData, setUserData] = useState(null)
+  const [agentId, setAgentId] = useState(null)
   const [activeSection, setActiveSection] = useState("Mis Propiedades")
   const [sidebarOpen, setSidebarOpen] = useState(false)
+
+  /* filtros */
   const [searchTerm, setSearchTerm] = useState("")
   const [filterStatus, setFilterStatus] = useState("Todos")
+
+  /* data */
+  const [properties, setProperties] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState("")
+
+  /* modales */
   const [selectedProperty, setSelectedProperty] = useState(null)
   const [showViewModal, setShowViewModal] = useState(false)
   const [showEditModal, setShowEditModal] = useState(false)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [submitSuccess, setSubmitSuccess] = useState(false)
 
-  const toggleAgentSidebar = () => {
-    setSidebarOpen(!sidebarOpen)
-  }
-
-  const [properties, setProperties] = useState([
-    {
-      id: 1,
-      name: "Casa 01",
-      status: "Publicado",
-      date: "2024-03-20",
-      type: "Casa",
-      image: "/placeholder.svg?height=80&width=120",
-      price: "$250,000,000",
-      location: "Zona Norte",
-      description: "Hermosa casa de 3 habitaciones con jardín amplio y garaje para 2 vehículos.",
-      area: "150 m²",
-      rooms: 3,
-      bathrooms: 2,
-      agent: "Juan Pérez",
-      phone: "+57 300 123 4567",
-    },
-    {
-      id: 2,
-      name: "Casa 02",
-      status: "Pendiente",
-      date: "2024-03-20",
-      type: "Casa",
-      image: "/placeholder.svg?height=80&width=120",
-      price: "$23,000,000",
-      location: "Centro",
-      description: "Casa moderna en el centro de la ciudad, cerca de centros comerciales.",
-      area: "120 m²",
-      rooms: 2,
-      bathrooms: 1,
-      agent: "María González",
-      phone: "+57 301 234 5678",
-    },
-    {
-      id: 3,
-      name: "Casa 03",
-      status: "Publicado",
-      date: "2024-03-03",
-      type: "Casa",
-      image: "/placeholder.svg?height=80&width=120",
-      price: "$18,000,000",
-      location: "Zona Sur",
-      description: "Casa familiar con patio trasero y excelente ubicación.",
-      area: "180 m²",
-      rooms: 4,
-      bathrooms: 3,
-      agent: "Carlos Mendoza",
-      phone: "+57 302 345 6789",
-    },
-    {
-      id: 4,
-      name: "Casa 04",
-      status: "Pendiente",
-      date: "2024-03-21",
-      type: "Casa",
-      image: "/placeholder.svg?height=80&width=120",
-      price: "$19,000,000",
-      location: "Zona Este",
-      description: "Casa de dos pisos con terraza y vista panorámica.",
-      area: "200 m²",
-      rooms: 3,
-      bathrooms: 2,
-      agent: "Ana Rodríguez",
-      phone: "+57 303 456 7890",
-    },
-  ])
-
+  /* edición */
   const [editForm, setEditForm] = useState({
     name: "",
     price: "",
@@ -101,114 +55,272 @@ export default function MisPropiedades() {
     rooms: "",
     bathrooms: "",
   })
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [submitSuccess, setSubmitSuccess] = useState(false)
 
-  const filteredProperties = properties.filter((property) => {
-    const matchesSearch =
-      property.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      property.location.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesFilter = filterStatus === "Todos" || property.status === filterStatus
-    return matchesSearch && matchesFilter
-  })
+  // Inicializar userData y agentId una sola vez
+  useEffect(() => {
+    try {
+      const storedUser = JSON.parse(localStorage.getItem("userData") || "{}")
+      const id = storedUser.person_id ?? storedUser.id
 
-  const getStatusColor = (status) => {
-    return status === "Publicado" ? "bg-blue-100 text-blue-800" : "bg-blue-50 text-blue-950"
+      if (!id) {
+        setError("No se encontró el ID del agente. Por favor, inicia sesión nuevamente.")
+        setLoading(false)
+        return
+      }
+
+      setUserData(storedUser)
+      setAgentId(id)
+    } catch (err) {
+      setError("Error al cargar los datos del usuario.")
+      setLoading(false)
+    }
+  }, [])
+
+  /* -------------- fetch propiedades -------------- */
+  const fetchProperties = useCallback(async (currentAgentId, currentUserData) => {
+    if (!currentAgentId) {
+      setError("No se encontró el ID del agente.")
+      setLoading(false)
+      return
+    }
+
+    try {
+      setLoading(true)
+      setError("")
+      const endpoint = `http://localhost:10101/api/agents/${currentAgentId}/properties`
+      const token = localStorage.getItem("token") || ""
+
+      const res = await fetch(endpoint, {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      })
+
+      if (!res.ok) {
+        const payload = await res.json().catch(() => ({}))
+        throw new Error(payload.error || payload.message || `Error ${res.status}: ${res.statusText}`)
+      }
+
+      const json = await res.json()
+      const rows = json.properties || []
+
+      // Mapeo corregido según los campos del backend
+      const mapped = rows.map((p) => ({
+        id: p.property_id || p.propertyId, // Usar property_id del backend
+        name: p.propertyTitle || "Sin título", // Usar property_title
+        status: p.status || "Disponible",
+        date: p.publish_date ? p.publish_date.split("T")[0] : new Date().toISOString().split("T")[0],
+        type: p.property_type_id || p.propertyType || "N/A", // Mapear property_type_id
+        image: p.image?.[0] || "/placeholder.svg?height=80&width=120",
+        price: `$${Number(p.price || 0).toLocaleString("es-CO")}`,
+        location: p.address || "Sin dirección",
+        description: p.description || "Sin descripción",
+        area: p.built_area || p.total_area || "N/A", // Usar built_area o total_area
+        rooms: p.bedrooms || 0, // Usar bedrooms del backend
+        bathrooms: p.bathrooms || 0, // Usar bathrooms del backend
+        agent: currentUserData?.name_person || "Agente",
+        phone: currentUserData?.phone || "",
+        // Campos adicionales para el modal de detalles
+        neighborhood: p.neighborhood || "",
+        city: p.city || "",
+        parking_spaces: p.parking_spaces || 0,
+        operation_type: p.operation_type || "",
+        socioeconomic_stratum: p.socioeconomic_stratum || "",
+        latitude: p.latitude || "",
+        longitude: p.longitude || "",
+        approved: p.approved || false,
+      }))
+
+      setProperties(mapped)
+    } catch (err) {
+      console.error("Error fetching properties:", err)
+      setError(err.message)
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  // Fetch properties cuando agentId y userData estén disponibles
+  useEffect(() => {
+    if (agentId && userData) {
+      fetchProperties(agentId, userData)
+    }
+  }, [agentId, userData, fetchProperties])
+
+  /* ------------------- CRUD ------------------- */
+  /* VER */
+  const handleViewProperty = async (prop) => {
+    if (!agentId) {
+      alert("Error: ID del agente no disponible")
+      return
+    }
+
+    try {
+      const token = localStorage.getItem("token") || ""
+      const res = await fetch(`http://localhost:10101/api/agents/${agentId}/properties/${prop.id}`, {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      })
+
+      if (!res.ok) throw new Error("No se pudo cargar la propiedad")
+
+      const { property } = await res.json()
+
+      // Mapeo corregido para el modal de detalles
+      setSelectedProperty({
+        ...prop,
+        // Sobrescribir con datos actualizados del backend
+        name: property.propertyTitle || property.address || prop.name,
+        location: property.address || prop.location,
+        description: property.description || prop.description,
+        area: property.built_area || property.total_area || "N/A",
+        rooms: property.bedrooms || 0,
+        bathrooms: property.bathrooms || 0,
+        price: `$${Number(property.price || 0).toLocaleString("es-CO")}`,
+        status: property.status || prop.status,
+        neighborhood: property.neighborhood || "",
+        city: property.city || "",
+        parking_spaces: property.parking_spaces || 0,
+        operation_type: property.operation_type || "",
+        socioeconomic_stratum: property.socioeconomic_stratum || "",
+      })
+      setShowViewModal(true)
+    } catch (err) {
+      console.error("Error viewing property:", err)
+      alert(err.message)
+    }
   }
 
-  // Función para ver detalles de la propiedad
-  const handleViewProperty = (property) => {
-    setSelectedProperty(property)
-    setShowViewModal(true)
-  }
-
-  // Función para editar propiedad
-  const handleEditProperty = (property) => {
-    setSelectedProperty(property)
+  /* EDITAR (abrir modal) */
+  const handleEditProperty = (p) => {
+    setSelectedProperty(p)
     setEditForm({
-      name: property.name,
-      price: property.price,
-      location: property.location,
-      description: property.description,
-      status: property.status,
-      type: property.type,
-      area: property.area,
-      rooms: property.rooms.toString(),
-      bathrooms: property.bathrooms.toString(),
+      name: p.name || "",
+      price: p.price.replace(/[^\d]/g, "") || "",
+      location: p.location || "",
+      description: p.description || "",
+      status: p.status || "Disponible",
+      type: p.type || "Casa",
+      area: p.area || "",
+      rooms: p.rooms?.toString() || "0",
+      bathrooms: p.bathrooms?.toString() || "0",
     })
     setShowEditModal(true)
     setSubmitSuccess(false)
   }
 
-  // Función para eliminar propiedad
-  const handleDeleteProperty = (property) => {
-    setSelectedProperty(property)
-    setShowDeleteModal(true)
-  }
-
-  // Función para confirmar eliminación
-  const confirmDelete = async () => {
-    setIsSubmitting(true)
-    try {
-      // Simulación de eliminación
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-      setProperties(properties.filter((p) => p.id !== selectedProperty.id))
-      setShowDeleteModal(false)
-      setSelectedProperty(null)
-    } catch (error) {
-      console.error("Error al eliminar propiedad:", error)
-      alert("Error al eliminar la propiedad")
-    } finally {
-      setIsSubmitting(false)
-    }
-  }
-
-  // Función para guardar cambios de edición
+  /* SAVE */
   const handleSaveEdit = async () => {
+    if (!agentId || !selectedProperty) {
+      alert("Error: Datos no disponibles")
+      return
+    }
+
     setIsSubmitting(true)
     try {
-      // Simulación de actualización
-      await new Promise((resolve) => setTimeout(resolve, 1500))
-      const updatedProperties = properties.map((p) => {
-        if (p.id === selectedProperty.id) {
-          return {
-            ...p,
-            name: editForm.name,
-            price: editForm.price,
-            location: editForm.location,
-            description: editForm.description,
-            status: editForm.status,
-            type: editForm.type,
-            area: editForm.area,
-            rooms: Number.parseInt(editForm.rooms),
-            bathrooms: Number.parseInt(editForm.bathrooms),
-          }
-        }
-        return p
+      const token = localStorage.getItem("token") || ""
+      const res = await fetch(`http://localhost:10101/api/agents/${agentId}/properties/${selectedProperty.id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          property_title: editForm.name, // Usar property_title
+          address: editForm.location,
+          price: Number(editForm.price) || 0,
+          description: editForm.description,
+          status: editForm.status,
+          bedrooms: Number(editForm.rooms) || 0, // Usar bedrooms
+          bathrooms: Number(editForm.bathrooms) || 0, // Usar bathrooms
+          built_area: editForm.area, // Usar built_area
+        }),
       })
-      setProperties(updatedProperties)
+
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}))
+        throw new Error(errorData.message || "Error actualizando la propiedad")
+      }
+
+      /* actualiza UI local */
+      setProperties((prev) =>
+        prev.map((p) =>
+          p.id === selectedProperty.id
+            ? {
+                ...p,
+                name: editForm.name,
+                location: editForm.location,
+                description: editForm.description,
+                status: editForm.status,
+                type: editForm.type,
+                area: editForm.area,
+                price: `$${Number(editForm.price).toLocaleString("es-CO")}`,
+                rooms: Number(editForm.rooms),
+                bathrooms: Number(editForm.bathrooms),
+              }
+            : p,
+        ),
+      )
+
       setSubmitSuccess(true)
       setTimeout(() => {
         setShowEditModal(false)
-        setSelectedProperty(null)
         setSubmitSuccess(false)
-      }, 2000)
-    } catch (error) {
-      console.error("Error al actualizar propiedad:", error)
-      alert("Error al actualizar la propiedad")
+      }, 1500)
+    } catch (err) {
+      console.error("Error saving edit:", err)
+      alert(err.message)
     } finally {
       setIsSubmitting(false)
     }
   }
 
-  // Función para manejar cambios en el formulario de edición
-  const handleEditFormChange = (e) => {
-    const { name, value } = e.target
-    setEditForm((prev) => ({
-      ...prev,
-      [name]: value,
-    }))
+  /* ELIMINAR */
+  const handleDeleteProperty = (p) => {
+    setSelectedProperty(p)
+    setShowDeleteModal(true)
   }
 
-  // Función para cerrar modales
+  const confirmDelete = async () => {
+    if (!agentId || !selectedProperty) {
+      alert("Error: Datos no disponibles")
+      return
+    }
+
+    setIsSubmitting(true)
+    try {
+      const token = localStorage.getItem("token") || ""
+      const res = await fetch(`http://localhost:10101/api/agents/${agentId}/properties/${selectedProperty.id}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      })
+
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}))
+        throw new Error(errorData.message || "No se pudo eliminar la propiedad")
+      }
+
+      setProperties((prev) => prev.filter((p) => p.id !== selectedProperty.id))
+      setShowDeleteModal(false)
+    } catch (err) {
+      console.error("Error deleting property:", err)
+      alert(err.message)
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  /* helpers */
+  const handleEditFormChange = (e) => setEditForm({ ...editForm, [e.target.name]: e.target.value })
+
   const closeModals = () => {
     setShowViewModal(false)
     setShowEditModal(false)
@@ -217,27 +329,70 @@ export default function MisPropiedades() {
     setSubmitSuccess(false)
   }
 
-  // Función para crear nueva propiedad
-  const handleNewProperty = () => {
-    navigate("/CrearPropiedad")
+  const toggleAgentSidebar = () => setSidebarOpen((s) => !s)
+  const handleNewProperty = () => navigate("/CrearPropiedad")
+
+  /* filtro local */
+  const filteredProperties = properties.filter((p) => {
+    const matchesSearch =
+      p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      p.location.toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesFilter = filterStatus === "Todos" || p.status === filterStatus
+    return matchesSearch && matchesFilter
+  })
+
+  /* ------------------- render ------------------- */
+  if (loading) {
+    return (
+      <>
+        <Header />
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#2F8EAC] mx-auto mb-4"></div>
+            <p className="text-gray-600">Cargando propiedades…</p>
+          </div>
+        </div>
+      </>
+    )
   }
 
+  if (error) {
+    return (
+      <>
+        <Header />
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="text-center">
+            <AlertTriangle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+            <p className="text-red-600 mb-4">{error}</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="bg-[#2F8EAC] text-white px-4 py-2 rounded-lg hover:bg-[#267a95] transition-colors"
+            >
+              Reintentar
+            </button>
+          </div>
+        </div>
+      </>
+    )
+  }
+
+  /* ----- UI completa ----- */
   return (
     <>
       <Header toggleAgentSidebar={toggleAgentSidebar} />
       <div className="min-h-screen bg-gray-50">
-        {/* Sidebar fijo siempre visible en desktop */}
+        {/* Sidebar fijo en desktop */}
         <div className="hidden lg:block fixed left-0 top-16 h-[calc(100vh-4rem)] w-72 bg-white shadow-lg border-r border-gray-200 overflow-y-auto z-30">
           <AgentSideBar
             activeSection={activeSection}
             setActiveSection={setActiveSection}
-            sidebarOpen={true} // Siempre abierto en desktop
-            setSidebarOpen={() => {}} // Función vacía
-            toggleSidebar={() => {}} // Función vacía
+            sidebarOpen={true}
+            setSidebarOpen={() => {}}
+            toggleSidebar={() => {}}
           />
         </div>
 
-        {/* Sidebar móvil con overlay */}
+        {/* Sidebar móvil */}
         <AgentSideBar
           sidebarOpen={sidebarOpen}
           setSidebarOpen={setSidebarOpen}
@@ -246,9 +401,11 @@ export default function MisPropiedades() {
           setActiveSection={setActiveSection}
         />
 
-        {/* OVERLAY DUPLICADO ELIMINADO - El AgentSideBar ya maneja su propio overlay */}
+        {sidebarOpen && (
+          <div className="fixed inset-0 bg-black/50 bg-opacity-50 z-40 lg:hidden" onClick={() => setSidebarOpen(false)} />
+        )}
 
-        {/* Contenido principal con margen izquierdo para el sidebar */}
+        {/* Contenido principal */}
         <main className="lg:ml-72 pt-16">
           <div className="p-4 sm:p-6">
             {/* Header de la página */}
@@ -268,7 +425,7 @@ export default function MisPropiedades() {
               </button>
             </div>
 
-            {/* Panel de filtros y búsqueda */}
+            {/* Panel de filtros */}
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6 mb-6">
               <div className="flex items-center gap-2 mb-4">
                 <Search className="w-5 h-5 text-gray-400" />
@@ -296,8 +453,9 @@ export default function MisPropiedades() {
                     className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#2F8EAC] focus:border-[#2F8EAC] transition-colors"
                   >
                     <option value="Todos">Todos los estados</option>
-                    <option value="Publicado">Publicado</option>
-                    <option value="Pendiente">Pendiente</option>
+                    <option value="Disponible">Disponible</option>
+                    <option value="Vendida">Vendida</option>
+                    <option value="Alquilada">Alquilada</option>
                   </select>
                 </div>
               </div>
@@ -311,28 +469,25 @@ export default function MisPropiedades() {
               </div>
               <div className="bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-gray-100">
                 <p className="text-xl sm:text-2xl font-bold text-[#2F8EAC]">
-                  {properties.filter((p) => p.status === "Publicado").length}
+                  {properties.filter((p) => p.status === "Disponible").length}
                 </p>
-                <p className="text-xs sm:text-sm text-gray-600">Publicadas</p>
-              </div>
-              <div className="bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-gray-100">
-                <p className="text-xl sm:text-2xl font-bold text-blue-800">
-                  {properties.filter((p) => p.status === "Pendiente").length}
-                </p>
-                <p className="text-xs sm:text-sm text-gray-600">Pendientes</p>
+                <p className="text-xs sm:text-sm text-gray-600">Disponibles</p>
               </div>
               <div className="bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-gray-100">
                 <p className="text-xl sm:text-2xl font-bold text-sky-600">
-                  {properties.length > 0
-                    ? Math.round((properties.filter((p) => p.status === "Publicado").length / properties.length) * 100)
-                    : 0}
-                  %
+                  {properties.filter((p) => p.status === "Vendida").length}
                 </p>
-                <p className="text-xs sm:text-sm text-gray-600">Tasa Publicación</p>
+                <p className="text-xs sm:text-sm text-gray-600">Vendidas</p>
+              </div>
+              <div className="bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-gray-100">
+                <p className="text-xl sm:text-2xl font-bold text-cyan-300">
+                  {properties.filter((p) => p.status === "Alquilada").length}
+                </p>
+                <p className="text-xs sm:text-sm text-gray-600">Alquiladas</p>
               </div>
             </div>
 
-            {/* Tabla de propiedades */}
+            {/* Tabla / Tarjetas */}
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
               <div className="px-4 sm:px-6 py-4 border-b border-gray-100">
                 <h3 className="font-semibold text-gray-800">Lista de Propiedades</h3>
@@ -359,7 +514,7 @@ export default function MisPropiedades() {
                 </div>
               ) : (
                 <>
-                  {/* Vista de tarjetas para móvil y tablet */}
+                  {/* Tarjetas móvil */}
                   <div className="block lg:hidden">
                     {filteredProperties.map((property) => (
                       <div key={property.id} className="p-4 sm:p-6 border-b border-gray-100 last:border-b-0">
@@ -383,7 +538,9 @@ export default function MisPropiedades() {
                               </div>
                               <div className="ml-2 flex-shrink-0">
                                 <span
-                                  className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(property.status)}`}
+                                  className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(
+                                    property.status,
+                                  )}`}
                                 >
                                   {property.status}
                                 </span>
@@ -418,7 +575,7 @@ export default function MisPropiedades() {
                     ))}
                   </div>
 
-                  {/* Vista de tabla para desktop */}
+                  {/* Tabla desktop */}
                   <div className="hidden lg:block overflow-x-auto">
                     <table className="w-full">
                       <thead className="bg-gray-50">
@@ -462,7 +619,9 @@ export default function MisPropiedades() {
                             </td>
                             <td className="px-6 py-4">
                               <span
-                                className={`inline-flex px-3 py-1 text-xs font-medium rounded-full ${getStatusColor(property.status)}`}
+                                className={`inline-flex px-3 py-1 text-xs font-medium rounded-full ${getStatusColor(
+                                  property.status,
+                                )}`}
                               >
                                 {property.status}
                               </span>
@@ -509,14 +668,12 @@ export default function MisPropiedades() {
           </div>
         </main>
 
-        {/* Modal de Ver Propiedad */}
+        {/* -------- Modales (Ver / Editar / Eliminar) -------- */}
         {showViewModal && selectedProperty && (
           <div
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50"
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-opacity-75 bg-black/50"
             onClick={(e) => {
-              if (e.target === e.currentTarget) {
-                closeModals()
-              }
+              if (e.target === e.currentTarget) closeModals()
             }}
           >
             <div className="bg-white rounded-2xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
@@ -546,7 +703,9 @@ export default function MisPropiedades() {
                       </p>
                       <p className="text-xl font-bold text-[#2F8EAC] mt-2">{selectedProperty.price}</p>
                       <span
-                        className={`inline-flex px-3 py-1 text-xs font-medium rounded-full mt-2 ${getStatusColor(selectedProperty.status)}`}
+                        className={`inline-flex px-3 py-1 text-xs font-medium rounded-full mt-2 ${getStatusColor(
+                          selectedProperty.status,
+                        )}`}
                       >
                         {selectedProperty.status}
                       </span>
@@ -555,7 +714,7 @@ export default function MisPropiedades() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="bg-gray-50 p-4 rounded-xl">
                       <label className="block text-sm font-medium text-gray-700 mb-1">Área:</label>
-                      <p className="text-gray-900 font-semibold">{selectedProperty.area}</p>
+                      <p className="text-gray-900 font-semibold">{selectedProperty.area} m²</p>
                     </div>
                     <div className="bg-gray-50 p-4 rounded-xl">
                       <label className="block text-sm font-medium text-gray-700 mb-1">Habitaciones:</label>
@@ -570,6 +729,28 @@ export default function MisPropiedades() {
                       <p className="text-gray-900 font-semibold">{selectedProperty.date}</p>
                     </div>
                   </div>
+
+                  {/* Información adicional */}
+                  {selectedProperty.neighborhood && (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="bg-gray-50 p-4 rounded-xl">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Barrio:</label>
+                        <p className="text-gray-900 font-semibold">{selectedProperty.neighborhood}</p>
+                      </div>
+                      <div className="bg-gray-50 p-4 rounded-xl">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Ciudad:</label>
+                        <p className="text-gray-900 font-semibold">{selectedProperty.city}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {selectedProperty.parking_spaces > 0 && (
+                    <div className="bg-gray-50 p-4 rounded-xl">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Espacios de parqueadero:</label>
+                      <p className="text-gray-900 font-semibold">{selectedProperty.parking_spaces}</p>
+                    </div>
+                  )}
+
                   <div className="bg-gray-50 p-4 rounded-xl">
                     <label className="block text-sm font-medium text-gray-700 mb-2">Descripción:</label>
                     <p className="text-gray-900">{selectedProperty.description}</p>
@@ -590,14 +771,12 @@ export default function MisPropiedades() {
           </div>
         )}
 
-        {/* Modal de Editar Propiedad */}
+        {/* -------- Modal Editar -------- */}
         {showEditModal && selectedProperty && (
           <div
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50"
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-opacity-75 bg-black/50"
             onClick={(e) => {
-              if (e.target === e.currentTarget) {
-                closeModals()
-              }
+              if (e.target === e.currentTarget) closeModals()
             }}
           >
             <div className="bg-white rounded-2xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
@@ -613,7 +792,7 @@ export default function MisPropiedades() {
                 </div>
 
                 {submitSuccess && (
-                  <div className="mb-4 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-xl">
+                  <div className="mb-4 bg-sky-50 border border-green-200 text-blue-700 px-4 py-3 rounded-xl">
                     ¡Propiedad actualizada exitosamente!
                   </div>
                 )}
@@ -710,8 +889,9 @@ export default function MisPropiedades() {
                       onChange={handleEditFormChange}
                       className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#2F8EAC] focus:border-[#2F8EAC] transition-colors"
                     >
-                      <option value="Publicado">Publicado</option>
-                      <option value="Pendiente">Pendiente</option>
+                      <option value="Disponible">Disponible</option>
+                      <option value="Vendida">Vendida</option>
+                      <option value="Alquilada">Alquilada</option>
                     </select>
                   </div>
 
@@ -753,14 +933,12 @@ export default function MisPropiedades() {
           </div>
         )}
 
-        {/* Modal de Confirmación de Eliminación */}
+        {/* -------- Modal Eliminar -------- */}
         {showDeleteModal && selectedProperty && (
           <div
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50"
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-opacity-75 bg-black/50"
             onClick={(e) => {
-              if (e.target === e.currentTarget) {
-                closeModals()
-              }
+              if (e.target === e.currentTarget) closeModals()
             }}
           >
             <div className="bg-white rounded-2xl shadow-xl max-w-md w-full">

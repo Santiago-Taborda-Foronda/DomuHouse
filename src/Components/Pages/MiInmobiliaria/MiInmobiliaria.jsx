@@ -68,6 +68,7 @@ const propiedadesIniciales = [
   }
 ];
 
+
 export default function MiInmobiliaria() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -90,21 +91,52 @@ export default function MiInmobiliaria() {
   const [isAuthenticated, setIsAuthenticated] = useState(true)
 
   // Función para cargar propiedades (preparada para backend)
-  const cargarPropiedades = async () => {
-    try {
-      // AQUÍ SE CONECTARÁ CON EL BACKEND
-      /*
-      const response = await fetch('/api/properties');
-      const data = await response.json();
-      setPropiedades(data);
-      */
-      
-      // Por ahora mantenemos las propiedades iniciales
-      // En el futuro, aquí se cargarán desde el backend
-    } catch (error) {
-      console.error('Error al cargar propiedades:', error);
+const cargarPropiedades = async () => {
+  const adminId = localStorage.getItem('adminId');
+
+  if (!adminId) {
+    console.error("adminId no encontrado en localStorage");
+    return;
+  }
+  
+  try {
+    const response = await fetch(`http://localhost:10101/api/properties/admin/${adminId}`);
+
+    if (!response.ok) {
+      throw new Error('Error al obtener propiedades');
     }
-  };
+
+    const data = await response.json();
+
+    const propiedadesAdaptadas = data.map(prop => ({
+      id: prop.property_id,
+      title: prop.property_title,
+      price: prop.price,
+      status: prop.status,
+      address: `${prop.neighborhood}, ${prop.city}`,
+      type: prop.property_type.toLowerCase(),
+      rooms: prop.bedrooms,
+      bathrooms: prop.bathrooms,
+      area: parseFloat(prop.built_area),
+      propertyType: prop.operation_type.toLowerCase(),
+      description: '',
+      images: [],
+      agent: {
+        name: `${prop.agent_name} ${prop.agent_lastname}`,
+        phone: prop.agent_phone,
+        email: prop.agent_email,
+      },
+      createdAt: '',
+    }));
+
+    setPropiedades(propiedadesAdaptadas);
+  } catch (error) {
+    console.error('Error al cargar propiedades:', error);
+    alert('Error al obtener propiedades');
+  }
+};
+
+
 
   // Cargar propiedades al montar el componente
   useEffect(() => {

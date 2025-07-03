@@ -237,7 +237,7 @@ export const Registrarse = () => {
         console.log("Enviando datos de agente:", payload)
         console.log("Token específico:", tokenToSend)
       } else if (userType === "administrador") {
-        endpoint = "http://localhost:10101/api/admin/registerAdmin"
+        endpoint = "https://domuhouse.onrender.com/api/admin/registerAdmin"
         payload = { ...userData, role: userType }
       } else {
         // Cliente
@@ -323,8 +323,7 @@ export const Registrarse = () => {
 
       // Intentar con ambos endpoints
       const endpoints = [
-        "http://localhost:10101/api/realEstates/registerRealEstate",
-        "https://domuhouse.onrender.com/api/inmobiliarias",
+        "http://localhost:10101/api/inmobiliarias/registerRealEstate"
       ]
 
       let success = false
@@ -376,7 +375,7 @@ export const Registrarse = () => {
               formData.append("logo", inmobiliariaData.logo)
             }
 
-            console.log("Payload sent to /api/inmobiliarias:", Object.fromEntries(formData))
+            console.log("Payload sent to /api/inmobiliarias/registerRealEstate", Object.fromEntries(formData))
 
             response = await fetch(endpoint, {
               method: "POST",

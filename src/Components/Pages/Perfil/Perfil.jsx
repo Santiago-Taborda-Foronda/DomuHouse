@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import {
   User,
   Edit2,
@@ -16,31 +16,163 @@ import {
   Mail,
   Lock,
   Camera,
+  Loader2,
+  AlertCircle
 } from "lucide-react"
 
 export const Perfil = () => {
   const [isEditing, setIsEditing] = useState(false)
   const [activeTab, setActiveTab] = useState("publicadas")
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+  const [saving, setSaving] = useState(false)
+  
   const [userData, setUserData] = useState({
-    nombre: "Karina Tabares",
-    telefono: "+57 3224456666",
-    correo: "karina172@gmail.com",
+    nombre: "",
+    telefono: "",
+    correo: "",
     contraseña: "••••••••••••••••",
-    fechaRegistro: "2024-01-15",
-    propiedadesPublicadas: 5,
-    propiedadesVendidas: 2,
+    fechaRegistro: "",
+    propiedadesPublicadas: 0,
+    propiedadesVendidas: 0,
   })
 
   const [tempUserData, setTempUserData] = useState({ ...userData })
+
+  // Función para obtener el token del localStorage
+  const getToken = () => {
+    return localStorage.getItem('token') || sessionStorage.getItem('token')
+  }
+
+  // Función para hacer peticiones autenticadas
+  const fetchWithAuth = async (url, options = {}) => {
+    const token = getToken()
+    
+    if (!token) {
+      throw new Error('No se encontró token de autenticación')
+    }
+
+    const response = await fetch(url, {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+        ...options.headers
+      }
+    })
+
+    if (!response.ok) {
+      if (response.status === 401) {
+        // Token expirado o inválido
+        localStorage.removeItem('token')
+        sessionStorage.removeItem('token')
+        window.location.href = '/login' // Redirigir al login
+        throw new Error('Sesión expirada')
+      }
+      
+      // Intentar obtener el mensaje de error del servidor
+      try {
+        const errorData = await response.json()
+        throw new Error(errorData.message || `Error ${response.status}: ${response.statusText}`)
+      } catch (e) {
+        throw new Error(`Error ${response.status}: ${response.statusText}`)
+      }
+    }
+
+    return response.json()
+  }
+
+  // Cargar datos del perfil al montar el componente
+  useEffect(() => {
+    const cargarPerfil = async () => {
+      try {
+        setLoading(true)
+        setError(null)
+        
+        // Cambiar la URL base según tu configuración
+        const response = await fetchWithAuth(`http://localhost:10101/api/perfil`)
+        
+        if (response.success) {
+          setUserData(response.data)
+          setTempUserData(response.data)  
+        } else {
+          setError(response.message || 'Error al cargar el perfil')
+        }
+      } catch (err) {
+        console.error('Error al cargar perfil:', err)
+        setError(err.message || 'Error de conexión')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    cargarPerfil()
+  }, [])
+
+  // Función para actualizar el perfil
+  const actualizarPerfil = async (datosActualizados) => {
+    try {
+      setSaving(true)
+      
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
+      const response = await fetchWithAuth(`${baseUrl}/api/users/perfil`, {
+        method: 'PUT',
+        body: JSON.stringify(datosActualizados)
+      })
+
+      if (response.success) {
+        setUserData(response.data)
+        setTempUserData(response.data)
+        return { success: true }
+      } else {
+        throw new Error(response.message || 'Error al actualizar el perfil')
+      }
+    } catch (err) {
+      console.error('Error al actualizar perfil:', err)
+      return { success: false, error: err.message }
+    } finally {
+      setSaving(false)
+    }
+  }
 
   const handleEdit = () => {
     setIsEditing(true)
     setTempUserData({ ...userData })
   }
 
-  const handleSave = () => {
-    setUserData({ ...tempUserData })
-    setIsEditing(false)
+  const handleSave = async () => {
+    // Validaciones básicas
+    if (!tempUserData.nombre.trim()) {
+      alert('El nombre es obligatorio')
+      return
+    }
+
+    if (!tempUserData.correo.trim()) {
+      alert('El correo es obligatorio')
+      return
+    }
+
+    // Validar formato de correo
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(tempUserData.correo)) {
+      alert('El formato del correo no es válido')
+      return
+    }
+
+    // Validar formato de teléfono (opcional)
+    if (tempUserData.telefono && !tempUserData.telefono.match(/^\+?[0-9\s-]+$/)) {
+      alert('El formato del teléfono no es válido')
+      return
+    }
+
+    const resultado = await actualizarPerfil(tempUserData)
+    
+    if (resultado.success) {
+      setIsEditing(false)
+      alert('Perfil actualizado exitosamente')
+    } else {
+      alert(`Error al actualizar: ${resultado.error}`)
+    }
   }
 
   const handleCancel = () => {
@@ -55,7 +187,7 @@ export const Perfil = () => {
     }))
   }
 
-  // Datos de ejemplo para las propiedades
+  // Datos de ejemplo para las propiedades (estas también deberían venir del backend)
   const propiedadesPublicadas = [
     {
       id: 1,
@@ -70,32 +202,7 @@ export const Perfil = () => {
       status: "Disponible",
       image: "/placeholder.svg?height=80&width=120",
     },
-    {
-      id: 2,
-      address: "Ur La Portada Americana 25 #58",
-      title: "Casa Lomas Del Norte",
-      rooms: 4,
-      bathrooms: 2,
-      area: 150,
-      price: "8500000",
-      type: "casa",
-      propertyType: "alquiler",
-      status: "Alquilada",
-      image: "/placeholder.svg?height=80&width=120",
-    },
-    {
-      id: 3,
-      address: "Ur La Portada Americana 27 #60",
-      title: "Casa Lomas Del Norte",
-      rooms: 3,
-      bathrooms: 3,
-      area: 110,
-      price: "6900000",
-      type: "casa",
-      propertyType: "venta",
-      status: "Disponible",
-      image: "/placeholder.svg?height=80&width=120",
-    },
+    // ... más propiedades
   ]
 
   const propiedadesAdquiridas = [
@@ -143,17 +250,6 @@ export const Perfil = () => {
     }
   }
 
-  const formatearTipo = (tipo) => {
-    const tipos = {
-      casa: "Casa",
-      apartamento: "Apartamento",
-      local: "Local Comercial",
-      oficina: "Oficina",
-      terreno: "Terreno",
-    }
-    return tipos[tipo] || tipo
-  }
-
   const formatearFecha = (fecha) => {
     if (!fecha) return ""
     const date = new Date(fecha)
@@ -191,6 +287,37 @@ export const Perfil = () => {
   }
 
   const datosActuales = obtenerDatos()
+
+  // Mostrar loading
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-12 h-12 animate-spin text-[#2F8EAC] mx-auto mb-4" />
+          <p className="text-gray-600">Cargando perfil...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Mostrar error
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
+        <div className="text-center bg-white p-8 rounded-2xl shadow-sm border border-gray-200">
+          <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">Error al cargar el perfil</h2>
+          <p className="text-gray-600 mb-4">{error}</p>
+          <button 
+            onClick={() => window.location.reload()}
+            className="px-6 py-3 bg-[#2F8EAC] text-white rounded-lg hover:bg-[#287b93] transition-colors"
+          >
+            Reintentar
+          </button>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 px-4 md:px-8 py-8">
@@ -249,14 +376,20 @@ export const Perfil = () => {
                   <div className="flex gap-2">
                     <button
                       onClick={handleSave}
-                      className="flex items-center gap-1 px-3 py-2 bg-[#2F8EAC] text-white rounded-lg hover:bg-[#287b93] transition-colors"
+                      disabled={saving}
+                      className="flex items-center gap-1 px-3 py-2 bg-[#2F8EAC] text-white rounded-lg hover:bg-[#287b93] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      <Save className="w-4 h-4" />
-                      <span className="text-sm">Guardar</span>
+                      {saving ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <Save className="w-4 h-4" />
+                      )}
+                      <span className="text-sm">{saving ? 'Guardando...' : 'Guardar'}</span>
                     </button>
                     <button
                       onClick={handleCancel}
-                      className="flex items-center gap-1 px-3 py-2 border border-gray-300 text-gray-600 rounded-lg hover:bg-gray-50 transition-colors"
+                      disabled={saving}
+                      className="flex items-center gap-1 px-3 py-2 border border-gray-300 text-gray-600 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <X className="w-4 h-4" />
                       <span className="text-sm">Cancelar</span>
@@ -327,6 +460,7 @@ export const Perfil = () => {
                       isEditing ? "text-gray-900 bg-white" : "text-gray-600 bg-gray-50"
                     }`}
                     readOnly={!isEditing}
+                    placeholder={isEditing ? "Ingresa nueva contraseña (opcional)" : ""}
                   />
                 </div>
               </div>

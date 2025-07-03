@@ -182,7 +182,7 @@ export default function AgentSideBar({
         <>
           {/* Overlay de fondo */}
           <div
-            className="fixed inset-0 bg-black bg-opacity-30 z-40 transition-opacity duration-300 lg:hidden"
+            className="fixed inset-0 bg-transparent bg-opacity-30 z-40 transition-opacity duration-300 lg:hidden"
             onClick={closeSidebar}
           ></div>
 

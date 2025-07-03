@@ -1,5 +1,7 @@
+"use client"
+
 import { useState, useEffect } from "react"
-import { Upload, X, Menu } from "lucide-react"
+import { Upload, X, AlertCircle, CheckCircle } from "lucide-react"
 import AgentSideBar from "./Components/AgentSideBar"
 import { Header } from "../../Layouts/Header/Header"
 
@@ -7,37 +9,36 @@ export default function CrearPropiedad() {
   const [activeSection, setActiveSection] = useState("Crear Propiedad")
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
-  // Estado para información del usuario logueado
+  // Estados para información del usuario
   const [currentUser, setCurrentUser] = useState(null)
+  const [agentId, setAgentId] = useState(null)
   const [loadingUser, setLoadingUser] = useState(true)
 
+  // Estados del formulario
   const [formData, setFormData] = useState({
-    // Campos básicos
+    // Campos básicos requeridos
     title: "",
     address: "",
     type: "",
     description: "",
-
-    // Campos numéricos específicos
+    city: "",
+    neighborhood: "",
+    // Campos numéricos requeridos
     rooms: "",
     bathrooms: "",
     area: "",
     price: "",
-
-    // Información adicional
-    propertyType: "Venta", // Cambiado para consistencia con el backend
+    // Campos opcionales
+    propertyType: "Venta",
     additionalRoomInfo: "",
-
-    // Nuevos campos para backend (similares al formulario del admin)
     socioeconomic_stratum: "",
-    city: "",
-    neighborhood: "",
     parking_spaces: "",
     total_area: "",
     latitude: "",
     longitude: "",
   })
 
+  // Estados para multimedia y UI
   const [selectedImages, setSelectedImages] = useState([])
   const [imageFiles, setImageFiles] = useState([])
   const [precioEstimado, setPrecioEstimado] = useState("")
@@ -46,46 +47,37 @@ export default function CrearPropiedad() {
   const [submitSuccess, setSubmitSuccess] = useState(false)
   const [fullAddress, setFullAddress] = useState("Bogotá, Colombia")
 
-  // Cargar información del usuario logueado al montar el componente
+  const toggleAgentSidebar = () => {
+    setSidebarOpen(!sidebarOpen)
+  }
+
+  // ✅ 2. Cargar datos del agente desde localStorage
   useEffect(() => {
-    fetchCurrentUser()
-  }, [])
-
-  const fetchCurrentUser = async () => {
+    console.log("🔍 Cargando datos del agente desde localStorage...")
+    setLoadingUser(true)
     try {
-      setLoadingUser(true)
+      const stored = JSON.parse(localStorage.getItem("userData") || "{}")
+      console.log("📦 Datos encontrados en localStorage:", stored)
 
-      // Llamada al API para obtener información del usuario logueado
-      const response = await fetch("http://localhost:10101/api/auth/me", {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-      })
-
-      if (!response.ok) {
-        throw new Error("Error al obtener información del usuario")
+      const id = stored.person_id ?? stored.id
+      if (!id) {
+        throw new Error("❌ No se encontró person_id o id en localStorage")
       }
 
-      const userData = await response.json()
-      setCurrentUser(userData)
-    } catch (error) {
-      console.error("Error fetching current user:", error)
-      setSubmitError("Error al cargar información del usuario. Por favor, inicia sesión nuevamente.")
-
-      // Datos de ejemplo para desarrollo (remover en producción)
-      setCurrentUser({
-        person_id: 1,
-        first_name: "Juan",
-        last_name: "Pérez",
-        email: "juan.perez@inmobiliaria.com",
-        phone: "+57 300 123 4567",
+      setAgentId(id)
+      setCurrentUser(stored)
+      console.log("✅ Agente cargado correctamente:", {
+        id,
+        name: `${stored.first_name} ${stored.last_name}`,
+        email: stored.email,
       })
+    } catch (err) {
+      console.error("❌ Error cargando datos del agente:", err)
+      setSubmitError("No se encontró el ID del agente. Por favor, inicia sesión nuevamente.")
     } finally {
       setLoadingUser(false)
     }
-  }
+  }, [])
 
   const handleInputChange = (e) => {
     const { name, value } = e.target
@@ -94,26 +86,61 @@ export default function CrearPropiedad() {
       [name]: value,
     }))
 
-    // Update map address when address field changes
+    // Actualizar dirección del mapa
     if (name === "address") {
       setFullAddress(value || "Bogotá, Colombia")
+    }
+
+    // Limpiar errores cuando el usuario empiece a escribir
+    if (submitError) {
+      setSubmitError("")
     }
   }
 
   const handleImageUpload = (e) => {
     const files = Array.from(e.target.files)
-    const imageUrls = files.map((file) => URL.createObjectURL(file))
 
-    setSelectedImages((prev) => [...prev, ...imageUrls])
-    setImageFiles((prev) => [...prev, ...files])
+    // Validar archivos
+    const validFiles = files.filter((file) => {
+      const isValidType = file.type.startsWith("image/")
+      const isValidSize = file.size <= 10 * 1024 * 1024 // 10MB
+
+      if (!isValidType) {
+        setSubmitError(`${file.name} no es una imagen válida`)
+        return false
+      }
+
+      if (!isValidSize) {
+        setSubmitError(`${file.name} es muy grande (máximo 10MB)`)
+        return false
+      }
+
+      return true
+    })
+
+    if (validFiles.length > 0) {
+      const imageUrls = validFiles.map((file) => URL.createObjectURL(file))
+      setSelectedImages((prev) => [...prev, ...imageUrls])
+      setImageFiles((prev) => [...prev, ...validFiles])
+      setSubmitError("") // Limpiar errores
+    }
   }
 
   const removeImage = (indexToRemove) => {
+    // Liberar memoria del objeto URL
+    URL.revokeObjectURL(selectedImages[indexToRemove])
     setSelectedImages((prev) => prev.filter((_, index) => index !== indexToRemove))
     setImageFiles((prev) => prev.filter((_, index) => index !== indexToRemove))
   }
 
-  // Mapeo de tipos de propiedad a IDs del backend
+  // Función helper para limpiar valores numéricos
+  const numeric = (v) => {
+    const cleaned = String(v).replace(/[^\d.]/g, "")
+    const number = Number(cleaned)
+    return isNaN(number) ? 0 : number
+  }
+
+  // ✅ Mapeo correcto de tipos de propiedad a IDs del backend
   const getPropertyTypeId = (type) => {
     const typeMap = {
       casa: 1,
@@ -122,10 +149,12 @@ export default function CrearPropiedad() {
       oficina: 4,
       terreno: 5,
     }
-    return typeMap[type] || 1
+    const id = typeMap[type?.toLowerCase()]
+    console.log(`🏠 Mapeando tipo "${type}" → ID: ${id}`)
+    return id || 1
   }
 
-  // Función para mapear el tipo de operación del frontend al backend
+  // Mapeo de operaciones
   const mapOperationType = (frontendType) => {
     const operationMap = {
       Venta: "Venta",
@@ -135,64 +164,70 @@ export default function CrearPropiedad() {
     return operationMap[frontendType] || "Venta"
   }
 
-  // Función para validar el formulario (sin campos del agente)
+  // ✅ 3. Validación completa del formulario
   const validateForm = () => {
-    if (!currentUser) {
-      setSubmitError("No se pudo obtener la información del usuario. Por favor, recarga la página.")
+    console.log("🔍 Validando formulario...")
+    if (!agentId) {
+      setSubmitError("❌ No se pudo obtener el ID del agente. Recarga la página.")
       return false
     }
 
+    // Campos requeridos
     const requiredFields = [
-      "title",
-      "address",
-      "type",
-      "description",
-      "rooms",
-      "bathrooms",
-      "area",
-      "price",
-      "city",
-      "neighborhood",
+      { field: "title", label: "Título" },
+      { field: "address", label: "Dirección" },
+      { field: "type", label: "Tipo de propiedad" },
+      { field: "description", label: "Descripción" },
+      { field: "rooms", label: "Habitaciones" },
+      { field: "bathrooms", label: "Baños" },
+      { field: "area", label: "Área construida" },
+      { field: "price", label: "Precio" },
+      { field: "city", label: "Ciudad" },
+      { field: "neighborhood", label: "Barrio" },
     ]
 
-    for (const field of requiredFields) {
-      if (!formData[field]) {
-        setSubmitError(`El campo ${field} es requerido`)
+    for (const { field, label } of requiredFields) {
+      if (!formData[field] || String(formData[field]).trim() === "") {
+        setSubmitError(`❌ El campo "${label}" es requerido`)
         return false
       }
     }
 
-    if (isNaN(formData.rooms) || formData.rooms < 0) {
-      setSubmitError("El número de habitaciones debe ser válido")
+    // Validaciones numéricas
+    if (numeric(formData.rooms) < 0) {
+      setSubmitError("❌ El número de habitaciones debe ser válido")
       return false
     }
 
-    if (isNaN(formData.bathrooms) || formData.bathrooms < 0) {
-      setSubmitError("El número de baños debe ser válido")
+    if (numeric(formData.bathrooms) < 0) {
+      setSubmitError("❌ El número de baños debe ser válido")
       return false
     }
 
-    if (isNaN(formData.area) || formData.area <= 0) {
-      setSubmitError("El área debe ser un número válido mayor a 0")
+    if (numeric(formData.area) <= 0) {
+      setSubmitError("❌ El área debe ser mayor a 0")
       return false
     }
 
+    if (numeric(formData.price) <= 0) {
+      setSubmitError("❌ El precio debe ser mayor a 0")
+      return false
+    }
+
+    // Validar imagen
     if (imageFiles.length === 0) {
-      setSubmitError("Debe seleccionar al menos una imagen")
+      setSubmitError("❌ Debe seleccionar al menos una imagen")
       return false
     }
 
-    if (imageFiles.length > 10) {
-      setSubmitError("Máximo 10 imágenes permitidas")
-      return false
-    }
-
+    console.log("✅ Formulario válido")
     return true
   }
 
-  // Función optimizada para envío al backend
+  // ✅ 4. Función de envío optimizada con múltiples imágenes
   const handleSubmit = async (e) => {
     e.preventDefault()
+    console.log("🚀 Iniciando envío de propiedad...")
 
     setSubmitError("")
     setSubmitSuccess(false)
@@ -204,73 +239,95 @@ export default function CrearPropiedad() {
     setIsSubmitting(true)
 
     try {
-      // Crear FormData para enviar archivos e información
-      const formDataToSend = new FormData()
+      // Crear FormData con todos los campos requeridos
+      const fd = new FormData()
 
-      // Mapear campos del frontend a los que espera el backend
-      formDataToSend.append("address", formData.address.trim())
-      formDataToSend.append("property_title", formData.title.trim())
-      formDataToSend.append("description", formData.description.trim())
-      formDataToSend.append("price", formData.price.replace(/[^\d]/g, ""))
-      formDataToSend.append("status", "Disponible")
+      // Campos de texto
+      fd.append("property_title", formData.title.trim())
+      fd.append("address", formData.address.trim())
+      fd.append("description", formData.description.trim())
+      fd.append("city", formData.city.trim())
+      fd.append("neighborhood", formData.neighborhood.trim())
+      fd.append("status", "Disponible")
 
-      // Usar el person_id del usuario logueado
-      formDataToSend.append("person_id", currentUser.person_id.toString())
+      // Campos numéricos
+      fd.append("price", numeric(formData.price).toString())
+      fd.append("property_type_id", getPropertyTypeId(formData.type).toString())
+      fd.append("socioeconomic_stratum", (numeric(formData.socioeconomic_stratum) || 3).toString())
+      fd.append("operation_type", mapOperationType(formData.propertyType))
+      fd.append("bedrooms", numeric(formData.rooms).toString())
+      fd.append("bathrooms", numeric(formData.bathrooms).toString())
+      fd.append("parking_spaces", numeric(formData.parking_spaces).toString())
+      fd.append("built_area", numeric(formData.area).toString())
+      fd.append("total_area", (numeric(formData.total_area) || numeric(formData.area)).toString())
 
-      formDataToSend.append("property_type_id", getPropertyTypeId(formData.type))
-      formDataToSend.append("socioeconomic_stratum", formData.socioeconomic_stratum || "3")
-      formDataToSend.append("city", formData.city.trim())
-      formDataToSend.append("neighborhood", formData.neighborhood.trim())
-      formDataToSend.append("operation_type", mapOperationType(formData.propertyType))
-      formDataToSend.append("bedrooms", Number.parseInt(formData.rooms))
-      formDataToSend.append("bathrooms", Number.parseInt(formData.bathrooms))
-      formDataToSend.append("parking_spaces", Number.parseInt(formData.parking_spaces) || 0)
-      formDataToSend.append("built_area", Number.parseInt(formData.area))
-      formDataToSend.append("total_area", Number.parseInt(formData.total_area) || Number.parseInt(formData.area))
-      formDataToSend.append("latitude", formData.latitude || "0")
-      formDataToSend.append("longitude", formData.longitude || "0")
+      // Coordenadas GPS (opcionales)
+      fd.append("latitude", formData.latitude || "0")
+      fd.append("longitude", formData.longitude || "0")
 
-      // Agregar imágenes al FormData
-      imageFiles.forEach((file) => {
-        formDataToSend.append("images", file)
+      // ✅ CAMBIO PRINCIPAL: Enviar todas las imágenes
+      imageFiles.forEach((file, index) => {
+        fd.append("images", file)
+        console.log(`📸 Imagen ${index + 1} agregada:`, file.name)
       })
 
-      // Llamada al API del backend
-      const response = await fetch("http://localhost:10101/api/properties/create", {
+      // Log de datos que se envían
+      console.log("📤 Datos a enviar:", {
+        agentId,
+        title: formData.title,
+        type: formData.type,
+        price: numeric(formData.price),
+        area: numeric(formData.area),
+        imageCount: imageFiles.length,
+      })
+
+      // ✅ Envío al endpoint correcto
+      const url = `http://localhost:10101/api/agents/${agentId}/properties`
+      console.log("🌐 Enviando a:", url)
+
+      const response = await fetch(url, {
         method: "POST",
-        body: formDataToSend,
-        credentials: "include",
+        body: fd,
+        credentials: "omit", // ← Explícitamente sin cookies
       })
+
+      console.log("📡 Respuesta del servidor:", response.status, response.statusText)
 
       if (!response.ok) {
         const errorData = await response.json()
-        throw new Error(errorData.error || "Error al crear la propiedad")
+        console.error("❌ Error del servidor:", errorData)
+        throw new Error(errorData.error || `Error ${response.status}: ${response.statusText}`)
       }
 
       const result = await response.json()
-      console.log("Propiedad creada exitosamente:", result)
+      console.log("✅ Propiedad creada exitosamente:", result)
 
       setSubmitSuccess(true)
 
-      // Limpiar formulario después del éxito
+      // ✅ 6. Limpiar formulario después del éxito
       setTimeout(() => {
         resetForm()
-      }, 2000)
+      }, 3000)
     } catch (error) {
-      console.error("Error al enviar propiedad:", error)
+      console.error("❌ Error al enviar propiedad:", error)
       setSubmitError(error.message || "Error al registrar la propiedad. Intenta de nuevo.")
     } finally {
       setIsSubmitting(false)
     }
   }
 
-  // Función para resetear el formulario
   const resetForm = () => {
+    console.log("🔄 Limpiando formulario...")
+    // Liberar URLs de imágenes
+    selectedImages.forEach((url) => URL.revokeObjectURL(url))
+
     setFormData({
       title: "",
       address: "",
       type: "",
       description: "",
+      city: "",
+      neighborhood: "",
       rooms: "",
       bathrooms: "",
       area: "",
@@ -278,13 +335,12 @@ export default function CrearPropiedad() {
       propertyType: "Venta",
       additionalRoomInfo: "",
       socioeconomic_stratum: "",
-      city: "",
-      neighborhood: "",
       parking_spaces: "",
       total_area: "",
       latitude: "",
       longitude: "",
     })
+
     setSelectedImages([])
     setImageFiles([])
     setPrecioEstimado("")
@@ -300,15 +356,15 @@ export default function CrearPropiedad() {
     }
 
     try {
-      // Simulación temporal
-      const basePrice = Math.random() * 500000 + 200000
-      const formattedPrice = new Intl.NumberFormat("es-CO").format(basePrice)
-      setPrecioEstimado(formattedPrice)
-
+      // Simulación de valoración automática
+      const basePrice = Math.random() * 500000000 + 200000000
+      const formattedPrice = Math.floor(basePrice).toString()
+      setPrecioEstimado(new Intl.NumberFormat("es-CO").format(basePrice))
       setFormData((prev) => ({
         ...prev,
         price: formattedPrice,
       }))
+      console.log("💰 Precio estimado:", formattedPrice)
     } catch (error) {
       console.error("Error en valoración:", error)
       setSubmitError("Error al solicitar valoración. Intenta de nuevo.")
@@ -316,20 +372,20 @@ export default function CrearPropiedad() {
   }
 
   const handleCancel = () => {
-    resetForm()
+    if (window.confirm("¿Estás seguro de que quieres cancelar? Se perderán todos los datos.")) {
+      resetForm()
+    }
   }
 
-  // Mostrar loading mientras se carga la información del usuario
+  // Loading state
   if (loadingUser) {
     return (
       <>
-        <Header hasSidebar={true} />
-        <div className="flex h-screen bg-gray-50">
-          <div className="flex-1 flex items-center justify-center">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#2F8EAC] mx-auto mb-4"></div>
-              <p className="text-gray-600">Cargando información del usuario...</p>
-            </div>
+        <Header toggleAgentSidebar={toggleAgentSidebar} />
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#2F8EAC] mx-auto mb-4"></div>
+            <p className="text-gray-600">Cargando información del usuario...</p>
           </div>
         </div>
       </>
@@ -338,248 +394,253 @@ export default function CrearPropiedad() {
 
   return (
     <>
-      <Header hasSidebar={true} />
-      <div className="flex h-screen bg-gray-50">
-        {/* Mobile Sidebar Overlay */}
-        {sidebarOpen && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden" onClick={() => setSidebarOpen(false)} />
-        )}
-
-        {/* Sidebar */}
-        <div
-          className={`
-          fixed lg:static inset-y-0 left-0 z-50 transform transition-transform duration-300 ease-in-out lg:transform-none
-          ${sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
-        `}
-        >
+      <Header toggleAgentSidebar={toggleAgentSidebar} />
+      <div className="min-h-screen bg-gray-50">
+        {/* Sidebar fijo siempre visible en desktop */}
+        <div className="hidden lg:block fixed left-0 top-16 h-[calc(100vh-4rem)] w-72 bg-white shadow-lg border-r border-gray-200 overflow-y-auto z-30">
           <AgentSideBar
             activeSection={activeSection}
             setActiveSection={setActiveSection}
-            sidebarOpen={sidebarOpen}
-            setSidebarOpen={setSidebarOpen}
+            sidebarOpen={true}
+            setSidebarOpen={() => {}}
+            toggleSidebar={() => {}}
           />
         </div>
 
-        {/* Main Content */}
-        <div className="flex-1 overflow-auto">
-          {/* Mobile Header */}
-          <div className="lg:hidden bg-white border-b px-4 py-3 flex items-center justify-between">
-            <button onClick={() => setSidebarOpen(true)} className="p-2 rounded-md text-gray-600 hover:bg-gray-100">
-              <Menu className="w-6 h-6" />
-            </button>
-            <h1 className="text-lg font-semibold text-gray-800">Crear Propiedades</h1>
-            <div className="w-10" />
-          </div>
+        {/* Sidebar móvil con overlay */}
+        <AgentSideBar
+          sidebarOpen={sidebarOpen}
+          setSidebarOpen={setSidebarOpen}
+          toggleSidebar={toggleAgentSidebar}
+          activeSection={activeSection}
+          setActiveSection={setActiveSection}
+        />
 
+        {/* Overlay para móvil */}
+        {sidebarOpen && (
+          <div className="fixed inset-0 bg-black/50 bg-opacity-50 z-40 lg:hidden" onClick={() => setSidebarOpen(false)} />
+        )}
+
+        {/* Contenido principal */}
+        <main className="lg:ml-72 pt-16">
           <div className="p-4 sm:p-6 lg:p-8">
             {/* Header Section */}
             <div className="mb-6">
               <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Crear Propiedades</h1>
+              <p className="text-gray-600 text-sm mt-1">Registra una nueva propiedad en el sistema</p>
+
+              {/* Información del agente */}
               {currentUser && (
-                <p className="text-gray-600 mt-2">
-                  Agente responsable:{" "}
-                  <span className="font-medium">
-                    {currentUser.first_name} {currentUser.last_name}
-                  </span>
-                </p>
+                <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-xl">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-[#2F8EAC] rounded-full flex items-center justify-center text-white font-semibold">
+                      {currentUser.first_name?.[0]}
+                      {currentUser.last_name?.[0]}
+                    </div>
+                    <div>
+                      <p className="text-gray-800 font-medium">
+                        Agente Responsable: {currentUser.first_name} {currentUser.last_name}
+                      </p>
+                      {currentUser.email && <p className="text-gray-600 text-sm">{currentUser.email}</p>}
+                      {currentUser.phone && <p className="text-gray-600 text-sm">{currentUser.phone}</p>}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Debug info */}
+              {process.env.NODE_ENV === "development" && agentId && (
+                <p className="text-gray-500 text-xs mt-2">Debug - ID del Agente: {agentId}</p>
               )}
             </div>
 
             {/* Mensajes de estado */}
             {submitError && (
-              <div className="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl">
-                {submitError}
+              <div className="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl flex items-start gap-2">
+                <AlertCircle className="w-5 h-5 mt-0.5 flex-shrink-0" />
+                <span>{submitError}</span>
               </div>
             )}
 
             {submitSuccess && (
-              <div className="mb-6 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-xl">
-                ¡Propiedad registrada exitosamente!
+              <div className="mb-6 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-xl flex items-start gap-2">
+                <CheckCircle className="w-5 h-5 mt-0.5 flex-shrink-0" />
+                <span>¡Propiedad registrada exitosamente! El formulario se limpiará automáticamente.</span>
               </div>
             )}
 
-            {/* Form */}
-            <form onSubmit={handleSubmit} className="space-y-8">
-              {/* Property Details Section */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                {/* Left Column - Property Details */}
+            {/* Formulario */}
+            <form onSubmit={handleSubmit} className="space-y-6 sm:space-y-8">
+              <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 lg:gap-8">
+                {/* Columna izquierda - Detalles de la propiedad */}
                 <div className="space-y-6">
                   {/* Información básica */}
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-semibold text-gray-700 border-b pb-2">Información Básica</h3>
-
-                    <input
-                      type="text"
-                      name="title"
-                      placeholder="Título de la Propiedad *"
-                      value={formData.title}
-                      onChange={handleInputChange}
-                      required
-                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
-                    />
-
-                    <input
-                      type="text"
-                      name="address"
-                      placeholder="Dirección Completa *"
-                      value={formData.address}
-                      onChange={handleInputChange}
-                      required
-                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
-                    />
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-gray-100">
+                    <h3 className="text-lg font-semibold text-gray-700 border-b pb-2 mb-4">
+                      Información Básica <span className="text-red-500">*</span>
+                    </h3>
+                    <div className="space-y-4">
                       <input
                         type="text"
-                        name="city"
-                        placeholder="Ciudad *"
-                        value={formData.city}
+                        name="title"
+                        placeholder="Título de la Propiedad *"
+                        value={formData.title}
                         onChange={handleInputChange}
                         required
                         className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
                       />
-
                       <input
                         type="text"
-                        name="neighborhood"
-                        placeholder="Barrio *"
-                        value={formData.neighborhood}
+                        name="address"
+                        placeholder="Dirección Completa *"
+                        value={formData.address}
                         onChange={handleInputChange}
                         required
                         className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
                       />
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <input
+                          type="text"
+                          name="city"
+                          placeholder="Ciudad *"
+                          value={formData.city}
+                          onChange={handleInputChange}
+                          required
+                          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
+                        />
+                        <input
+                          type="text"
+                          name="neighborhood"
+                          placeholder="Barrio *"
+                          value={formData.neighborhood}
+                          onChange={handleInputChange}
+                          required
+                          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
+                        />
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <select
+                          name="type"
+                          value={formData.type}
+                          onChange={handleInputChange}
+                          required
+                          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
+                        >
+                          <option value="">Tipo de Propiedad *</option>
+                          <option value="casa">Casa</option>
+                          <option value="apartamento">Apartamento</option>
+                          <option value="finca">Finca</option>
+                        </select>
+                        <select
+                          name="propertyType"
+                          value={formData.propertyType}
+                          onChange={handleInputChange}
+                          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
+                        >
+                          <option value="Venta">En Venta</option>
+                          <option value="Arriendo">En Arriendo</option>
+                          <option value="Arriendo con opción de compra">Arriendo con opción de compra</option>
+                        </select>
+                      </div>
                       <select
-                        name="type"
-                        value={formData.type}
+                        name="socioeconomic_stratum"
+                        value={formData.socioeconomic_stratum}
                         onChange={handleInputChange}
-                        required
                         className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
                       >
-                        <option value="">Tipo de Propiedad *</option>
-                        <option value="casa">Casa</option>
-                        <option value="apartamento">Apartamento</option>
-                        <option value="local">Local Comercial</option>
-                        <option value="oficina">Oficina</option>
-                        <option value="terreno">Terreno</option>
-                      </select>
-
-                      <select
-                        name="propertyType"
-                        value={formData.propertyType}
-                        onChange={handleInputChange}
-                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
-                      >
-                        <option value="Venta">En Venta</option>
-                        <option value="Arriendo">En Arriendo</option>
-                        <option value="Arriendo con opción de compra">Arriendo con opción de compra</option>
+                        <option value="">Estrato Socioeconómico (Opcional)</option>
+                        <option value="1">Estrato 1</option>
+                        <option value="2">Estrato 2</option>
+                        <option value="3">Estrato 3</option>
+                        <option value="4">Estrato 4</option>
+                        <option value="5">Estrato 5</option>
+                        <option value="6">Estrato 6</option>
                       </select>
                     </div>
-
-                    <select
-                      name="socioeconomic_stratum"
-                      value={formData.socioeconomic_stratum}
-                      onChange={handleInputChange}
-                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
-                    >
-                      <option value="">Estrato Socioeconómico</option>
-                      <option value="1">Estrato 1</option>
-                      <option value="2">Estrato 2</option>
-                      <option value="3">Estrato 3</option>
-                      <option value="4">Estrato 4</option>
-                      <option value="5">Estrato 5</option>
-                      <option value="6">Estrato 6</option>
-                    </select>
                   </div>
 
-                  {/* Características de la propiedad */}
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-semibold text-gray-700 border-b pb-2">Características</h3>
-
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {/* Características */}
+                  <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-gray-100">
+                    <h3 className="text-lg font-semibold text-gray-700 border-b pb-2 mb-4">
+                      Características <span className="text-red-500">*</span>
+                    </h3>
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <input
+                          type="number"
+                          name="rooms"
+                          placeholder="Habitaciones *"
+                          value={formData.rooms}
+                          onChange={handleInputChange}
+                          required
+                          min="0"
+                          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
+                        />
+                        <input
+                          type="number"
+                          name="bathrooms"
+                          placeholder="Baños *"
+                          value={formData.bathrooms}
+                          onChange={handleInputChange}
+                          required
+                          min="0"
+                          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
+                        />
+                        <input
+                          type="number"
+                          name="parking_spaces"
+                          placeholder="Parqueaderos"
+                          value={formData.parking_spaces}
+                          onChange={handleInputChange}
+                          min="0"
+                          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
+                        />
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <input
+                          type="number"
+                          name="area"
+                          placeholder="Área Construida (m²) *"
+                          value={formData.area}
+                          onChange={handleInputChange}
+                          required
+                          min="1"
+                          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
+                        />
+                        <input
+                          type="number"
+                          name="total_area"
+                          placeholder="Área Total (m²)"
+                          value={formData.total_area}
+                          onChange={handleInputChange}
+                          min="1"
+                          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
+                        />
+                      </div>
                       <input
-                        type="number"
-                        name="rooms"
-                        placeholder="Habitaciones *"
-                        value={formData.rooms}
+                        type="text"
+                        name="additionalRoomInfo"
+                        placeholder="Información Adicional de Habitaciones"
+                        value={formData.additionalRoomInfo}
                         onChange={handleInputChange}
-                        required
-                        min="0"
                         className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
                       />
-
                       <input
-                        type="number"
-                        name="bathrooms"
-                        placeholder="Baños *"
-                        value={formData.bathrooms}
+                        type="text"
+                        name="price"
+                        placeholder="Precio (solo números) *"
+                        value={formData.price}
                         onChange={handleInputChange}
                         required
-                        min="0"
-                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
-                      />
-
-                      <input
-                        type="number"
-                        name="parking_spaces"
-                        placeholder="Parqueaderos"
-                        value={formData.parking_spaces}
-                        onChange={handleInputChange}
-                        min="0"
                         className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
                       />
                     </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <input
-                        type="number"
-                        name="area"
-                        placeholder="Área Construida (m²) *"
-                        value={formData.area}
-                        onChange={handleInputChange}
-                        required
-                        min="1"
-                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
-                      />
-
-                      <input
-                        type="number"
-                        name="total_area"
-                        placeholder="Área Total (m²)"
-                        value={formData.total_area}
-                        onChange={handleInputChange}
-                        min="1"
-                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
-                      />
-                    </div>
-
-                    <input
-                      type="text"
-                      name="additionalRoomInfo"
-                      placeholder="Información Adicional de Habitaciones"
-                      value={formData.additionalRoomInfo}
-                      onChange={handleInputChange}
-                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
-                    />
-
-                    <input
-                      type="text"
-                      name="price"
-                      placeholder="Precio (sin símbolo $) *"
-                      value={formData.price}
-                      onChange={handleInputChange}
-                      required
-                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
-                    />
                   </div>
 
-                  {/* Ubicación GPS (opcional) */}
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-semibold text-gray-700 border-b pb-2">Ubicación GPS (Opcional)</h3>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Ubicación GPS */}
+                  <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-gray-100">
+                    <h3 className="text-lg font-semibold text-gray-700 border-b pb-2 mb-4">Ubicación GPS (Opcional)</h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <input
                         type="number"
                         name="latitude"
@@ -589,7 +650,6 @@ export default function CrearPropiedad() {
                         step="any"
                         className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
                       />
-
                       <input
                         type="number"
                         name="longitude"
@@ -603,10 +663,13 @@ export default function CrearPropiedad() {
                   </div>
 
                   {/* Descripción */}
-                  <div>
+                  <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-gray-100">
+                    <h3 className="text-lg font-semibold text-gray-700 border-b pb-2 mb-4">
+                      Descripción <span className="text-red-500">*</span>
+                    </h3>
                     <textarea
                       name="description"
-                      placeholder="Descripción de la Propiedad *"
+                      placeholder="Descripción detallada de la propiedad *"
                       value={formData.description}
                       onChange={handleInputChange}
                       required
@@ -616,13 +679,14 @@ export default function CrearPropiedad() {
                   </div>
                 </div>
 
-                {/* Right Column - Multimedia and Map */}
-                <div className="space-y-8">
-                  {/* Multimedia Section */}
-                  <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                    <h2 className="text-lg font-semibold text-gray-800 mb-4">Multimedia</h2>
+                {/* Columna derecha - Multimedia y mapa */}
+                <div className="space-y-6">
+                  {/* Multimedia */}
+                  <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-gray-100">
+                    <h2 className="text-lg font-semibold text-gray-800 mb-4">
+                      Multimedia <span className="text-red-500">*</span>
+                    </h2>
 
-                    {/* Image Upload Area */}
                     <div className="mb-4">
                       <label
                         htmlFor="image-upload"
@@ -630,7 +694,8 @@ export default function CrearPropiedad() {
                       >
                         <div className="flex flex-col items-center justify-center pt-5 pb-6">
                           <Upload className="w-8 h-8 text-[#2F8EAC] mb-2" />
-                          <p className="text-sm text-gray-600">Subir imágenes</p>
+                          <p className="text-sm text-gray-600">Subir imágenes *</p>
+                          <p className="text-xs text-gray-500">PNG, JPG hasta 10MB</p>
                         </div>
                         <input
                           id="image-upload"
@@ -643,7 +708,6 @@ export default function CrearPropiedad() {
                       </label>
                     </div>
 
-                    {/* Uploaded Images Preview */}
                     {selectedImages.length > 0 && (
                       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                         {selectedImages.map((img, index) => (
@@ -660,17 +724,32 @@ export default function CrearPropiedad() {
                             >
                               <X className="w-4 h-4 text-red-500" />
                             </button>
+                            {index === 0 && (
+                              <div className="absolute bottom-1 left-1 bg-green-500 text-white text-xs px-2 py-1 rounded">
+                                Principal
+                              </div>
+                            )}
                           </div>
                         ))}
+                      </div>
+                    )}
+
+                    {selectedImages.length > 0 && (
+                      <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
+                        <p className="text-sm text-green-700">
+                          <strong>✅ Todas las imágenes ({imageFiles.length}) se enviarán al backend.</strong>
+                        </p>
                       </div>
                     )}
                   </div>
 
                   {/* Valoración automática */}
-                  <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                  <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-gray-100">
                     <div className="text-center mb-4">
                       <p className="text-lg font-semibold text-gray-800 mb-2">Valoración Automática</p>
-                      {precioEstimado && <p className="text-2xl font-bold text-green-600">${precioEstimado}</p>}
+                      {precioEstimado && (
+                        <p className="text-xl sm:text-2xl font-bold text-green-600">${precioEstimado}</p>
+                      )}
                     </div>
 
                     <button
@@ -689,11 +768,12 @@ export default function CrearPropiedad() {
                     )}
                   </div>
 
-                  {/* Map Section */}
-                  <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                  {/* Mapa */}
+                  <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-gray-100">
                     <h2 className="text-lg font-semibold text-gray-800 mb-2">Ubicación en el Mapa</h2>
                     <div className="w-16 h-0.5 bg-gray-200 mb-4"></div>
-                    <div className="w-full h-64 bg-gray-100 rounded-lg overflow-hidden border border-gray-200">
+
+                    <div className="w-full h-48 sm:h-64 bg-gray-100 rounded-lg overflow-hidden border border-gray-200">
                       <iframe
                         className="w-full h-full"
                         src={`https://maps.google.com/maps?q=${encodeURIComponent(fullAddress)}&t=&z=13&ie=UTF8&iwloc=&output=embed`}
@@ -705,20 +785,21 @@ export default function CrearPropiedad() {
                 </div>
               </div>
 
-              {/* Action Buttons */}
-              <div className="flex justify-between pt-4">
+              {/* Botones de acción */}
+              <div className="flex flex-col sm:flex-row justify-between gap-4 pt-4">
                 <button
                   type="button"
                   onClick={handleCancel}
-                  className="px-6 py-3 border border-gray-300 rounded-xl text-gray-700 hover:bg-gray-50 transition-colors font-medium"
+                  className="w-full sm:w-auto px-6 py-3 border border-gray-300 rounded-xl text-gray-700 hover:bg-gray-50 transition-colors font-medium"
                 >
                   Cancelar
                 </button>
+
                 <button
                   type="submit"
-                  disabled={isSubmitting || !currentUser}
-                  className={`px-6 py-3 rounded-xl font-medium transition-colors ${
-                    isSubmitting || !currentUser
+                  disabled={isSubmitting || !agentId}
+                  className={`w-full sm:w-auto px-6 py-3 rounded-xl font-medium transition-colors ${
+                    isSubmitting || !agentId
                       ? "bg-gray-400 text-gray-600 cursor-not-allowed"
                       : "bg-[#2F8EAC] text-white hover:bg-[#256b82]"
                   }`}
@@ -728,7 +809,7 @@ export default function CrearPropiedad() {
               </div>
             </form>
           </div>
-        </div>
+        </main>
       </div>
     </>
   )

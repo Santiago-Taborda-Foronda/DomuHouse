@@ -687,7 +687,6 @@ export default function MisPropiedades() {
                     <X className="w-5 h-5" />
                   </button>
                 </div>
-
                 <div className="space-y-4 sm:space-y-6">
                   <div className="flex flex-col sm:flex-row items-start gap-4">
                     <div className="w-full sm:w-32 h-24 bg-gray-100 rounded-xl overflow-hidden">
@@ -712,7 +711,6 @@ export default function MisPropiedades() {
                       </span>
                     </div>
                   </div>
-
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="bg-gray-50 p-4 rounded-xl">
                       <label className="block text-sm font-medium text-gray-700 mb-1">Área:</label>
@@ -757,7 +755,6 @@ export default function MisPropiedades() {
                     <label className="block text-sm font-medium text-gray-700 mb-2">Descripción:</label>
                     <p className="text-gray-900">{selectedProperty.description}</p>
                   </div>
-
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="bg-gray-50 p-4 rounded-xl">
                       <label className="block text-sm font-medium text-gray-700 mb-1">Agente:</label>

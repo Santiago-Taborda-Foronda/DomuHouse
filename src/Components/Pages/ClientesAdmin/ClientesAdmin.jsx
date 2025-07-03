@@ -1,103 +1,130 @@
-import React, { useState, useEffect } from 'react'
-import { Calendar, TrendingUp, Users, Building2, DollarSign, Eye, Bell, Search, Filter, Phone, Mail, MapPin, User, Home, CreditCard } from 'lucide-react'
-import { Header } from '../../Layouts/Header/Header'
-import { SidebarInmobiliaria } from '../../Layouts/SidebarInmobiliaria/SidebarInmobiliaria'
+"use client"
+
+import { useState, useEffect, useMemo } from "react"
+import { Calendar, TrendingUp, Users, DollarSign, Search, Phone, Mail, User, Home, CreditCard } from "lucide-react"
+import { Header } from "../../Layouts/Header/Header"
+import { SidebarInmobiliaria } from "../../Layouts/SidebarInmobiliaria/SidebarInmobiliaria"
+import { ClientDetailsModal } from "../ClientDetailsModal/ClientDetailsModal"
 
 // Datos simulados de clientes
-const clientesData = {
-  totalClientes: 156,
-  clientesActivos: 134,
-  clientesNuevos: 12,
-  ingresosTotales: 890500000,
-  clientes: [
-    {
-      id: 1,
-      nombre: 'María García López',
-      email: 'maria.garcia@email.com',
-      telefono: '+57 300 123 4567',
-      tipoCliente: 'Comprador',
-      fechaRegistro: '2024-01-15',
-      ultimaActividad: '2024-06-08',
-      propiedadAsociada: 'Apartamento 3 hab - Zona Rosa',
-      valorTransaccion: 450000000,
-      estado: 'Activo',
-      avatar: 'MG'
-    },
-    {
-      id: 2,
-      nombre: 'Carlos Rodríguez Pérez',
-      email: 'carlos.rodriguez@email.com',
-      telefono: '+57 301 987 6543',
-      tipoCliente: 'Arrendatario',
-      fechaRegistro: '2024-02-20',
-      ultimaActividad: '2024-06-09',
-      propiedadAsociada: 'Casa 4 hab - La Calera',
-      valorTransaccion: 2500000,
-      estado: 'Activo',
-      avatar: 'CR'
-    },
-    {
-      id: 3,
-      nombre: 'Ana Sofía Martínez',
-      email: 'ana.martinez@email.com',
-      telefono: '+57 302 456 7890',
-      tipoCliente: 'Comprador',
-      fechaRegistro: '2024-03-10',
-      ultimaActividad: '2024-06-05',
-      propiedadAsociada: 'Oficina 120m² - Chapinero',
-      valorTransaccion: 320000000,
-      estado: 'Activo',
-      avatar: 'AM'
-    },
-    {
-      id: 4,
-      nombre: 'Luis Fernando Torres',
-      email: 'luis.torres@email.com',
-      telefono: '+57 304 321 0987',
-      tipoCliente: 'Arrendatario',
-      fechaRegistro: '2024-04-05',
-      ultimaActividad: '2024-06-01',
-      propiedadAsociada: 'Apartamento 2 hab - Usaquén',
-      valorTransaccion: 1800000,
-      estado: 'Inactivo',
-      avatar: 'LT'
-    },
-    {
-      id: 5,
-      nombre: 'Patricia Jiménez Ruiz',
-      email: 'patricia.jimenez@email.com',
-      telefono: '+57 305 654 3210',
-      tipoCliente: 'Comprador',
-      fechaRegistro: '2024-05-12',
-      ultimaActividad: '2024-06-10',
-      propiedadAsociada: 'Casa 5 hab - Chía',
-      valorTransaccion: 580000000,
-      estado: 'Activo',
-      avatar: 'PJ'
-    },
-    {
-      id: 6,
-      nombre: 'Diego Alejandro Silva',
-      email: 'diego.silva@email.com',
-      telefono: '+57 306 789 0123',
-      tipoCliente: 'Arrendatario',
-      fechaRegistro: '2024-01-28',
-      ultimaActividad: '2024-06-07',
-      propiedadAsociada: 'Local Comercial - Zona T',
-      valorTransaccion: 4200000,
-      estado: 'Activo',
-      avatar: 'DS'
-    }
-  ]
-}
+const clientesData = [
+  {
+    id: 1,
+    nombre: "María García López",
+    email: "maria.garcia@email.com",
+    telefono: "+57 300 123 4567",
+    tipoCliente: "Comprador",
+    fechaRegistro: "2024-01-15",
+    ultimaActividad: "2024-06-08",
+    propiedadAsociada: "Apartamento 3 hab - Zona Rosa",
+    valorTransaccion: 450000000,
+    estado: "Activo",
+    avatar: "MG",
+  },
+  {
+    id: 2,
+    nombre: "Carlos Rodríguez Pérez",
+    email: "carlos.rodriguez@email.com",
+    telefono: "+57 301 987 6543",
+    tipoCliente: "Arrendatario",
+    fechaRegistro: "2024-02-20",
+    ultimaActividad: "2024-06-09",
+    propiedadAsociada: "Casa 4 hab - La Calera",
+    valorTransaccion: 2500000,
+    estado: "Activo",
+    avatar: "CR",
+  },
+  {
+    id: 3,
+    nombre: "Ana Sofía Martínez",
+    email: "ana.martinez@email.com",
+    telefono: "+57 302 456 7890",
+    tipoCliente: "Comprador",
+    fechaRegistro: "2024-03-10",
+    ultimaActividad: "2024-06-05",
+    propiedadAsociada: "Oficina 120m² - Chapinero",
+    valorTransaccion: 320000000,
+    estado: "Activo",
+    avatar: "AM",
+  },
+  {
+    id: 4,
+    nombre: "Luis Fernando Torres",
+    email: "luis.torres@email.com",
+    telefono: "+57 304 321 0987",
+    tipoCliente: "Arrendatario",
+    fechaRegistro: "2024-04-05",
+    ultimaActividad: "2024-06-01",
+    propiedadAsociada: "Apartamento 2 hab - Usaquén",
+    valorTransaccion: 1800000,
+    estado: "Inactivo",
+    avatar: "LT",
+  },
+  {
+    id: 5,
+    nombre: "Patricia Jiménez Ruiz",
+    email: "patricia.jimenez@email.com",
+    telefono: "+57 305 654 3210",
+    tipoCliente: "Comprador",
+    fechaRegistro: "2024-05-12",
+    ultimaActividad: "2024-06-10",
+    propiedadAsociada: "Casa 5 hab - Chía",
+    valorTransaccion: 580000000,
+    estado: "Activo",
+    avatar: "PJ",
+  },
+  {
+    id: 6,
+    nombre: "Diego Alejandro Silva",
+    email: "diego.silva@email.com",
+    telefono: "+57 306 789 0123",
+    tipoCliente: "Arrendatario",
+    fechaRegistro: "2024-01-28",
+    ultimaActividad: "2024-06-07",
+    propiedadAsociada: "Local Comercial - Zona T",
+    valorTransaccion: 4200000,
+    estado: "Activo",
+    avatar: "DS",
+  },
+]
 
 export const ClientesAdmin = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(true)
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
-  const [filtroTipo, setFiltroTipo] = useState('Todos')
-  const [filtroEstado, setFiltroEstado] = useState('Todos')
-  const [busqueda, setBusqueda] = useState('')
-  const [clientesFiltrados, setClientesFiltrados] = useState(clientesData.clientes)
+  const [filtroTipo, setFiltroTipo] = useState("Todos")
+  const [filtroEstado, setFiltroEstado] = useState("Todos")
+  const [busqueda, setBusqueda] = useState("")
+  const [clientes, setClientes] = useState(clientesData)
+  const [clientesFiltrados, setClientesFiltrados] = useState(clientesData)
+
+  // Estados para el modal
+  const [selectedClient, setSelectedClient] = useState(null)
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false)
+
+  // Calcular estadísticas dinámicamente
+  const estadisticas = useMemo(() => {
+    const totalClientes = clientes.length
+    const clientesActivos = clientes.filter((cliente) => cliente.estado === "Activo").length
+
+    // Calcular clientes nuevos (registrados este mes)
+    const fechaActual = new Date()
+    const mesActual = fechaActual.getMonth()
+    const añoActual = fechaActual.getFullYear()
+
+    const clientesNuevos = clientes.filter((cliente) => {
+      const fechaRegistro = new Date(cliente.fechaRegistro)
+      return fechaRegistro.getMonth() === mesActual && fechaRegistro.getFullYear() === añoActual
+    }).length
+
+    const ingresosTotales = clientes.reduce((total, cliente) => total + cliente.valorTransaccion, 0)
+
+    return {
+      totalClientes,
+      clientesActivos,
+      clientesNuevos,
+      ingresosTotales,
+    }
+  }, [clientes])
 
   // Función para manejar el toggle del sidebar
   const toggleSidebar = () => {
@@ -106,64 +133,74 @@ export const ClientesAdmin = () => {
 
   // Función para manejar logout
   const handleLogout = () => {
-    console.log('Cerrando sesión...');
-    setIsAuthenticated(false);
-  };
+    console.log("Cerrando sesión...")
+    setIsAuthenticated(false)
+  }
 
   // Función para formatear precio
   const formatearPrecio = (precio) => {
-    return new Intl.NumberFormat('es-CO', {
-      style: 'currency',
-      currency: 'COP',
-      minimumFractionDigits: 0
-    }).format(precio);
-  };
+    return new Intl.NumberFormat("es-CO", {
+      style: "currency",
+      currency: "COP",
+      minimumFractionDigits: 0,
+    }).format(precio)
+  }
 
   // Función para formatear fecha
   const formatearFecha = (fecha) => {
-    return new Date(fecha).toLocaleDateString('es-CO', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
-  };
+    return new Date(fecha).toLocaleDateString("es-CO", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    })
+  }
+
+  // Función para ver detalles del cliente
+  const verDetallesCliente = (id) => {
+    const cliente = clientes.find((c) => c.id === id)
+    if (cliente) {
+      setSelectedClient(cliente)
+      setIsDetailsModalOpen(true)
+    }
+  }
 
   // Efecto para filtrar clientes
   useEffect(() => {
-    let clientesFiltrados = clientesData.clientes;
+    let clientesFiltrados = clientes
 
     // Filtrar por tipo
-    if (filtroTipo !== 'Todos') {
-      clientesFiltrados = clientesFiltrados.filter(cliente => cliente.tipoCliente === filtroTipo);
+    if (filtroTipo !== "Todos") {
+      clientesFiltrados = clientesFiltrados.filter((cliente) => cliente.tipoCliente === filtroTipo)
     }
 
     // Filtrar por estado
-    if (filtroEstado !== 'Todos') {
-      clientesFiltrados = clientesFiltrados.filter(cliente => cliente.estado === filtroEstado);
+    if (filtroEstado !== "Todos") {
+      clientesFiltrados = clientesFiltrados.filter((cliente) => cliente.estado === filtroEstado)
     }
 
     // Filtrar por búsqueda
     if (busqueda) {
-      clientesFiltrados = clientesFiltrados.filter(cliente => 
-        cliente.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
-        cliente.email.toLowerCase().includes(busqueda.toLowerCase()) ||
-        cliente.propiedadAsociada.toLowerCase().includes(busqueda.toLowerCase())
-      );
+      clientesFiltrados = clientesFiltrados.filter(
+        (cliente) =>
+          cliente.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
+          cliente.email.toLowerCase().includes(busqueda.toLowerCase()) ||
+          cliente.propiedadAsociada.toLowerCase().includes(busqueda.toLowerCase()),
+      )
     }
 
-    setClientesFiltrados(clientesFiltrados);
-  }, [filtroTipo, filtroEstado, busqueda]);
+    setClientesFiltrados(clientesFiltrados)
+  }, [filtroTipo, filtroEstado, busqueda, clientes])
 
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <Header hasSidebar={true} toggleSidebar={toggleSidebar} />
-      
+
       {/* Layout principal */}
       <div className="flex pt-16">
         {/* Sidebar fijo para desktop */}
         <div className="hidden lg:block fixed left-0 top-16 h-[calc(100vh-4rem)] w-72 bg-white shadow-lg border-r border-gray-200 overflow-y-auto z-30">
-          <SidebarInmobiliaria 
+          <SidebarInmobiliaria
             isOpen={true}
             toggleMenu={() => {}}
             isAuthenticated={isAuthenticated}
@@ -174,7 +211,7 @@ export const ClientesAdmin = () => {
 
         {/* Sidebar overlay para móviles */}
         <div className="lg:hidden">
-          <SidebarInmobiliaria 
+          <SidebarInmobiliaria
             isOpen={isSidebarOpen}
             toggleMenu={toggleSidebar}
             isAuthenticated={isAuthenticated}
@@ -189,9 +226,7 @@ export const ClientesAdmin = () => {
             {/* Header de la página */}
             <div className="mb-6 md:mb-8">
               <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Clientes</h1>
-              <p className="text-gray-600 text-sm mt-1">
-                Gestiona y visualiza información de tus clientes
-              </p>
+              <p className="text-gray-600 text-sm mt-1">Gestiona y visualiza información de tus clientes</p>
             </div>
 
             {/* Tarjetas de estadísticas principales */}
@@ -202,7 +237,9 @@ export const ClientesAdmin = () => {
                   <div>
                     <div className="flex items-center gap-2 mb-2">
                       <Users className="w-4 h-4 md:w-5 md:h-5 text-[#2F8EAC]" />
-                      <span className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">{clientesData.totalClientes}</span>
+                      <span className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">
+                        {estadisticas.totalClientes}
+                      </span>
                     </div>
                     <p className="text-xs md:text-sm text-gray-600">Total Clientes</p>
                   </div>
@@ -215,7 +252,9 @@ export const ClientesAdmin = () => {
                   <div>
                     <div className="flex items-center gap-2 mb-2">
                       <User className="w-4 h-4 md:w-5 md:h-5 text-[#2F8EAC]" />
-                      <span className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">{clientesData.clientesActivos}</span>
+                      <span className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">
+                        {estadisticas.clientesActivos}
+                      </span>
                     </div>
                     <p className="text-xs md:text-sm text-gray-600">Clientes Activos</p>
                   </div>
@@ -228,7 +267,9 @@ export const ClientesAdmin = () => {
                   <div>
                     <div className="flex items-center gap-2 mb-2">
                       <TrendingUp className="w-4 h-4 md:w-5 md:h-5 text-[#2F8EAC]" />
-                      <span className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">{clientesData.clientesNuevos}</span>
+                      <span className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">
+                        {estadisticas.clientesNuevos}
+                      </span>
                     </div>
                     <p className="text-xs md:text-sm text-gray-600">Nuevos este mes</p>
                   </div>
@@ -241,7 +282,9 @@ export const ClientesAdmin = () => {
                   <div>
                     <div className="flex items-center gap-2 mb-2">
                       <DollarSign className="w-4 h-4 md:w-5 md:h-5 text-[#2F8EAC]" />
-                      <span className="text-sm sm:text-base md:text-lg font-bold text-gray-900">{formatearPrecio(clientesData.ingresosTotales)}</span>
+                      <span className="text-sm sm:text-base md:text-lg font-bold text-gray-900">
+                        {formatearPrecio(estadisticas.ingresosTotales)}
+                      </span>
                     </div>
                     <p className="text-xs md:text-sm text-gray-600">Ingresos Totales</p>
                   </div>
@@ -311,20 +354,26 @@ export const ClientesAdmin = () => {
                         {/* Datos del cliente */}
                         <div className="flex-1 min-w-0">
                           <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-3">
-                            <h4 className="font-semibold text-gray-900 text-sm md:text-base truncate">{cliente.nombre}</h4>
+                            <h4 className="font-semibold text-gray-900 text-sm md:text-base truncate">
+                              {cliente.nombre}
+                            </h4>
                             <div className="flex gap-2 flex-wrap">
-                              <span className={`px-2 md:px-3 py-1 rounded-full text-xs font-medium ${
-                                cliente.tipoCliente === 'Comprador' 
-                                  ? 'bg-green-100 text-green-700' 
-                                  : 'bg-blue-100 text-blue-700'
-                              }`}>
+                              <span
+                                className={`px-2 md:px-3 py-1 rounded-full text-xs font-medium ${
+                                  cliente.tipoCliente === "Comprador"
+                                    ? "bg-green-100 text-green-700"
+                                    : "bg-blue-100 text-blue-700"
+                                }`}
+                              >
                                 {cliente.tipoCliente}
                               </span>
-                              <span className={`px-2 md:px-3 py-1 rounded-full text-xs font-medium ${
-                                cliente.estado === 'Activo' 
-                                  ? 'bg-emerald-100 text-emerald-700' 
-                                  : 'bg-red-100 text-red-700'
-                              }`}>
+                              <span
+                                className={`px-2 md:px-3 py-1 rounded-full text-xs font-medium ${
+                                  cliente.estado === "Activo"
+                                    ? "bg-emerald-100 text-emerald-700"
+                                    : "bg-red-100 text-red-700"
+                                }`}
+                              >
                                 {cliente.estado}
                               </span>
                             </div>
@@ -335,17 +384,14 @@ export const ClientesAdmin = () => {
                               <Mail className="w-3 h-3 md:w-4 md:h-4 flex-shrink-0" />
                               <span className="truncate">{cliente.email}</span>
                             </div>
-
                             <div className="flex items-center gap-2">
                               <Phone className="w-3 h-3 md:w-4 md:h-4 flex-shrink-0" />
                               <span>{cliente.telefono}</span>
                             </div>
-
                             <div className="flex items-center gap-2 md:col-span-2 lg:col-span-1">
                               <Home className="w-3 h-3 md:w-4 md:h-4 flex-shrink-0" />
                               <span className="truncate">{cliente.propiedadAsociada}</span>
                             </div>
-
                             <div className="flex items-center gap-2">
                               <Calendar className="w-3 h-3 md:w-4 md:h-4 flex-shrink-0" />
                               <span className="truncate">Registro: {formatearFecha(cliente.fechaRegistro)}</span>
@@ -362,10 +408,15 @@ export const ClientesAdmin = () => {
                             {formatearPrecio(cliente.valorTransaccion)}
                           </span>
                         </div>
+
                         <p className="text-xs text-gray-500">
                           Última actividad: {formatearFecha(cliente.ultimaActividad)}
                         </p>
-                        <button className="px-3 md:px-4 py-2 bg-[#2F8EAC] text-white rounded-lg hover:bg-[#267a94] transition-colors text-xs md:text-sm font-medium">
+
+                        <button
+                          onClick={() => verDetallesCliente(cliente.id)}
+                          className="px-3 md:px-4 py-2 bg-[#2F8EAC] text-white rounded-lg hover:bg-[#267a94] transition-colors text-xs md:text-sm font-medium"
+                        >
                           Ver Detalles
                         </button>
                       </div>
@@ -378,13 +429,25 @@ export const ClientesAdmin = () => {
               {clientesFiltrados.length === 0 && (
                 <div className="p-8 md:p-12 text-center">
                   <Users className="w-8 h-8 md:w-12 md:h-12 text-gray-300 mx-auto mb-4" />
-                  <p className="text-gray-500 text-sm md:text-base">No se encontraron clientes que coincidan con los filtros aplicados.</p>
+                  <p className="text-gray-500 text-sm md:text-base">
+                    No se encontraron clientes que coincidan con los filtros aplicados.
+                  </p>
                 </div>
               )}
             </div>
           </div>
         </main>
       </div>
+
+      {/* Modal de detalles */}
+      <ClientDetailsModal
+        client={selectedClient}
+        isOpen={isDetailsModalOpen}
+        onClose={() => {
+          setIsDetailsModalOpen(false)
+          setSelectedClient(null)
+        }}
+      />
     </div>
   )
 }

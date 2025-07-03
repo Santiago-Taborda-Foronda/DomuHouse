@@ -751,7 +751,6 @@ export default function CrearPropiedad() {
                         <p className="text-xl sm:text-2xl font-bold text-green-600">${precioEstimado}</p>
                       )}
                     </div>
-
                     <button
                       type="button"
                       onClick={handleSolicitarValoracion}
@@ -760,7 +759,6 @@ export default function CrearPropiedad() {
                       <span>📊</span>
                       Solicitar Valoración Automática
                     </button>
-
                     {precioEstimado && (
                       <p className="text-xs text-gray-500 text-center mt-2">
                         * El precio se ha actualizado automáticamente en el formulario

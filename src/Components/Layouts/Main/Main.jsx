@@ -108,14 +108,13 @@ export const Main = () => {
 
   const toggleAdvanced = () => setShowAdvanced(!showAdvanced)
 
-  const API_BASE_URL = "http://localhost:10101"
 
   // Cargar propiedades iniciales
   useEffect(() => {
     const fetchProperties = async () => {
       setIsLoading(true)
       try {
-        const res = await fetch(`${API_BASE_URL}/api/properties/approved`)
+        const res = await fetch("https://domuhouse.onrender.com/api/properties/obtener")
 
         if (!res.ok) {
           throw new Error(`HTTP error! status: ${res.status}`)
@@ -386,14 +385,13 @@ export const Main = () => {
     }
   }
 
-  return (
-    <>
-      {/* Hero Section con búsqueda */}
-      <div
+    return (
+        <>
+        <div
         className="relative h-[400px] xs:h-[450px] sm:h-[550px] md:h-[650px] lg:h-[750px] bg-cover bg-center flex flex-col justify-center items-center text-white text-center px-4 sm:px-6 md:px-8 lg:px-12"
         style={{ backgroundImage: `url(${Casa2})` }}
       >
-        <div className="absolute inset-0 bg-black/30 z-0"></div>
+                <div className="absolute inset-0 bg-black/30 z-0"></div>
 
         <div className="relative z-10 w-full flex flex-col justify-center items-center">
           {/* Título principal */}

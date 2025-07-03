@@ -6,20 +6,27 @@ import { Search, MessageSquare, Send, User, X, AlertCircle } from "lucide-react"
 
 import { Header } from "../../Layouts/Header/Header"
 
+
 import AgentSideBar from "./Components/AgentSideBar"
 
 export default function ContactarCliente() {
   const [activeSection, setActiveSection] = useState("Contactar Clientes")
 
+
   const [sidebarOpen, setSidebarOpen] = useState(false)
+
 
   const [searchTerm, setSearchTerm] = useState("")
 
+
   const [selectedClient, setSelectedClient] = useState(null)
+
 
   const [message, setMessage] = useState("")
 
+
   const [isSubmitting, setIsSubmitting] = useState(false)
+
 
   const [submitSuccess, setSubmitSuccess] = useState(false)
 
@@ -196,7 +203,9 @@ export default function ContactarCliente() {
   const handleContactClient = (cliente) => {
     setSelectedClient(cliente)
 
+
     setMessage("")
+
 
     setSubmitSuccess(false)
 
@@ -259,10 +268,12 @@ export default function ContactarCliente() {
 
       setSubmitSuccess(true)
 
+
       setMessage("")
 
       setTimeout(() => {
         setSubmitSuccess(false)
+
 
         setSelectedClient(null)
       }, 3000)
@@ -372,7 +383,9 @@ export default function ContactarCliente() {
   const handleCancel = () => {
     setSelectedClient(null)
 
+
     setMessage("")
+
 
     setSubmitSuccess(false)
 
@@ -654,6 +667,7 @@ export default function ContactarCliente() {
 
                   {/* Vista de tabla para desktop */}
 
+
                   <div className="hidden lg:block overflow-x-auto">
                     <table className="w-full">
                       <thead className="bg-gray-50">
@@ -820,6 +834,7 @@ export default function ContactarCliente() {
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Mensaje:</label>
 
+
                     <textarea
                       value={message}
                       onChange={(e) => setMessage(e.target.value)}
@@ -840,6 +855,7 @@ export default function ContactarCliente() {
                       {isSubmitting ? "Guardando..." : "Registrar Mensaje"}
                     </button>
 
+
                     <button
                       onClick={handleSendMessage}
                       disabled={isSubmitting}
@@ -850,6 +866,7 @@ export default function ContactarCliente() {
                       }`}
                     >
                       <Send className="w-4 h-4" />
+
 
                       {isSubmitting ? "Enviando..." : "Enviar"}
                     </button>

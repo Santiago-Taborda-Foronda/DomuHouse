@@ -1,9 +1,26 @@
-import React, { useState, useEffect } from 'react'
-import { Search, Filter, Plus, Eye, Edit, Trash2, Home, MapPin, Calendar, DollarSign, Users, Building2, TrendingUp, ChevronDown } from 'lucide-react'
-import { Header } from '../../Layouts/Header/Header'
-import { SidebarInmobiliaria } from '../../Layouts/SidebarInmobiliaria/SidebarInmobiliaria'
+"use client"
 
-// Datos simulados de propiedades
+import { useState, useMemo } from "react"
+import {
+  Search,
+  Filter,
+  Plus,
+  Eye,
+  Edit,
+  Trash2,
+  Home,
+  MapPin,
+  DollarSign,
+  Users,
+  Building2,
+  TrendingUp,
+  ChevronDown,
+} from "lucide-react"
+import { Header } from "../../Layouts/Header/Header"
+import { SidebarInmobiliaria } from "../../Layouts/SidebarInmobiliaria/SidebarInmobiliaria"
+import { PropertyDetailsModal } from "../PropertyDetailsModal/PropertyDetailsModal"
+import { PropertyEditModal } from "../PropertyEditModal/PropertyEditModal"
+
 const propiedadesData = [
   {
     id: 1,
@@ -18,7 +35,7 @@ const propiedadesData = [
     estado: "Disponible",
     fechaPublicacion: "2024-08-15",
     visitas: 24,
-    imagen: "/api/placeholder/300/200"
+    imagen: "/api/placeholder/300/200",
   },
   {
     id: 2,
@@ -33,7 +50,7 @@ const propiedadesData = [
     estado: "Ocupado",
     fechaPublicacion: "2024-08-10",
     visitas: 18,
-    imagen: "/api/placeholder/300/200"
+    imagen: "/api/placeholder/300/200",
   },
   {
     id: 3,
@@ -48,7 +65,7 @@ const propiedadesData = [
     estado: "Disponible",
     fechaPublicacion: "2024-08-12",
     visitas: 31,
-    imagen: "/api/placeholder/300/200"
+    imagen: "/api/placeholder/300/200",
   },
   {
     id: 4,
@@ -63,7 +80,7 @@ const propiedadesData = [
     estado: "Disponible",
     fechaPublicacion: "2024-08-08",
     visitas: 45,
-    imagen: "/api/placeholder/300/200"
+    imagen: "/api/placeholder/300/200",
   },
   {
     id: 5,
@@ -78,7 +95,7 @@ const propiedadesData = [
     estado: "Disponible",
     fechaPublicacion: "2024-08-14",
     visitas: 12,
-    imagen: "/api/placeholder/300/200"
+    imagen: "/api/placeholder/300/200",
   },
   {
     id: 6,
@@ -93,34 +110,55 @@ const propiedadesData = [
     estado: "Negociación",
     fechaPublicacion: "2024-08-05",
     visitas: 8,
-    imagen: "/api/placeholder/300/200"
-  }
+    imagen: "/api/placeholder/300/200",
+  },
 ]
-
-// Datos de estadísticas
-const estadisticas = {
-  totalVentas: 12,
-  totalAlquileres: 35,
-  ingresosMesVentas: 1200000000,
-  ingresosMesAlquileres: 45000000,
-  propiedadesDisponibles: 47,
-  propiedadesOcupadas: 28
-}
 
 export const VentasAlquileresAdmin = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(true)
   const [propiedades, setPropiedades] = useState(propiedadesData)
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false) // Estado para el sidebar móvil
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const [filtros, setFiltros] = useState({
-    busqueda: '',
-    tipo: 'Todos',
-    operacion: 'Todos',
-    estado: 'Todos',
-    precioMin: '',
-    precioMax: ''
+    busqueda: "",
+    tipo: "Todos",
+    operacion: "Todos",
+    estado: "Todos",
+    precioMin: "",
+    precioMax: "",
   })
   const [mostrarFiltros, setMostrarFiltros] = useState(false)
-  const [vista, setVista] = useState('lista') // 'lista' o 'tarjetas'
+  const [vista, setVista] = useState("lista")
+
+  // Estados para los modales
+  const [selectedProperty, setSelectedProperty] = useState(null)
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false)
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+
+  // Calcular estadísticas dinámicamente
+  const estadisticas = useMemo(() => {
+    const ventasEstesMes = propiedades.filter((p) => p.operacion === "Venta").length
+    const alquileresActivos = propiedades.filter((p) => p.operacion === "Alquiler" && p.estado === "Ocupado").length
+
+    const ingresosMesVentas = propiedades
+      .filter((p) => p.operacion === "Venta" && p.estado !== "Disponible")
+      .reduce((total, p) => total + p.precio, 0)
+
+    const ingresosMesAlquileres = propiedades
+      .filter((p) => p.operacion === "Alquiler" && p.estado === "Ocupado")
+      .reduce((total, p) => total + p.precio, 0)
+
+    const propiedadesDisponibles = propiedades.filter((p) => p.estado === "Disponible").length
+    const propiedadesOcupadas = propiedades.filter((p) => p.estado === "Ocupado").length
+
+    return {
+      totalVentas: ventasEstesMes,
+      totalAlquileres: alquileresActivos,
+      ingresosMesVentas,
+      ingresosMesAlquileres,
+      propiedadesDisponibles,
+      propiedadesOcupadas,
+    }
+  }, [propiedades])
 
   // Función para toggle del sidebar móvil
   const toggleSidebar = () => {
@@ -129,37 +167,83 @@ export const VentasAlquileresAdmin = () => {
 
   // Función para manejar logout
   const handleLogout = () => {
-    console.log('Cerrando sesión...');
-    setIsAuthenticated(false);
-  };
+    console.log("Cerrando sesión...")
+    setIsAuthenticated(false)
+  }
 
   // Función para formatear precio
   const formatearPrecio = (precio) => {
-    return new Intl.NumberFormat('es-CO', {
-      style: 'currency',
-      currency: 'COP',
-      minimumFractionDigits: 0
-    }).format(precio);
-  };
+    return new Intl.NumberFormat("es-CO", {
+      style: "currency",
+      currency: "COP",
+      minimumFractionDigits: 0,
+    }).format(precio)
+  }
+
+  // Función para ver detalles de propiedad
+  const verPropiedad = (id) => {
+    const property = propiedades.find((p) => p.id === id)
+    if (property) {
+      setSelectedProperty(property)
+      setIsDetailsModalOpen(true)
+    }
+  }
+
+  // Función para editar propiedad
+  const editarPropiedad = (id) => {
+    const property = propiedades.find((p) => p.id === id)
+    if (property) {
+      setSelectedProperty(property)
+      setIsEditModalOpen(true)
+    }
+  }
+
+  // Función para guardar cambios de la propiedad
+  const handleSaveProperty = (updatedProperty) => {
+    setPropiedades((prev) => prev.map((property) => (property.id === updatedProperty.id ? updatedProperty : property)))
+    console.log("Propiedad actualizada:", updatedProperty)
+  }
+
+  // Función para eliminar propiedad
+  const eliminarPropiedad = async (id) => {
+    if (!window.confirm("¿Estás seguro de eliminar esta propiedad?")) {
+      return
+    }
+
+    try {
+      // AQUÍ SE CONECTARÁ CON EL BACKEND
+      // Por ahora eliminamos localmente
+      setPropiedades((prev) => prev.filter((propiedad) => propiedad.id !== id))
+      console.log(`Propiedad ${id} eliminada exitosamente`)
+    } catch (error) {
+      console.error("Error al eliminar propiedad:", error)
+      alert("Error al eliminar la propiedad")
+    }
+  }
 
   // Función para aplicar filtros
-  const propiedadesFiltradas = propiedades.filter(propiedad => {
-    const cumpleBusqueda = propiedad.titulo.toLowerCase().includes(filtros.busqueda.toLowerCase()) ||
-                          propiedad.ubicacion.toLowerCase().includes(filtros.busqueda.toLowerCase())
-    const cumpleTipo = filtros.tipo === 'Todos' || propiedad.tipo === filtros.tipo
-    const cumpleOperacion = filtros.operacion === 'Todos' || propiedad.operacion === filtros.operacion
-    const cumpleEstado = filtros.estado === 'Todos' || propiedad.estado === filtros.estado
-    
+  const propiedadesFiltradas = propiedades.filter((propiedad) => {
+    const cumpleBusqueda =
+      propiedad.titulo.toLowerCase().includes(filtros.busqueda.toLowerCase()) ||
+      propiedad.ubicacion.toLowerCase().includes(filtros.busqueda.toLowerCase())
+    const cumpleTipo = filtros.tipo === "Todos" || propiedad.tipo === filtros.tipo
+    const cumpleOperacion = filtros.operacion === "Todos" || propiedad.operacion === filtros.operacion
+    const cumpleEstado = filtros.estado === "Todos" || propiedad.estado === filtros.estado
+
     return cumpleBusqueda && cumpleTipo && cumpleOperacion && cumpleEstado
   })
 
   // Función para obtener color del estado
   const getEstadoColor = (estado) => {
-    switch(estado) {
-      case 'Disponible': return 'bg-green-100 text-green-800'
-      case 'Ocupado': return 'bg-red-100 text-red-800'
-      case 'Negociación': return 'bg-yellow-100 text-yellow-800'
-      default: return 'bg-gray-100 text-gray-800'
+    switch (estado) {
+      case "Disponible":
+        return "bg-green-100 text-green-800"
+      case "Ocupado":
+        return "bg-red-100 text-red-800"
+      case "Negociación":
+        return "bg-yellow-100 text-yellow-800"
+      default:
+        return "bg-gray-100 text-gray-800"
     }
   }
 
@@ -167,12 +251,12 @@ export const VentasAlquileresAdmin = () => {
     <div className="min-h-screen bg-gray-50">
       {/* Header con toggle del sidebar */}
       <Header hasSidebar={true} toggleSidebar={toggleSidebar} />
-      
+
       {/* Layout principal */}
       <div className="flex pt-16">
         {/* Sidebar fijo para desktop */}
         <div className="hidden lg:block fixed left-0 top-16 h-[calc(100vh-4rem)] w-72 bg-white shadow-lg border-r border-gray-200 overflow-y-auto z-30">
-          <SidebarInmobiliaria 
+          <SidebarInmobiliaria
             isOpen={true}
             toggleMenu={() => {}}
             isAuthenticated={isAuthenticated}
@@ -182,7 +266,7 @@ export const VentasAlquileresAdmin = () => {
         </div>
 
         {/* Sidebar overlay para móviles */}
-        <SidebarInmobiliaria 
+        <SidebarInmobiliaria
           isOpen={isSidebarOpen}
           toggleMenu={toggleSidebar}
           isAuthenticated={isAuthenticated}
@@ -198,15 +282,8 @@ export const VentasAlquileresAdmin = () => {
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
                   <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Ventas y Alquileres</h1>
-                  <p className="text-gray-600 text-sm mt-1">
-                    Gestiona todas las propiedades de tu inmobiliaria
-                  </p>
+                  <p className="text-gray-600 text-sm mt-1">Gestiona todas las propiedades de tu inmobiliaria</p>
                 </div>
-                <button className="bg-[#2F8EAC] text-white px-4 sm:px-6 py-3 rounded-xl font-medium hover:bg-[#256b82] transition-colors flex items-center justify-center gap-2 w-full sm:w-auto">
-                  <Plus className="w-5 h-5" />
-                  <span className="hidden sm:inline">Nueva Propiedad</span>
-                  <span className="sm:hidden">Nueva</span>
-                </button>
               </div>
             </div>
 
@@ -219,7 +296,7 @@ export const VentasAlquileresAdmin = () => {
                 </div>
                 <p className="text-xs text-gray-600">Ventas este mes</p>
               </div>
-              
+
               <div className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-100 p-3 sm:p-4">
                 <div className="flex items-center gap-2 mb-1">
                   <Home className="w-4 h-4 text-[#2F8EAC]" />
@@ -231,7 +308,9 @@ export const VentasAlquileresAdmin = () => {
               <div className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-100 p-3 sm:p-4 col-span-2 sm:col-span-1">
                 <div className="flex items-center gap-2 mb-1">
                   <DollarSign className="w-4 h-4 text-[#2F8EAC]" />
-                  <span className="text-xs sm:text-sm font-bold text-gray-900">{formatearPrecio(estadisticas.ingresosMesVentas)}</span>
+                  <span className="text-xs sm:text-sm font-bold text-gray-900">
+                    {formatearPrecio(estadisticas.ingresosMesVentas)}
+                  </span>
                 </div>
                 <p className="text-xs text-gray-600">Ingresos ventas</p>
               </div>
@@ -239,7 +318,9 @@ export const VentasAlquileresAdmin = () => {
               <div className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-100 p-3 sm:p-4 col-span-2 sm:col-span-1">
                 <div className="flex items-center gap-2 mb-1">
                   <Building2 className="w-4 h-4 text-[#2F8EAC]" />
-                  <span className="text-xs sm:text-sm font-bold text-gray-900">{formatearPrecio(estadisticas.ingresosMesAlquileres)}</span>
+                  <span className="text-xs sm:text-sm font-bold text-gray-900">
+                    {formatearPrecio(estadisticas.ingresosMesAlquileres)}
+                  </span>
                 </div>
                 <p className="text-xs text-gray-600">Ingresos alquileres</p>
               </div>
@@ -272,7 +353,7 @@ export const VentasAlquileresAdmin = () => {
                     placeholder="Buscar por título o ubicación..."
                     className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#2F8EAC] focus:border-[#2F8EAC] transition-colors"
                     value={filtros.busqueda}
-                    onChange={(e) => setFiltros({...filtros, busqueda: e.target.value})}
+                    onChange={(e) => setFiltros({ ...filtros, busqueda: e.target.value })}
                   />
                 </div>
 
@@ -283,7 +364,7 @@ export const VentasAlquileresAdmin = () => {
                 >
                   <Filter className="w-5 h-5" />
                   Filtros
-                  <ChevronDown className={`w-4 h-4 transition-transform ${mostrarFiltros ? 'rotate-180' : ''}`} />
+                  <ChevronDown className={`w-4 h-4 transition-transform ${mostrarFiltros ? "rotate-180" : ""}`} />
                 </button>
               </div>
 
@@ -293,10 +374,10 @@ export const VentasAlquileresAdmin = () => {
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">Tipo</label>
-                      <select 
+                      <select
                         className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#2F8EAC] focus:border-[#2F8EAC]"
                         value={filtros.tipo}
-                        onChange={(e) => setFiltros({...filtros, tipo: e.target.value})}
+                        onChange={(e) => setFiltros({ ...filtros, tipo: e.target.value })}
                       >
                         <option value="Todos">Todos</option>
                         <option value="Casa">Casa</option>
@@ -308,10 +389,10 @@ export const VentasAlquileresAdmin = () => {
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">Operación</label>
-                      <select 
+                      <select
                         className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#2F8EAC] focus:border-[#2F8EAC]"
                         value={filtros.operacion}
-                        onChange={(e) => setFiltros({...filtros, operacion: e.target.value})}
+                        onChange={(e) => setFiltros({ ...filtros, operacion: e.target.value })}
                       >
                         <option value="Todos">Todos</option>
                         <option value="Venta">Venta</option>
@@ -321,10 +402,10 @@ export const VentasAlquileresAdmin = () => {
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">Estado</label>
-                      <select 
+                      <select
                         className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#2F8EAC] focus:border-[#2F8EAC]"
                         value={filtros.estado}
-                        onChange={(e) => setFiltros({...filtros, estado: e.target.value})}
+                        onChange={(e) => setFiltros({ ...filtros, estado: e.target.value })}
                       >
                         <option value="Todos">Todos</option>
                         <option value="Disponible">Disponible</option>
@@ -340,7 +421,7 @@ export const VentasAlquileresAdmin = () => {
                         placeholder="Precio mínimo"
                         className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#2F8EAC] focus:border-[#2F8EAC]"
                         value={filtros.precioMin}
-                        onChange={(e) => setFiltros({...filtros, precioMin: e.target.value})}
+                        onChange={(e) => setFiltros({ ...filtros, precioMin: e.target.value })}
                       />
                     </div>
 
@@ -351,7 +432,7 @@ export const VentasAlquileresAdmin = () => {
                         placeholder="Precio máximo"
                         className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#2F8EAC] focus:border-[#2F8EAC]"
                         value={filtros.precioMax}
-                        onChange={(e) => setFiltros({...filtros, precioMax: e.target.value})}
+                        onChange={(e) => setFiltros({ ...filtros, precioMax: e.target.value })}
                       />
                     </div>
                   </div>
@@ -366,9 +447,7 @@ export const VentasAlquileresAdmin = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <h2 className="text-lg sm:text-xl font-semibold text-gray-900">Propiedades</h2>
-                    <p className="text-sm text-gray-600 mt-1">
-                      {propiedadesFiltradas.length} propiedades encontradas
-                    </p>
+                    <p className="text-sm text-gray-600 mt-1">{propiedadesFiltradas.length} propiedades encontradas</p>
                   </div>
                 </div>
               </div>
@@ -377,7 +456,10 @@ export const VentasAlquileresAdmin = () => {
               <div className="p-4 sm:p-6">
                 <div className="space-y-4">
                   {propiedadesFiltradas.map((propiedad) => (
-                    <div key={propiedad.id} className="border border-gray-200 rounded-xl p-4 sm:p-6 hover:shadow-md transition-shadow">
+                    <div
+                      key={propiedad.id}
+                      className="border border-gray-200 rounded-xl p-4 sm:p-6 hover:shadow-md transition-shadow"
+                    >
                       <div className="flex flex-col gap-4 sm:gap-6">
                         {/* Imagen y información principal en móvil */}
                         <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
@@ -390,14 +472,18 @@ export const VentasAlquileresAdmin = () => {
                           <div className="flex-1 space-y-3">
                             <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 sm:gap-0">
                               <div className="flex-1">
-                                <h3 className="text-lg font-semibold text-gray-900 leading-tight">{propiedad.titulo}</h3>
+                                <h3 className="text-lg font-semibold text-gray-900 leading-tight">
+                                  {propiedad.titulo}
+                                </h3>
                                 <div className="flex items-center gap-2 mt-1">
                                   <MapPin className="w-4 h-4 text-gray-400 flex-shrink-0" />
                                   <span className="text-sm text-gray-600">{propiedad.ubicacion}</span>
                                 </div>
                               </div>
                               <div className="flex items-center gap-2 flex-wrap">
-                                <span className={`px-3 py-1 rounded-full text-xs font-medium ${getEstadoColor(propiedad.estado)}`}>
+                                <span
+                                  className={`px-3 py-1 rounded-full text-xs font-medium ${getEstadoColor(propiedad.estado)}`}
+                                >
                                   {propiedad.estado}
                                 </span>
                                 <span className="px-3 py-1 bg-[#2F8EAC] text-white rounded-full text-xs font-medium">
@@ -422,19 +508,28 @@ export const VentasAlquileresAdmin = () => {
                                 <span className="text-xl sm:text-2xl font-bold text-[#2F8EAC]">
                                   {formatearPrecio(propiedad.precio)}
                                 </span>
-                                {propiedad.operacion === 'Alquiler' && (
+                                {propiedad.operacion === "Alquiler" && (
                                   <span className="text-sm text-gray-600">/mes</span>
                                 )}
                               </div>
-                              
+
                               <div className="flex items-center gap-2">
-                                <button className="p-2 text-gray-600 hover:text-[#2F8EAC] hover:bg-gray-100 rounded-lg transition-colors">
+                                <button
+                                  onClick={() => verPropiedad(propiedad.id)}
+                                  className="p-2 text-gray-600 hover:text-[#2F8EAC] hover:bg-gray-100 rounded-lg transition-colors"
+                                >
                                   <Eye className="w-5 h-5" />
                                 </button>
-                                <button className="p-2 text-gray-600 hover:text-[#2F8EAC] hover:bg-gray-100 rounded-lg transition-colors">
+                                <button
+                                  onClick={() => editarPropiedad(propiedad.id)}
+                                  className="p-2 text-gray-600 hover:text-[#2F8EAC] hover:bg-gray-100 rounded-lg transition-colors"
+                                >
                                   <Edit className="w-5 h-5" />
                                 </button>
-                                <button className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+                                <button
+                                  onClick={() => eliminarPropiedad(propiedad.id)}
+                                  className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                >
                                   <Trash2 className="w-5 h-5" />
                                 </button>
                               </div>
@@ -458,6 +553,26 @@ export const VentasAlquileresAdmin = () => {
           </div>
         </main>
       </div>
+
+      {/* Modales */}
+      <PropertyDetailsModal
+        property={selectedProperty}
+        isOpen={isDetailsModalOpen}
+        onClose={() => {
+          setIsDetailsModalOpen(false)
+          setSelectedProperty(null)
+        }}
+      />
+
+      <PropertyEditModal
+        property={selectedProperty}
+        isOpen={isEditModalOpen}
+        onClose={() => {
+          setIsEditModalOpen(false)
+          setSelectedProperty(null)
+        }}
+        onSave={handleSaveProperty}
+      />
     </div>
   )
 }

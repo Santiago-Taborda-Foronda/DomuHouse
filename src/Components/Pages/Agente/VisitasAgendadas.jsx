@@ -265,10 +265,8 @@ export default function VisitasAgendadas() {
         }
         return v
       })
-
       setVisits(updatedVisits)
       setSubmitSuccess(true)
-
       setTimeout(() => {
         setShowEditModal(false)
         setSelectedVisit(null)
@@ -720,7 +718,6 @@ export default function VisitasAgendadas() {
                     <X className="w-5 h-5" />
                   </button>
                 </div>
-
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Cliente</label>
@@ -796,7 +793,6 @@ export default function VisitasAgendadas() {
                     />
                   </div>
                 </div>
-
                 <div className="flex flex-col sm:flex-row gap-3 mt-6">
                   <button
                     onClick={handleSaveConfirmation}

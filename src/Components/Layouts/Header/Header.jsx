@@ -42,9 +42,11 @@ export const Header = ({ toggleSidebar, toggleAgentSidebar }) => {
     checkAuthStatus()
     checkCurrentPath()
 
+
     const handleStorageChange = () => {
       checkAuthStatus()
     }
+
 
     const handleLocationChange = () => {
       checkCurrentPath()
@@ -215,6 +217,11 @@ export const Header = ({ toggleSidebar, toggleAgentSidebar }) => {
               />
             </>
           )}
+
+          {/* Menú hamburguesa móvil */}
+          <button onClick={toggleMobileMenu} className="md:hidden p-1 hover:bg-gray-100 rounded-lg transition-colors">
+            <MoreHorizontal className="w-5 h-5 text-gray-700" />
+          </button>
         </div>
       </header>
 

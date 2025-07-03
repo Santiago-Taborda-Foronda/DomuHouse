@@ -3,6 +3,8 @@ import { useLocation, useParams } from "react-router-dom"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 import { Header } from "../../Layouts/Header/Header"
+import PhotoSphereViewerContainer from '../../images360/Image360Viewer'
+
 
 export const PropiedadSeleccionada = () => {
   const { state } = useLocation()
@@ -383,36 +385,49 @@ export const PropiedadSeleccionada = () => {
               {/* Generar slides agrupando imágenes de 3 en 3 */}
               {Array.from({ length: totalSlides }, (_, slideIndex) => (
                 <div key={slideIndex} className="min-w-full h-full flex gap-2 p-2">
-                  {displayImages.slice(slideIndex * 3, slideIndex * 3 + 3).map((imageUrl, imageIndex) => {
-                    const globalIndex = slideIndex * 3 + imageIndex
+                {displayImages
+                  .slice(slideIndex * 3, slideIndex * 3 + 3)
+                  .map((imageUrl, imageIndex) => {
+                    const globalIndex = slideIndex * 3 + imageIndex;
                     return (
                       <div key={globalIndex} className="flex-1 h-full relative">
-                       <img
-                          src={imageUrl || "/placeholder.svg"}
-                          alt={`Imagen ${globalIndex + 1} de la propiedad`}
-                          className="w-full h-full object-cover rounded-lg"
-                          onError={(e) => handleImageError(e, imageUrl, globalIndex)}
-                          onLoad={(e) => {
-                            console.log(`✅ Image loaded successfully: ${imageUrl}`);
-                            e.target.style.opacity = '1';
-                          }}
-                          loading={globalIndex < 3 ? "eager" : "lazy"}
-                          style={{ 
-                            opacity: 1, // Remove the initial opacity: 0
-                            transition: 'opacity 0.3s ease-in-out'
-                          }}
-                          // Remove crossOrigin="anonymous" as it can cause CORS issues
-                        />
+                        {imageUrl.includes("360") ? (
+                          // VISOR 360
+                          <div className="w-full h-full rounded-lg overflow-hidden">
+                            <PhotoSphereViewerContainer imageUrl={imageUrl}  style={{ width: '100%', height: '100%', borderRadius: '0.5rem' }}/>
+                          </div>
+                        ) : (
+                          // IMAGEN normal
+                          <img
+                            src={imageUrl || "/placeholder.svg"}
+                            alt={`Imagen ${globalIndex + 1} de la propiedad`}
+                            className="w-full h-full object-cover rounded-lg"
+                            onError={(e) => handleImageError(e, imageUrl, globalIndex)}
+                            onLoad={(e) => {
+                              console.log(`✅ Image loaded successfully: ${imageUrl}`);
+                              // @ts-ignore
+                              e.currentTarget.style.opacity = '1';
+                            }}
+                            loading={globalIndex < 3 ? "eager" : "lazy"}
+                            style={{
+                              opacity: 1, // ahora siempre visible
+                              transition: 'opacity 0.3s ease-in-out'
+                            }}
+                          />
+                        )}
 
                         {/* Overlay con información de la imagen */}
                         {images[globalIndex] && (
                           <div className="absolute bottom-2 left-2 bg-black bg-opacity-50 text-white px-2 py-1 rounded text-xs">
-                            {images[globalIndex].is_main ? "⭐ Principal" : `📸 ${globalIndex + 1}`}
+                            {images[globalIndex].is_main
+                              ? "⭐ Principal"
+                              : `📸 ${globalIndex + 1}`}
                           </div>
                         )}
                       </div>
-                    )
+                    );
                   })}
+
 
                   {/* Rellenar espacios vacíos si no hay suficientes imágenes */}
                   {displayImages.slice(slideIndex * 3, slideIndex * 3 + 3).length < 3 &&

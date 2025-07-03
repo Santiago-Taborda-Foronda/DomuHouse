@@ -1,18 +1,90 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Eye, Edit, Trash2, Search, Filter, Users, Star, Phone, Mail, Shield, Loader2 } from "lucide-react"
+import { Eye, Edit, Trash2, Search, Filter, Users, Star, Phone, Mail, Shield } from "lucide-react"
 import { Header } from "../../Layouts/Header/Header"
 import { SidebarInmobiliaria } from "../../Layouts/SidebarInmobiliaria/SidebarInmobiliaria"
 import { useNavigate } from "react-router-dom"
 import { AgentDetailsModal } from "../AgentDetailsModal/AgentDetailsModal"
 import { AgentEditModal } from "../AgentEditModal/AgentEditModal"
 
+// Datos de agentes simulados iniciales
+const agentesIniciales = [
+  {
+    id: 1,
+    name: "Karina Tabares",
+    email: "karina25@gmail.com",
+    phone: "3214567890",
+    propertyCount: 8,
+    rating: 5,
+    status: "Activo",
+    specialties: ["Ventas", "Alquileres"],
+    avatar: null,
+    createdAt: "2024-01-15T10:00:00Z",
+    totalSales: 15,
+    description: "Especialista en propiedades residenciales con más de 5 años de experiencia",
+  },
+  {
+    id: 2,
+    name: "Mariano Quiroga",
+    email: "mariano23@gmail.com",
+    phone: "3214567891",
+    propertyCount: 7,
+    rating: 4,
+    status: "Activo",
+    specialties: ["Comercial", "Terrenos"],
+    avatar: null,
+    createdAt: "2024-01-10T14:30:00Z",
+    totalSales: 12,
+    description: "Experto en propiedades comerciales y desarrollo de terrenos",
+  },
+  {
+    id: 3,
+    name: "Nathaly Rodriguez",
+    email: "nathaly2@gmail.com",
+    phone: "3214567892",
+    propertyCount: 10,
+    rating: 5,
+    status: "Activo",
+    specialties: ["Lujo", "Inversión"],
+    avatar: null,
+    createdAt: "2024-01-08T09:15:00Z",
+    totalSales: 20,
+    description: "Especialista en propiedades de lujo y asesoramiento en inversiones",
+  },
+  {
+    id: 4,
+    name: "Manuel Vargas",
+    email: "manuel26@gmail.com",
+    phone: "3214567893",
+    propertyCount: 12,
+    rating: 4,
+    status: "Activo",
+    specialties: ["Residencial", "Primera Vivienda"],
+    avatar: null,
+    createdAt: "2024-01-05T16:45:00Z",
+    totalSales: 18,
+    description: "Experto en ayudar a familias a encontrar su primera vivienda",
+  },
+  {
+    id: 5,
+    name: "Santiago Taborda",
+    email: "santiago30@gmail.com",
+    phone: "3214567894",
+    propertyCount: 9,
+    rating: 4,
+    status: "Inactivo",
+    specialties: ["Alquileres", "Administración"],
+    avatar: null,
+    createdAt: "2024-01-03T11:20:00Z",
+    totalSales: 8,
+    description: "Especialista en gestión de alquileres y administración de propiedades",
+  },
+]
+
 export const GestionAgents = () => {
   const navigate = useNavigate()
-  const [agentes, setAgentes] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
+  const [agentes, setAgentes] = useState(agentesIniciales)
   const [filtros, setFiltros] = useState({
     estado: "",
     especialidad: "",
@@ -23,113 +95,24 @@ export const GestionAgents = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   // Estado de autenticación simulado
   const [isAuthenticated, setIsAuthenticated] = useState(true)
+
   // Estados para los modales
   const [selectedAgent, setSelectedAgent] = useState(null)
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
-
-  // Función para obtener el token de autenticación
-  const getAuthToken = () => {
-    // Opción 1: Desde localStorage
-    const token = localStorage.getItem("authToken") || localStorage.getItem("token")
-
-    // Opción 2: Desde sessionStorage
-    // const token = sessionStorage.getItem('authToken')
-
-    // Opción 3: Desde cookies (si usas js-cookie)
-    // import Cookies from 'js-cookie'
-    // const token = Cookies.get('authToken')
-
-    return token
-  }
-
-  // Función para crear headers con autenticación
-  const getAuthHeaders = () => {
-    const token = getAuthToken()
-
-    const headers = {
-      "Content-Type": "application/json",
-    }
-
-    if (token) {
-      // Opción 1: Bearer token (más común)
-      headers.Authorization = `Bearer ${token}`
-
-      // Opción 2: Si tu API usa otro formato
-      // headers.Authorization = `Token ${token}`
-      // headers['X-Auth-Token'] = token
-    }
-
-    return headers
-  }
 
   // Función para toggle del sidebar
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen)
   }
 
-  // Función para cargar agentes desde la API
+  // Función para cargar agentes (preparada para backend)
   const cargarAgentes = async () => {
     try {
-      setLoading(true)
-      setError(null)
-
-      const token = getAuthToken()
-
-      // Verificar si hay token antes de hacer la petición
-      if (!token) {
-        throw new Error("No se encontró token de autenticación. Por favor, inicia sesión nuevamente.")
-      }
-
-      const response = await fetch("http://localhost:10101/api/agentes", {
-        method: "GET",
-        headers: getAuthHeaders(),
-      })
-
-      if (response.status === 401) {
-        // Token expirado o inválido
-        localStorage.removeItem("authToken")
-        localStorage.removeItem("token")
-        throw new Error("Sesión expirada. Por favor, inicia sesión nuevamente.")
-      }
-
-      if (!response.ok) {
-        throw new Error(`Error ${response.status}: ${response.statusText}`)
-      }
-
-      const data = await response.json()
-
-      // Mapear los datos de la API al formato esperado por el componente
-      const agentesFormateados = data.map((agente) => ({
-        id: agente.id,
-        name: agente.nombre || agente.name,
-        email: agente.email || agente.correo,
-        phone: agente.telefono || agente.phone,
-        propertyCount: agente.propiedades_count || agente.propertyCount || 0,
-        rating: agente.puntuacion || agente.rating || 0,
-        status: agente.estado || agente.status || "Activo",
-        specialties: agente.especialidades || agente.specialties || [],
-        avatar: agente.avatar || null,
-        createdAt: agente.fecha_creacion || agente.createdAt,
-        totalSales: agente.ventas_totales || agente.totalSales || 0,
-        description: agente.descripcion || agente.description || "",
-      }))
-
-      setAgentes(agentesFormateados)
+      // AQUÍ SE CONECTARÁ CON EL BACKEND
+      // Por ahora mantenemos los agentes iniciales
     } catch (error) {
       console.error("Error al cargar agentes:", error)
-      setError(error.message)
-
-      // Si es error de autenticación, redirigir al login
-      if (error.message.includes("sesión") || error.message.includes("autenticación")) {
-        setIsAuthenticated(false)
-        // Opcional: redirigir al login
-        // navigate('/login')
-      }
-
-      setAgentes([])
-    } finally {
-      setLoading(false)
     }
   }
 
@@ -145,37 +128,14 @@ export const GestionAgents = () => {
     }
 
     try {
-      const token = getAuthToken()
-
-      if (!token) {
-        throw new Error("No se encontró token de autenticación.")
-      }
-
-      const response = await fetch(`http://localhost:10101/api/agentes/${id}`, {
-        method: "DELETE",
-        headers: getAuthHeaders(),
-      })
-
-      if (response.status === 401) {
-        localStorage.removeItem("authToken")
-        localStorage.removeItem("token")
-        throw new Error("Sesión expirada. Por favor, inicia sesión nuevamente.")
-      }
-
-      if (!response.ok) {
-        throw new Error(`Error ${response.status}: ${response.statusText}`)
-      }
-
-      // Actualizar el estado local removiendo el agente eliminado
+      // AQUÍ SE CONECTARÁ CON EL BACKEND
+      // Por ahora eliminamos localmente
       setAgentes((prev) => prev.filter((agente) => agente.id !== id))
+
       console.log(`Agente ${id} eliminado exitosamente`)
     } catch (error) {
       console.error("Error al eliminar agente:", error)
-      alert(`Error al eliminar el agente: ${error.message}`)
-
-      if (error.message.includes("sesión") || error.message.includes("autenticación")) {
-        setIsAuthenticated(false)
-      }
+      alert("Error al eliminar el agente")
     }
   }
 
@@ -198,57 +158,15 @@ export const GestionAgents = () => {
   }
 
   // Función para guardar cambios del agente
-  const handleSaveAgent = async (updatedAgent) => {
-    try {
-      const token = getAuthToken()
-
-      if (!token) {
-        throw new Error("No se encontró token de autenticación.")
-      }
-
-      const response = await fetch(`http://localhost:10101/api/agentes/${updatedAgent.id}`, {
-        method: "PUT",
-        headers: getAuthHeaders(),
-        body: JSON.stringify({
-          nombre: updatedAgent.name,
-          email: updatedAgent.email,
-          telefono: updatedAgent.phone,
-          especialidades: updatedAgent.specialties,
-          descripcion: updatedAgent.description,
-          estado: updatedAgent.status,
-        }),
-      })
-
-      if (response.status === 401) {
-        localStorage.removeItem("authToken")
-        localStorage.removeItem("token")
-        throw new Error("Sesión expirada. Por favor, inicia sesión nuevamente.")
-      }
-
-      if (!response.ok) {
-        throw new Error(`Error ${response.status}: ${response.statusText}`)
-      }
-
-      // Actualizar el estado local
-      setAgentes((prev) => prev.map((agent) => (agent.id === updatedAgent.id ? updatedAgent : agent)))
-      console.log("Agente actualizado:", updatedAgent)
-    } catch (error) {
-      console.error("Error al actualizar agente:", error)
-      alert(`Error al actualizar el agente: ${error.message}`)
-
-      if (error.message.includes("sesión") || error.message.includes("autenticación")) {
-        setIsAuthenticated(false)
-      }
-    }
+  const handleSaveAgent = (updatedAgent) => {
+    setAgentes((prev) => prev.map((agent) => (agent.id === updatedAgent.id ? updatedAgent : agent)))
+    console.log("Agente actualizado:", updatedAgent)
   }
 
   // Función para manejar logout
   const handleLogout = () => {
     console.log("Cerrando sesión...")
-    localStorage.removeItem("authToken")
-    localStorage.removeItem("token")
     setIsAuthenticated(false)
-    navigate("/login")
   }
 
   const handleFiltroChange = (campo, valor) => {
@@ -295,106 +213,6 @@ export const GestionAgents = () => {
 
   // Obtener especialidades únicas para el filtro
   const especialidadesUnicas = [...new Set(agentes.flatMap((a) => a.specialties))]
-
-  // Componente de loading
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50">
-        <Header hasSidebar={true} toggleSidebar={toggleSidebar} />
-        <div className="flex pt-16">
-          <div className="hidden lg:block fixed left-0 top-16 h-[calc(100vh-4rem)] w-72 bg-white shadow-lg border-r border-gray-200 overflow-y-auto z-30">
-            <SidebarInmobiliaria
-              isOpen={true}
-              toggleMenu={() => {}}
-              isAuthenticated={isAuthenticated}
-              handleLogout={handleLogout}
-              isFixedLayout={true}
-            />
-          </div>
-          <main className="flex-1 lg:ml-72 transition-all duration-300">
-            <div className="p-4 sm:p-6">
-              <div className="flex items-center justify-center min-h-[400px]">
-                <div className="text-center">
-                  <Loader2 className="w-8 h-8 animate-spin text-[#2F8EAC] mx-auto mb-4" />
-                  <p className="text-gray-600">Cargando agentes...</p>
-                </div>
-              </div>
-            </div>
-          </main>
-        </div>
-      </div>
-    )
-  }
-
-  // Componente de error
-  if (error) {
-    return (
-      <div className="min-h-screen bg-gray-50">
-        <Header hasSidebar={true} toggleSidebar={toggleSidebar} />
-        <div className="flex pt-16">
-          <div className="hidden lg:block fixed left-0 top-16 h-[calc(100vh-4rem)] w-72 bg-white shadow-lg border-r border-gray-200 overflow-y-auto z-30">
-            <SidebarInmobiliaria
-              isOpen={true}
-              toggleMenu={() => {}}
-              isAuthenticated={isAuthenticated}
-              handleLogout={handleLogout}
-              isFixedLayout={true}
-            />
-          </div>
-          <main className="flex-1 lg:ml-72 transition-all duration-300">
-            <div className="p-4 sm:p-6">
-              <div className="flex items-center justify-center min-h-[400px]">
-                <div className="text-center">
-                  <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Users className="w-8 h-8 text-red-600" />
-                  </div>
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">Error al cargar agentes</h3>
-                  <p className="text-gray-600 mb-4">{error}</p>
-                  <div className="space-y-2">
-                    <button
-                      onClick={cargarAgentes}
-                      className="bg-[#2F8EAC] text-white px-6 py-3 rounded-xl hover:bg-[#267a95] transition-colors font-medium mr-2"
-                    >
-                      Reintentar
-                    </button>
-                    {error.includes("sesión") || error.includes("autenticación") ? (
-                      <button
-                        onClick={() => navigate("/login")}
-                        className="bg-gray-600 text-white px-6 py-3 rounded-xl hover:bg-gray-700 transition-colors font-medium"
-                      >
-                        Ir al Login
-                      </button>
-                    ) : null}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </main>
-        </div>
-      </div>
-    )
-  }
-
-  // Si no está autenticado, mostrar mensaje
-  if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Shield className="w-8 h-8 text-red-600" />
-          </div>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">Sesión expirada</h3>
-          <p className="text-gray-600 mb-4">Por favor, inicia sesión para continuar</p>
-          <button
-            onClick={() => navigate("/login")}
-            className="bg-[#2F8EAC] text-white px-6 py-3 rounded-xl hover:bg-[#267a95] transition-colors font-medium"
-          >
-            Ir al Login
-          </button>
-        </div>
-      </div>
-    )
-  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -651,7 +469,6 @@ export const GestionAgents = () => {
                               </div>
                             </div>
                           </div>
-
                           <div className="space-y-2 mb-3">
                             <div className="flex items-center gap-2 text-sm text-gray-600">
                               <Mail className="w-4 h-4 flex-shrink-0" />
@@ -662,7 +479,6 @@ export const GestionAgents = () => {
                               <span>{agente.phone}</span>
                             </div>
                           </div>
-
                           <div className="flex items-center justify-between mb-3">
                             <div className="flex items-center gap-4">
                               <div className="text-center">
@@ -672,7 +488,6 @@ export const GestionAgents = () => {
                               <div className="flex items-center gap-1">{renderStars(agente.rating)}</div>
                             </div>
                           </div>
-
                           <div className="flex items-center justify-end gap-2">
                             <button
                               onClick={() => verAgente(agente.id)}

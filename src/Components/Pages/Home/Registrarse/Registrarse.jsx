@@ -218,7 +218,7 @@ export const Registrarse = () => {
       let endpoint, payload
 
       if (userType === "agente") {
-        endpoint = "http://localhost:10101/api/registro-agente"
+        endpoint = "https://domuhouse-express.onrender.com/api/registro-agente"
         // Validar token antes de enviar
         if (!validateTokenBeforeSend()) {
           setIsLoading(false)
@@ -241,7 +241,7 @@ export const Registrarse = () => {
         payload = { ...userData, role: userType }
       } else {
         // Cliente
-        endpoint = "http://localhost:10101/register/register"
+        endpoint = "https://domuhouse-express.onrender.com/register/register"
         payload = { ...userData, role: userType }
       }
 
@@ -323,7 +323,7 @@ export const Registrarse = () => {
 
       // Intentar con ambos endpoints
       const endpoints = [
-        "http://localhost:10101/api/inmobiliarias/registerRealEstate",
+        "http://localhost:10101/api/realEstates/registerRealEstate",
         "https://domuhouse.onrender.com/api/inmobiliarias",
       ]
 

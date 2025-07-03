@@ -217,7 +217,7 @@ export const Registrarse = () => {
       let endpoint, payload
 
       if (userType === "agente") {
-        endpoint = "https://domuhouse-express.onrender.com/api/registro-agente"
+        endpoint = "https://domuhouse.onrender.com/api/registro-agente"
         // Validar token antes de enviar
         if (!validateTokenBeforeSend()) {
           setIsLoading(false)
@@ -240,7 +240,7 @@ export const Registrarse = () => {
         payload = { ...userData, role: userType }
       } else {
         // Cliente
-        endpoint = "https://domuhouse-express.onrender.com/register/register"
+        endpoint = "https://domuhouse.onrender.com/register/register"
         payload = { ...userData, role: userType }
       }
 
@@ -322,7 +322,7 @@ export const Registrarse = () => {
 
       // Intentar con ambos endpoints
       const endpoints = [
-        "http://localhost:10101/api/inmobiliarias/registerRealEstate"
+        "https://domuhouse.onrender.com/api/inmobiliarias/registerRealEstate"
       ]
 
       let success = false
@@ -445,14 +445,10 @@ export const Registrarse = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label htmlFor="name_person" className="block text-sm font-medium text-gray-700 mb-1">
-            <label htmlFor="name_person" className="block text-sm font-medium text-gray-700 mb-1">
               Nombre *
             </label>
             <input
               type="text"
-              id="name_person"
-              name="name_person"
-              value={userData.name_person}
               id="name_person"
               name="name_person"
               value={userData.name_person}

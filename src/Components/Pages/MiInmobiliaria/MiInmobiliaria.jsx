@@ -100,7 +100,7 @@ const cargarPropiedades = async () => {
   }
   
   try {
-    const response = await fetch(`http://localhost:10101/api/properties/admin/${adminId}`);
+    const response = await fetch(`https://domuhouse-express.onrender.com/api/properties/admin/${adminId}`);
 
     if (!response.ok) {
       throw new Error('Error al obtener propiedades');

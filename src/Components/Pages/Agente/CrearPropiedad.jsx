@@ -1,8 +1,6 @@
 "use client"
 
-"use client"
-
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { Upload, X, Eye, Camera } from "lucide-react"
 import AgentSideBar from "./Components/AgentSideBar"
 import { Header } from "../../Layouts/Header/Header"
@@ -11,10 +9,6 @@ import PhotoSphereViewerContainer from "../../../Components/images360/Image360Vi
 export default function CrearPropiedad() {
   const [activeSection, setActiveSection] = useState("Crear Propiedad")
   const [sidebarOpen, setSidebarOpen] = useState(false)
-
-  // Estado para información del usuario logueado
-  const [currentUser, setCurrentUser] = useState(null)
-  const [loadingUser, setLoadingUser] = useState(true)
 
   const toggleAgentSidebar = () => {
     setSidebarOpen(!sidebarOpen)
@@ -37,17 +31,8 @@ export default function CrearPropiedad() {
     agentEmail: "",
     agentWhatsapp: "",
     // Información adicional
-    propertyType: "Venta", // Cambiado para consistencia con el backend
+    propertyType: "venta",
     additionalRoomInfo: "",
-
-    // Nuevos campos para backend (similares al formulario del admin)
-    socioeconomic_stratum: "",
-    city: "",
-    neighborhood: "",
-    parking_spaces: "",
-    total_area: "",
-    latitude: "",
-    longitude: "",
   })
 
   const [selectedImages, setSelectedImages] = useState([])
@@ -166,11 +151,6 @@ export default function CrearPropiedad() {
 
   // Función para validar el formulario
   const validateForm = () => {
-    if (!currentUser) {
-      setSubmitError("No se pudo obtener la información del usuario. Por favor, recarga la página.")
-      return false
-    }
-
     const requiredFields = [
       "title",
       "address",
@@ -180,8 +160,9 @@ export default function CrearPropiedad() {
       "bathrooms",
       "area",
       "price",
-      "city",
-      "neighborhood",
+      "agentName",
+      "agentPhone",
+      "agentEmail",
     ]
 
     for (const field of requiredFields) {
@@ -191,6 +172,7 @@ export default function CrearPropiedad() {
       }
     }
 
+    // Validar que rooms, bathrooms y area sean números válidos
     if (isNaN(formData.rooms) || formData.rooms < 0) {
       setSubmitError("El número de habitaciones debe ser válido")
       return false
@@ -206,13 +188,10 @@ export default function CrearPropiedad() {
       return false
     }
 
-    if (imageFiles.length === 0) {
-      setSubmitError("Debe seleccionar al menos una imagen")
-      return false
-    }
-
-    if (imageFiles.length > 10) {
-      setSubmitError("Máximo 10 imágenes permitidas")
+    // Validar email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(formData.agentEmail)) {
+      setSubmitError("El email del agente no es válido")
       return false
     }
 
@@ -227,6 +206,7 @@ export default function CrearPropiedad() {
     setSubmitError("")
     setSubmitSuccess(false)
 
+    // Validar formulario
     if (!validateForm()) {
       return
     }
@@ -271,6 +251,7 @@ export default function CrearPropiedad() {
           email: formData.agentEmail.trim().toLowerCase(),
           whatsapp: formData.agentWhatsapp.trim() || formData.agentPhone.trim(),
         },
+
         // Información adicional
         additionalRoomInfo: formData.additionalRoomInfo.trim(),
 
@@ -304,7 +285,7 @@ export default function CrearPropiedad() {
       // Éxito
       setSubmitSuccess(true)
 
-      // Limpiar formulario después del éxito
+      // Opcional: limpiar formulario después del éxito
       setTimeout(() => {
         resetForm()
       }, 2000)
@@ -334,15 +315,12 @@ export default function CrearPropiedad() {
       bathrooms: "",
       area: "",
       price: "",
-      propertyType: "Venta",
+      agentName: "",
+      agentPhone: "",
+      agentEmail: "",
+      agentWhatsapp: "",
+      propertyType: "venta",
       additionalRoomInfo: "",
-      socioeconomic_stratum: "",
-      city: "",
-      neighborhood: "",
-      parking_spaces: "",
-      total_area: "",
-      latitude: "",
-      longitude: "",
     })
 
     setSelectedImages([])
@@ -378,23 +356,6 @@ export default function CrearPropiedad() {
     resetForm()
   }
 
-  // Mostrar loading mientras se carga la información del usuario
-  if (loadingUser) {
-    return (
-      <>
-        <Header hasSidebar={true} />
-        <div className="flex h-screen bg-gray-50">
-          <div className="flex-1 flex items-center justify-center">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#2F8EAC] mx-auto mb-4"></div>
-              <p className="text-gray-600">Cargando información del usuario...</p>
-            </div>
-          </div>
-        </div>
-      </>
-    )
-  }
-
   return (
     <>
       <Header toggleAgentSidebar={toggleAgentSidebar} />
@@ -419,7 +380,10 @@ export default function CrearPropiedad() {
           setActiveSection={setActiveSection}
         />
 
-        {/* OVERLAY DUPLICADO ELIMINADO - El AgentSideBar ya maneja su propio overlay */}
+        {/* Overlay para móvil cuando el sidebar está abierto */}
+        {sidebarOpen && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden" onClick={() => setSidebarOpen(false)} />
+        )}
 
         {/* Contenido principal con margen izquierdo para el sidebar */}
         <main className="lg:ml-72 pt-16">
@@ -436,31 +400,20 @@ export default function CrearPropiedad() {
                 {submitError}
               </div>
             )}
-            {/* Mensajes de estado */}
-            {submitError && (
-              <div className="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl">
-                {submitError}
-              </div>
-            )}
 
             {submitSuccess && (
               <div className="mb-6 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-xl">
                 ¡Propiedad registrada exitosamente!
               </div>
             )}
-            {submitSuccess && (
-              <div className="mb-6 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-xl">
-                ¡Propiedad registrada exitosamente!
-              </div>
-            )}
 
-              {/* Form */}
-              <form onSubmit={handleSubmit} className="space-y-6 sm:space-y-8">
-                {/* Property Details Section */}
-                <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 lg:gap-8">
-                  {/* Left Column - Property Details */}
-                  <div className="space-y-6">
-                    {/* Información básica */}
+            {/* Form */}
+            <form onSubmit={handleSubmit} className="space-y-6 sm:space-y-8">
+              {/* Property Details Section */}
+              <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 lg:gap-8">
+                {/* Left Column - Property Details */}
+                <div className="space-y-6">
+                  {/* Información básica */}
                   <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-gray-100">
                     <h3 className="text-lg font-semibold text-gray-700 border-b pb-2 mb-4">Información Básica</h3>
                     <div className="space-y-4">
@@ -501,78 +454,16 @@ export default function CrearPropiedad() {
                           name="propertyType"
                           value={formData.propertyType}
                           onChange={handleInputChange}
-                          required
                           className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
-                        />
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <input
-                        type="text"
-                        name="city"
-                        placeholder="Ciudad *"
-                        value={formData.city}
-                        onChange={handleInputChange}
-                        required
-                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
-                      />
-
-                      <input
-                        type="text"
-                        name="neighborhood"
-                        placeholder="Barrio *"
-                        value={formData.neighborhood}
-                        onChange={handleInputChange}
-                        required
-                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
-                      />
-                    </div>
-
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                          <select
-                            name="type"
-                            value={formData.type}
-                            onChange={handleInputChange}
-                            required
-                            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
-                          >
-                            <option value="">Tipo de Propiedad *</option>
-                            <option value="casa">Casa</option>
-                            <option value="apartamento">Apartamento</option>
-                            <option value="local">Local Comercial</option>
-                            <option value="oficina">Oficina</option>
-                            <option value="terreno">Terreno</option>
-                          </select>
-
-                          <select
-                            name="propertyType"
-                            value={formData.propertyType}
-                            onChange={handleInputChange}
-                            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
-                          >
-                            <option value="Venta">En Venta</option>
-                            <option value="Arriendo">En Arriendo</option>
-                        <option value="Arriendo con opción de compra">Arriendo con opción de compra</option>
-                      </select>
-                    </div>
-
-                    <select
-                      name="socioeconomic_stratum"
-                      value={formData.socioeconomic_stratum}
-                      onChange={handleInputChange}
-                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
-                    >
-                      <option value="">Estrato Socioeconómico</option>
-                      <option value="1">Estrato 1</option>
-                      <option value="2">Estrato 2</option>
-                      <option value="3">Estrato 3</option>
-                      <option value="4">Estrato 4</option>
-                      <option value="5">Estrato 5</option>
-                      <option value="6">Estrato 6</option>
+                        >
+                          <option value="venta">En Venta</option>
+                          <option value="alquiler">En Alquiler</option>
                         </select>
                       </div>
-                      </div>
+                    </div>
+                  </div>
 
-                    {/* Características de la propiedad */}
+                  {/* Características de la propiedad */}
                   <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-gray-100">
                     <h3 className="text-lg font-semibold text-gray-700 border-b pb-2 mb-4">Características</h3>
                     <div className="space-y-4">
@@ -626,7 +517,7 @@ export default function CrearPropiedad() {
                         className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
                       />
                     </div>
-                    </div>
+                  </div>
 
                   {/* Información del agente */}
                   <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-gray-100">
@@ -672,20 +563,20 @@ export default function CrearPropiedad() {
                     </div>
                   </div>
 
-                    {/* Descripción */}
-                    <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-gray-100">
+                  {/* Descripción */}
+                  <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-gray-100">
                     <h3 className="text-lg font-semibold text-gray-700 border-b pb-2 mb-4">Descripción</h3>
-                      <textarea
-                        name="description"
-                        placeholder="Descripción de la Propiedad *"
-                        value={formData.description}
-                        onChange={handleInputChange}
-                        required
-                        rows={4}
-                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent resize-none"
-                      />
-                    </div>
+                    <textarea
+                      name="description"
+                      placeholder="Descripción de la Propiedad *"
+                      value={formData.description}
+                      onChange={handleInputChange}
+                      required
+                      rows={4}
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent resize-none"
+                    />
                   </div>
+                </div>
 
                 {/* Right Column - Multimedia and Map */}
                 <div className="space-y-6">
@@ -824,14 +715,14 @@ export default function CrearPropiedad() {
                     )}
                   </div>
 
-                    {/* Valoración automática */}
-                    <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-gray-100">
-                      <div className="text-center mb-4">
-                        <p className="text-lg font-semibold text-gray-800 mb-2">Valoración Automática</p>
-                        {precioEstimado && (
+                  {/* Valoración automática */}
+                  <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-gray-100">
+                    <div className="text-center mb-4">
+                      <p className="text-lg font-semibold text-gray-800 mb-2">Valoración Automática</p>
+                      {precioEstimado && (
                         <p className="text-xl sm:text-2xl font-bold text-green-600">${precioEstimado}</p>
                       )}
-                      </div>
+                    </div>
 
                     <button
                       type="button"
@@ -841,6 +732,7 @@ export default function CrearPropiedad() {
                       <span>📊</span>
                       Solicitar Valoración Automática
                     </button>
+
                     {precioEstimado && (
                       <p className="text-xs text-gray-500 text-center mt-2">
                         * El precio se ha actualizado automáticamente en el formulario

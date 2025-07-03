@@ -146,7 +146,7 @@ export const Main = () => {
     const fetchProperties = async () => {
       setIsLoading(true)
       try {
-        const res = await fetch("http://localhost:10101/api/properties/approved")
+        const res = await fetch("https://domuhouse-express.onrender.com/api/properties/approved")
         if (!res.ok) {
           throw new Error(`HTTP error! status: ${res.status}`)
         }

@@ -1,6 +1,8 @@
 "use client"
 
-import { useState } from "react"
+"use client"
+
+import { useState, useEffect } from "react"
 import { Upload, X } from "lucide-react"
 import AgentSideBar from "./Components/AgentSideBar"
 import { Header } from "../../Layouts/Header/Header"
@@ -8,6 +10,10 @@ import { Header } from "../../Layouts/Header/Header"
 export default function CrearPropiedad() {
   const [activeSection, setActiveSection] = useState("Crear Propiedad")
   const [sidebarOpen, setSidebarOpen] = useState(false)
+
+  // Estado para información del usuario logueado
+  const [currentUser, setCurrentUser] = useState(null)
+  const [loadingUser, setLoadingUser] = useState(true)
 
   const toggleAgentSidebar = () => {
     setSidebarOpen(!sidebarOpen)
@@ -24,23 +30,74 @@ export default function CrearPropiedad() {
     bathrooms: "",
     area: "",
     price: "",
+
     // Información del agente
     agentName: "",
     agentPhone: "",
     agentEmail: "",
     agentWhatsapp: "",
     // Información adicional
-    propertyType: "venta",
+    propertyType: "Venta", // Cambiado para consistencia con el backend
     additionalRoomInfo: "",
+
+    // Nuevos campos para backend (similares al formulario del admin)
+    socioeconomic_stratum: "",
+    city: "",
+    neighborhood: "",
+    parking_spaces: "",
+    total_area: "",
+    latitude: "",
+    longitude: "",
   })
 
   const [selectedImages, setSelectedImages] = useState([])
-  const [imageFiles, setImageFiles] = useState([]) // Para enviar archivos reales al backend
+  const [imageFiles, setImageFiles] = useState([])
   const [precioEstimado, setPrecioEstimado] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState("")
   const [submitSuccess, setSubmitSuccess] = useState(false)
-  const [fullAddress, setFullAddress] = useState("Bogotá, Colombia") // Default location
+  const [fullAddress, setFullAddress] = useState("Bogotá, Colombia")
+
+  // Cargar información del usuario logueado al montar el componente
+  useEffect(() => {
+    fetchCurrentUser()
+  }, [])
+
+  const fetchCurrentUser = async () => {
+    try {
+      setLoadingUser(true)
+
+      // Llamada al API para obtener información del usuario logueado
+      const response = await fetch("http://localhost:10101/api/auth/me", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+      })
+
+      if (!response.ok) {
+        throw new Error("Error al obtener información del usuario")
+      }
+
+      const userData = await response.json()
+      setCurrentUser(userData)
+    } catch (error) {
+      console.error("Error fetching current user:", error)
+      setSubmitError("Error al cargar información del usuario. Por favor, inicia sesión nuevamente.")
+
+      // Datos de ejemplo para desarrollo (remover en producción)
+      setCurrentUser({
+        person_id: 1,
+        first_name: "Juan",
+        last_name: "Pérez",
+        email: "juan.perez@inmobiliaria.com",
+        phone: "+57 300 123 4567",
+      })
+    } finally {
+      setLoadingUser(false)
+    }
+  }
 
   const handleInputChange = (e) => {
     const { name, value } = e.target
@@ -57,9 +114,9 @@ export default function CrearPropiedad() {
   const handleImageUpload = (e) => {
     const files = Array.from(e.target.files)
     const imageUrls = files.map((file) => URL.createObjectURL(file))
+
     // Para mostrar preview
     setSelectedImages((prev) => [...prev, ...imageUrls])
-    // Para enviar al backend
     setImageFiles((prev) => [...prev, ...files])
   }
 
@@ -68,8 +125,35 @@ export default function CrearPropiedad() {
     setImageFiles((prev) => prev.filter((_, index) => index !== indexToRemove))
   }
 
-  // Función para validar el formulario
+  // Mapeo de tipos de propiedad a IDs del backend
+  const getPropertyTypeId = (type) => {
+    const typeMap = {
+      casa: 1,
+      apartamento: 2,
+      local: 3,
+      oficina: 4,
+      terreno: 5,
+    }
+    return typeMap[type] || 1
+  }
+
+  // Función para mapear el tipo de operación del frontend al backend
+  const mapOperationType = (frontendType) => {
+    const operationMap = {
+      Venta: "Venta",
+      Arriendo: "Arriendo",
+      "Arriendo con opción de compra": "Arriendo con opción de compra",
+    }
+    return operationMap[frontendType] || "Venta"
+  }
+
+  // Función para validar el formulario (sin campos del agente)
   const validateForm = () => {
+    if (!currentUser) {
+      setSubmitError("No se pudo obtener la información del usuario. Por favor, recarga la página.")
+      return false
+    }
+
     const requiredFields = [
       "title",
       "address",
@@ -79,9 +163,8 @@ export default function CrearPropiedad() {
       "bathrooms",
       "area",
       "price",
-      "agentName",
-      "agentPhone",
-      "agentEmail",
+      "city",
+      "neighborhood",
     ]
 
     for (const field of requiredFields) {
@@ -91,7 +174,6 @@ export default function CrearPropiedad() {
       }
     }
 
-    // Validar que rooms, bathrooms y area sean números válidos
     if (isNaN(formData.rooms) || formData.rooms < 0) {
       setSubmitError("El número de habitaciones debe ser válido")
       return false
@@ -107,10 +189,13 @@ export default function CrearPropiedad() {
       return false
     }
 
-    // Validar email
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!emailRegex.test(formData.agentEmail)) {
-      setSubmitError("El email del agente no es válido")
+    if (imageFiles.length === 0) {
+      setSubmitError("Debe seleccionar al menos una imagen")
+      return false
+    }
+
+    if (imageFiles.length > 10) {
+      setSubmitError("Máximo 10 imágenes permitidas")
       return false
     }
 
@@ -120,11 +205,11 @@ export default function CrearPropiedad() {
   // Función optimizada para envío al backend
   const handleSubmit = async (e) => {
     e.preventDefault()
+
     // Resetear estados
     setSubmitError("")
     setSubmitSuccess(false)
 
-    // Validar formulario
     if (!validateForm()) {
       return
     }
@@ -135,6 +220,28 @@ export default function CrearPropiedad() {
       // Crear FormData para enviar archivos e información
       const formDataToSend = new FormData()
 
+      // Mapear campos del frontend a los que espera el backend
+      formDataToSend.append("address", formData.address.trim())
+      formDataToSend.append("property_title", formData.title.trim())
+      formDataToSend.append("description", formData.description.trim())
+      formDataToSend.append("price", formData.price.replace(/[^\d]/g, ""))
+      formDataToSend.append("status", "Disponible")
+
+      // Usar el person_id del usuario logueado
+      formDataToSend.append("person_id", currentUser.person_id.toString())
+
+      formDataToSend.append("property_type_id", getPropertyTypeId(formData.type))
+      formDataToSend.append("socioeconomic_stratum", formData.socioeconomic_stratum || "3")
+      formDataToSend.append("city", formData.city.trim())
+      formDataToSend.append("neighborhood", formData.neighborhood.trim())
+      formDataToSend.append("operation_type", mapOperationType(formData.propertyType))
+      formDataToSend.append("bedrooms", Number.parseInt(formData.rooms))
+      formDataToSend.append("bathrooms", Number.parseInt(formData.bathrooms))
+      formDataToSend.append("parking_spaces", Number.parseInt(formData.parking_spaces) || 0)
+      formDataToSend.append("built_area", Number.parseInt(formData.area))
+      formDataToSend.append("total_area", Number.parseInt(formData.total_area) || Number.parseInt(formData.area))
+      formDataToSend.append("latitude", formData.latitude || "0")
+      formDataToSend.append("longitude", formData.longitude || "0")
       // Preparar datos de la propiedad para el backend
       const propertyData = {
         // Información básica
@@ -166,23 +273,28 @@ export default function CrearPropiedad() {
       formDataToSend.append("propertyData", JSON.stringify(propertyData))
 
       // Agregar imágenes al FormData
-      imageFiles.forEach((file, index) => {
-        formDataToSend.append(`images`, file)
+      imageFiles.forEach((file) => {
+        formDataToSend.append("images", file)
       })
 
-      // SIMULACIÓN TEMPORAL (remover cuando se conecte al backend real)
-      await new Promise((resolve) => setTimeout(resolve, 1500)) // Simular delay de red
-
-      console.log("Datos preparados para backend:", {
-        propertyData,
-        imageCount: imageFiles.length,
-        formDataKeys: Array.from(formDataToSend.keys()),
+      // Llamada al API del backend
+      const response = await fetch("http://localhost:10101/api/properties/create", {
+        method: "POST",
+        body: formDataToSend,
+        credentials: "include",
       })
 
-      // Éxito
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || "Error al crear la propiedad")
+      }
+
+      const result = await response.json()
+      console.log("Propiedad creada exitosamente:", result)
+
       setSubmitSuccess(true)
 
-      // Opcional: limpiar formulario después del éxito
+      // Limpiar formulario después del éxito
       setTimeout(() => {
         resetForm()
       }, 2000)
@@ -205,12 +317,15 @@ export default function CrearPropiedad() {
       bathrooms: "",
       area: "",
       price: "",
-      agentName: "",
-      agentPhone: "",
-      agentEmail: "",
-      agentWhatsapp: "",
-      propertyType: "venta",
+      propertyType: "Venta",
       additionalRoomInfo: "",
+      socioeconomic_stratum: "",
+      city: "",
+      neighborhood: "",
+      parking_spaces: "",
+      total_area: "",
+      latitude: "",
+      longitude: "",
     })
     setSelectedImages([])
     setImageFiles([])
@@ -221,7 +336,6 @@ export default function CrearPropiedad() {
   }
 
   const handleSolicitarValoracion = async () => {
-    // Validar que tengamos datos mínimos para la valoración
     if (!formData.area || !formData.type || !formData.address) {
       setSubmitError("Por favor completa el área, tipo de propiedad y dirección para solicitar valoración")
       return
@@ -233,7 +347,6 @@ export default function CrearPropiedad() {
       const formattedPrice = new Intl.NumberFormat("es-CO").format(basePrice)
       setPrecioEstimado(formattedPrice)
 
-      // Actualizar el precio en el formulario
       setFormData((prev) => ({
         ...prev,
         price: formattedPrice,
@@ -246,6 +359,23 @@ export default function CrearPropiedad() {
 
   const handleCancel = () => {
     resetForm()
+  }
+
+  // Mostrar loading mientras se carga la información del usuario
+  if (loadingUser) {
+    return (
+      <>
+        <Header hasSidebar={true} />
+        <div className="flex h-screen bg-gray-50">
+          <div className="flex-1 flex items-center justify-center">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#2F8EAC] mx-auto mb-4"></div>
+              <p className="text-gray-600">Cargando información del usuario...</p>
+            </div>
+          </div>
+        </div>
+      </>
+    )
   }
 
   return (
@@ -289,20 +419,31 @@ export default function CrearPropiedad() {
                 {submitError}
               </div>
             )}
+            {/* Mensajes de estado */}
+            {submitError && (
+              <div className="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl">
+                {submitError}
+              </div>
+            )}
 
             {submitSuccess && (
               <div className="mb-6 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-xl">
                 ¡Propiedad registrada exitosamente!
               </div>
             )}
+            {submitSuccess && (
+              <div className="mb-6 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-xl">
+                ¡Propiedad registrada exitosamente!
+              </div>
+            )}
 
-            {/* Form */}
-            <form onSubmit={handleSubmit} className="space-y-6 sm:space-y-8">
-              {/* Property Details Section */}
-              <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 lg:gap-8">
-                {/* Left Column - Property Details */}
-                <div className="space-y-6">
-                  {/* Información básica */}
+              {/* Form */}
+              <form onSubmit={handleSubmit} className="space-y-6 sm:space-y-8">
+                {/* Property Details Section */}
+                <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 lg:gap-8">
+                  {/* Left Column - Property Details */}
+                  <div className="space-y-6">
+                    {/* Información básica */}
                   <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-gray-100">
                     <h3 className="text-lg font-semibold text-gray-700 border-b pb-2 mb-4">Información Básica</h3>
                     <div className="space-y-4">
@@ -343,16 +484,78 @@ export default function CrearPropiedad() {
                           name="propertyType"
                           value={formData.propertyType}
                           onChange={handleInputChange}
+                          required
                           className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
-                        >
-                          <option value="venta">En Venta</option>
-                          <option value="alquiler">En Alquiler</option>
+                        />
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <input
+                        type="text"
+                        name="city"
+                        placeholder="Ciudad *"
+                        value={formData.city}
+                        onChange={handleInputChange}
+                        required
+                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
+                      />
+
+                      <input
+                        type="text"
+                        name="neighborhood"
+                        placeholder="Barrio *"
+                        value={formData.neighborhood}
+                        onChange={handleInputChange}
+                        required
+                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
+                      />
+                    </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <select
+                            name="type"
+                            value={formData.type}
+                            onChange={handleInputChange}
+                            required
+                            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
+                          >
+                            <option value="">Tipo de Propiedad *</option>
+                            <option value="casa">Casa</option>
+                            <option value="apartamento">Apartamento</option>
+                            <option value="local">Local Comercial</option>
+                            <option value="oficina">Oficina</option>
+                            <option value="terreno">Terreno</option>
+                          </select>
+
+                          <select
+                            name="propertyType"
+                            value={formData.propertyType}
+                            onChange={handleInputChange}
+                            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
+                          >
+                            <option value="Venta">En Venta</option>
+                            <option value="Arriendo">En Arriendo</option>
+                        <option value="Arriendo con opción de compra">Arriendo con opción de compra</option>
+                      </select>
+                    </div>
+
+                    <select
+                      name="socioeconomic_stratum"
+                      value={formData.socioeconomic_stratum}
+                      onChange={handleInputChange}
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
+                    >
+                      <option value="">Estrato Socioeconómico</option>
+                      <option value="1">Estrato 1</option>
+                      <option value="2">Estrato 2</option>
+                      <option value="3">Estrato 3</option>
+                      <option value="4">Estrato 4</option>
+                      <option value="5">Estrato 5</option>
+                      <option value="6">Estrato 6</option>
                         </select>
                       </div>
-                    </div>
-                  </div>
+                      </div>
 
-                  {/* Características de la propiedad */}
+                    {/* Características de la propiedad */}
                   <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-gray-100">
                     <h3 className="text-lg font-semibold text-gray-700 border-b pb-2 mb-4">Características</h3>
                     <div className="space-y-4">
@@ -406,7 +609,50 @@ export default function CrearPropiedad() {
                         className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
                       />
                     </div>
-                  </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <input
+                            type="number"
+                            name="area"
+                            placeholder="Área Construida (m²) *"
+                            value={formData.area}
+                            onChange={handleInputChange}
+                            required
+                            min="1"
+                            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
+                          />
+    
+                      <input
+                        type="number"
+                        name="total_area"
+                        placeholder="Área Total (m²)"
+                        value={formData.total_area}
+                        onChange={handleInputChange}
+                        min="1"
+                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
+                      />
+                    </div>
+
+                        <input
+                          type="text"
+                          name="additionalRoomInfo"
+                          placeholder="Información Adicional de Habitaciones"
+                          value={formData.additionalRoomInfo}
+                          onChange={handleInputChange}
+                          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
+                        />
+
+                        <input
+                          type="text"
+                          name="price"
+                          placeholder="Precio (sin símbolo $) *"
+                          value={formData.price}
+                          onChange={handleInputChange}
+                          required
+                          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
+                        />
+                    </div>
+                    </div>
 
                   {/* Información del agente */}
                   <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-gray-100">
@@ -452,80 +698,81 @@ export default function CrearPropiedad() {
                     </div>
                   </div>
 
-                  {/* Descripción */}
-                  <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-gray-100">
+                    {/* Descripción */}
+                    <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-gray-100">
                     <h3 className="text-lg font-semibold text-gray-700 border-b pb-2 mb-4">Descripción</h3>
-                    <textarea
-                      name="description"
-                      placeholder="Descripción de la Propiedad *"
-                      value={formData.description}
-                      onChange={handleInputChange}
-                      required
-                      rows={4}
-                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent resize-none"
-                    />
-                  </div>
-                </div>
-
-                {/* Right Column - Multimedia and Map */}
-                <div className="space-y-6">
-                  {/* Multimedia Section */}
-                  <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-gray-100">
-                    <h2 className="text-lg font-semibold text-gray-800 mb-4">Multimedia</h2>
-
-                    {/* Image Upload Area */}
-                    <div className="mb-4">
-                      <label
-                        htmlFor="image-upload"
-                        className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors"
-                      >
-                        <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                          <Upload className="w-8 h-8 text-[#2F8EAC] mb-2" />
-                          <p className="text-sm text-gray-600">Subir imágenes</p>
-                          <p className="text-xs text-gray-500">PNG, JPG hasta 10MB</p>
-                        </div>
-                        <input
-                          id="image-upload"
-                          type="file"
-                          multiple
-                          accept="image/*"
-                          className="hidden"
-                          onChange={handleImageUpload}
-                        />
-                      </label>
+                      <textarea
+                        name="description"
+                        placeholder="Descripción de la Propiedad *"
+                        value={formData.description}
+                        onChange={handleInputChange}
+                        required
+                        rows={4}
+                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent resize-none"
+                      />
                     </div>
-
-                    {/* Uploaded Images Preview */}
-                    {selectedImages.length > 0 && (
-                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                        {selectedImages.map((img, index) => (
-                          <div key={index} className="relative group">
-                            <img
-                              src={img || "/placeholder.svg?height=80&width=120"}
-                              alt={`Propiedad ${index + 1}`}
-                              className="w-full h-24 object-cover rounded-lg border border-gray-200"
-                            />
-                            <button
-                              type="button"
-                              onClick={() => removeImage(index)}
-                              className="absolute top-1 right-1 bg-white rounded-full p-1 shadow-sm opacity-0 group-hover:opacity-100 transition-opacity"
-                            >
-                              <X className="w-4 h-4 text-red-500" />
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    )}
                   </div>
 
-                  {/* Valoración automática */}
-                  <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-gray-100">
-                    <div className="text-center mb-4">
-                      <p className="text-lg font-semibold text-gray-800 mb-2">Valoración Automática</p>
-                      {precioEstimado && (
-                        <p className="text-xl sm:text-2xl font-bold text-green-600">${precioEstimado}</p>
+                  {/* Right Column - Multimedia and Map */}
+                  <div className="space-y-6">
+                    {/* Multimedia Section */}
+                    <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-gray-100">
+                      <h2 className="text-lg font-semibold text-gray-800 mb-4">Multimedia</h2>
+
+                      {/* Image Upload Area */}
+                      <div className="mb-4">
+                        <label
+                          htmlFor="image-upload"
+                          className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors"
+                        >
+                          <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                            <Upload className="w-8 h-8 text-[#2F8EAC] mb-2" />
+                            <p className="text-sm text-gray-600">Subir imágenes</p>
+                          <p className="text-xs text-gray-500">PNG, JPG hasta 10MB</p>
+                          </div>
+                          <input
+                            id="image-upload"
+                            type="file"
+                            multiple
+                            accept="image/*"
+                            className="hidden"
+                            onChange={handleImageUpload}
+                          />
+                        </label>
+                      </div>
+
+                      {/* Uploaded Images Preview */}
+                      {selectedImages.length > 0 && (
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                          {selectedImages.map((img, index) => (
+                            <div key={index} className="relative group">
+                              <img
+                                src={img || "/placeholder.svg?height=80&width=120"}
+                                alt={`Propiedad ${index + 1}`}
+                                className="w-full h-24 object-cover rounded-lg border border-gray-200"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => removeImage(index)}
+                                className="absolute top-1 right-1 bg-white rounded-full p-1 shadow-sm opacity-0 group-hover:opacity-100 transition-opacity"
+                              >
+                                <X className="w-4 h-4 text-red-500" />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
                       )}
                     </div>
+
+                    {/* Valoración automática */}
+                    <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-gray-100">
+                      <div className="text-center mb-4">
+                        <p className="text-lg font-semibold text-gray-800 mb-2">Valoración Automática</p>
+                        {precioEstimado && (
+                        <p className="text-xl sm:text-2xl font-bold text-green-600">${precioEstimado}</p>
+                      )}
+                      </div>
+
                     <button
                       type="button"
                       onClick={handleSolicitarValoracion}
@@ -541,47 +788,47 @@ export default function CrearPropiedad() {
                     )}
                   </div>
 
-                  {/* Map Section */}
-                  <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-gray-100">
-                    <h2 className="text-lg font-semibold text-gray-800 mb-2">Ubicación en el Mapa</h2>
-                    <div className="w-16 h-0.5 bg-gray-200 mb-4"></div>
-                    <div className="w-full h-48 sm:h-64 bg-gray-100 rounded-lg overflow-hidden border border-gray-200">
-                      <iframe
-                        className="w-full h-full"
-                        src={`https://maps.google.com/maps?q=${encodeURIComponent(fullAddress)}&t=&z=13&ie=UTF8&iwloc=&output=embed`}
-                        loading="lazy"
-                        title="Ubicación de la propiedad"
-                      />
+                    {/* Map Section */}
+                    <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-gray-100">
+                      <h2 className="text-lg font-semibold text-gray-800 mb-2">Ubicación en el Mapa</h2>
+                      <div className="w-16 h-0.5 bg-gray-200 mb-4"></div>
+                      <div className="w-full h-48 sm:h-64 bg-gray-100 rounded-lg overflow-hidden border border-gray-200">
+                        <iframe
+                          className="w-full h-full"
+                          src={`https://maps.google.com/maps?q=${encodeURIComponent(fullAddress)}&t=&z=13&ie=UTF8&iwloc=&output=embed`}
+                          loading="lazy"
+                          title="Ubicación de la propiedad"
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Action Buttons */}
-              <div className="flex flex-col sm:flex-row justify-between gap-4 pt-4">
-                <button
-                  type="button"
-                  onClick={handleCancel}
-                  className="w-full sm:w-auto px-6 py-3 border border-gray-300 rounded-xl text-gray-700 hover:bg-gray-50 transition-colors font-medium"
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className={`w-full sm:w-auto px-6 py-3 rounded-xl font-medium transition-colors ${
-                    isSubmitting
-                      ? "bg-gray-400 text-gray-600 cursor-not-allowed"
-                      : "bg-[#2F8EAC] text-white hover:bg-[#256b82]"
-                  }`}
-                >
-                  {isSubmitting ? "Registrando..." : "Guardar Propiedad"}
-                </button>
-              </div>
-            </form>
-          </div>
-        </main>
-      </div>
+                {/* Action Buttons */}
+                <div className="flex flex-col sm:flex-row justify-between gap-4 pt-4">
+                  <button
+                    type="button"
+                    onClick={handleCancel}
+                    className="w-full sm:w-auto px-6 py-3 border border-gray-300 rounded-xl text-gray-700 hover:bg-gray-50 transition-colors font-medium"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isSubmitting || !currentUser}
+                    className={`w-full sm:w-auto px-6 py-3 rounded-xl font-medium transition-colors ${
+                      isSubmitting || !currentUser
+                        ? "bg-gray-400 text-gray-600 cursor-not-allowed"
+                        : "bg-[#2F8EAC] text-white hover:bg-[#256b82]"
+                    }`}
+                  >
+                    {isSubmitting ? "Registrando..." : "Guardar Propiedad"}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </main>
+        </div>
     </>
   )
 }

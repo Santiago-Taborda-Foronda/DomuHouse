@@ -11,6 +11,7 @@ import { ContactAgent } from './Components/Pages/ContactAgent/ContactAgent';
 import {CrearInmobiliarias} from './Components/Pages/Inmobiliarias/CrearInmobiliarias'
 import { RegistrarseAdministrador } from './Components/Pages/Administrador/RegistrarseAdministrador/RegistrarseAdministrador'
 import { RecoverPassword } from './Components/Pages/RecoverPassword/RecoverPassword'
+import { ResetPasswordToken } from './Components/Pages/ResetPasswordToken/ResetPasswordToken'
 import { ShowInmobiliarias } from './Components/Pages/ShowInmobiliarias/ShowInmobiliarias'
 import { InmobiliariaSeleccionada } from './Components/Pages/InmobiliariaSeleccionada/InmobiliariaSeleccionada'
 import  MiInmobiliaria from './Components/Pages/MiInmobiliaria/MiInmobiliaria'
@@ -63,6 +64,7 @@ export const App = () => {
       <Route path='/registrarseAdministrador' element={<RegistrarseAdministrador />} />
       <Route path="/contact-agent" element={<ContactAgent />} />
       <Route path="/recuperar-password" element={<RecoverPassword />} />
+      <Route path="/reset-password-token" element={<ResetPasswordToken />} />
       <Route path="/inmobiliarias" element={<ShowInmobiliarias />} />
       <Route path="/inmobiliaria-seleccionada" element={<InmobiliariaSeleccionada />} />
       <Route path="/mi-inmobiliaria/propiedades" element={<MiInmobiliaria />} />

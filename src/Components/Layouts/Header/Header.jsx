@@ -188,7 +188,7 @@ export const Header = ({ toggleSidebar, toggleAgentSidebar }) => {
             )}
           </div>
 
-          {/* Botones de dashboard */}
+          {/* Botones de dashboard
           <Button
             name="Mi Inmobiliaria"
             Route="/mi-inmobiliaria/dashboard"
@@ -199,7 +199,7 @@ export const Header = ({ toggleSidebar, toggleAgentSidebar }) => {
             name="Mi Agente"
             Route="/AgentDashboard"
             className="bg-[#2F8EAC] hover:bg-sky-600 active:bg-sky-700 transition duration-150 ease-in-out text-white px-3 py-2 rounded-xl text-sm"
-          />
+          /> */}
 
           {!isAuthenticated ? (
             // Botones de autenticación con estilo original
@@ -241,7 +241,7 @@ export const Header = ({ toggleSidebar, toggleAgentSidebar }) => {
                     <UserCircle className="w-8 h-8 text-gray-600" />
                   )}
                   <span className="text-sm font-medium text-gray-700 hidden sm:block">
-                    {userInfo?.first_name || userInfo?.name || "Usuario"}
+                    {userInfo?.name_person || userInfo?.name || "Usuario"}
                   </span>
                 </button>
 

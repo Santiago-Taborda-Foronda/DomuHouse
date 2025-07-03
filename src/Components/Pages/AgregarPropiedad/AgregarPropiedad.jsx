@@ -459,7 +459,7 @@ const AgregarPropiedad = () => {
     const { token } = getUserData()
 
     try {
-      const response = await fetch("https://domuhouse-express.onrender.com/api/agentes", {
+      const response = await fetch("http://localhost:10101/api/agentes", {
         method: "GET",
         headers: {
           Authorization: `Bearer ${token}`,

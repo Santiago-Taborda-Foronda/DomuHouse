@@ -83,7 +83,7 @@ export default function EstadoInteres() {
       setLoading(true)
       setError("")
       try {
-        const response = await fetch("http://localhost:10101/api/interests")
+        const response = await fetch("https://domuhouse.onrender.com/api/interests")
         if (!response.ok) {
           throw new Error("Error al cargar los intereses")
         }
@@ -148,7 +148,7 @@ export default function EstadoInteres() {
     setIsSubmitting(true)
     try {
       // Llamar al backend para actualizar
-      const response = await fetch(`http://localhost:10101/api/interests/${selectedClient.id}`, {
+      const response = await fetch(`https://domuhouse.onrender.com/api/interests/${selectedClient.id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

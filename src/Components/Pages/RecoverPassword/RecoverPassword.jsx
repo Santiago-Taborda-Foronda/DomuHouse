@@ -21,7 +21,7 @@ export const RecoverPassword = () => {
     setIsLoading(true)
 
     try {
-      const response = await fetch("http://localhost:10101/api/password/recuperar-password", {
+      const response = await fetch("https://domuhouse.onrender.com/api/password/recuperar-password", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

@@ -372,7 +372,7 @@ const AgregarPropiedad = () => {
       }
 
       // Llamada al API del backend
-      const response = await fetch("https://domuhouse-express.onrender.com/api/properties/create", {
+      const response = await fetch("https://domuhouse.onrender.com/api/properties/create", {
         method: "POST",
         headers,
         body: formDataToSend,
@@ -459,7 +459,7 @@ const AgregarPropiedad = () => {
     const { token } = getUserData()
 
     try {
-      const response = await fetch("http://localhost:10101/api/agentes", {
+      const response = await fetch("https://domuhouse.onrender.com/api/agentes", {
         method: "GET",
         headers: {
           Authorization: `Bearer ${token}`,

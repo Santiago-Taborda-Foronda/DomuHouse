@@ -111,7 +111,7 @@ export const GestionAgents = () => {
         return
       }
 
-      const response = await fetch(`http://localhost:10101/api/agents/${id}`, {
+      const response = await fetch(`https://domuhouse.onrender.com/api/agents/${id}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -160,7 +160,7 @@ export const GestionAgents = () => {
         return
       }
 
-      const response = await fetch(`http://localhost:10101/api/agents/${updatedAgent.id}`, {
+      const response = await fetch(`https://domuhouse.onrender.com/api/agents/${updatedAgent.id}`, {
         method: "PUT",
         headers: {
           Authorization: `Bearer ${token}`,

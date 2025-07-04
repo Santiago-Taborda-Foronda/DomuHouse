@@ -1,16 +1,13 @@
 "use client"
 
-
 import { useState, useEffect } from "react"
 import { Upload, X, AlertCircle, CheckCircle } from "lucide-react"
 import AgentSideBar from "./Components/AgentSideBar"
 import { Header } from "../../Layouts/Header/Header"
-import PhotoSphereViewerContainer from "../../../Components/images360/Image360Viewer"
 
 export default function CrearPropiedad() {
   const [activeSection, setActiveSection] = useState("Crear Propiedad")
   const [sidebarOpen, setSidebarOpen] = useState(false)
-
 
   // Estados para información del usuario
   const [currentUser, setCurrentUser] = useState(null)
@@ -31,14 +28,6 @@ export default function CrearPropiedad() {
     bathrooms: "",
     area: "",
     price: "",
-    // Información del agente
-    agentName: "",
-    agentPhone: "",
-    agentEmail: "",
-    agentWhatsapp: "",
-    // Información adicional
-    propertyType: "venta",
-    additionalRoomInfo: "",
     // Campos opcionales
     propertyType: "Venta",
     additionalRoomInfo: "",
@@ -97,7 +86,7 @@ export default function CrearPropiedad() {
       [name]: value,
     }))
 
-
+    // Actualizar dirección del mapa
     if (name === "address") {
       setFullAddress(value || "Bogotá, Colombia")
     }
@@ -108,93 +97,40 @@ export default function CrearPropiedad() {
     }
   }
 
-  // ✅ FUNCIÓN MEJORADA PARA DETECCIÓN DE IMÁGENES 360°
-  const detectIs360Image = (file) => {
-    const fileName = file.name.toLowerCase()
-    const is360Keywords = [
-      "360",
-      "_360",
-      "pano",
-      "panorama",
-      "sphere",
-      "spherical",
-      "equirectangular",
-      "esferica",
-      "panoramica",
-      "360deg",
-    ]
-
-    // Verificar por nombre de archivo
-    const nameDetection = is360Keywords.some((keyword) => fileName.includes(keyword))
-
-    // Verificar por dimensiones (las imágenes 360° suelen tener ratio 2:1)
-    return new Promise((resolve) => {
-      if (nameDetection) {
-        resolve(true)
-        return
-      }
-
-      // Crear imagen temporal para verificar dimensiones
-      const img = new Image()
-      img.onload = () => {
-        const ratio = img.width / img.height
-        // Las imágenes equirectangulares tienen ratio 2:1
-        const is360ByRatio = Math.abs(ratio - 2) < 0.1
-        resolve(is360ByRatio)
-        URL.revokeObjectURL(img.src)
-      }
-      img.onerror = () => resolve(nameDetection)
-      img.src = URL.createObjectURL(file)
-    })
-  }
-
-  const handleImageUpload = async (e) => {
+  const handleImageUpload = (e) => {
     const files = Array.from(e.target.files)
-    if (files.length === 0) return
 
-    if (selectedImages.length + files.length > 10) {
-      setSubmitError("Máximo 10 imágenes permitidas")
-      return
+    // Validar archivos
+    const validFiles = files.filter((file) => {
+      const isValidType = file.type.startsWith("image/")
+      const isValidSize = file.size <= 10 * 1024 * 1024 // 10MB
+
+      if (!isValidType) {
+        setSubmitError(`${file.name} no es una imagen válida`)
+        return false
+      }
+
+      if (!isValidSize) {
+        setSubmitError(`${file.name} es muy grande (máximo 10MB)`)
+        return false
+      }
+
+      return true
+    })
+
+    if (validFiles.length > 0) {
+      const imageUrls = validFiles.map((file) => URL.createObjectURL(file))
+      setSelectedImages((prev) => [...prev, ...imageUrls])
+      setImageFiles((prev) => [...prev, ...validFiles])
+      setSubmitError("") // Limpiar errores
     }
-
-    setSubmitError("") // Limpiar errores previos
-
-    // ✅ PROCESAR IMÁGENES CON DETECCIÓN MEJORADA
-    const processedImages = await Promise.all(
-      files.map(async (file) => {
-        const is360 = await detectIs360Image(file)
-
-        return {
-          preview: URL.createObjectURL(file),
-          file: file,
-          is360: is360,
-          name: file.name,
-          size: file.size,
-          dimensions: null, // Se calculará después si es necesario
-        }
-      }),
-    )
-
-    setSelectedImages((prev) => [...prev, ...processedImages])
-    setImageFiles((prev) => [...prev, ...files])
-
-    e.target.value = ""
-
-    console.log(`📷 ${files.length} imágenes agregadas. Total: ${selectedImages.length + files.length}`)
-    console.log("🔍 Imágenes 360° detectadas:", processedImages.filter((img) => img.is360).length)
   }
 
   const removeImage = (indexToRemove) => {
-    // Limpiar URL del objeto para evitar memory leaks
-    if (selectedImages[indexToRemove]?.preview) {
-      URL.revokeObjectURL(selectedImages[indexToRemove].preview)
-    }
-
-    // Remover de ambos arrays
+    // Liberar memoria del objeto URL
+    URL.revokeObjectURL(selectedImages[indexToRemove])
     setSelectedImages((prev) => prev.filter((_, index) => index !== indexToRemove))
     setImageFiles((prev) => prev.filter((_, index) => index !== indexToRemove))
-
-    console.log(`🗑️ Imagen ${indexToRemove} eliminada`)
   }
 
   // Función helper para limpiar valores numéricos
@@ -273,10 +209,6 @@ export default function CrearPropiedad() {
       return false
     }
 
-    // Validar email
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!emailRegex.test(formData.agentEmail)) {
-      setSubmitError("El email del agente no es válido")
     if (numeric(formData.price) <= 0) {
       setSubmitError("❌ El precio debe ser mayor a 0")
       return false
@@ -300,7 +232,6 @@ export default function CrearPropiedad() {
     setSubmitError("")
     setSubmitSuccess(false)
 
-    // Validar formulario
     if (!validateForm()) {
       return
     }
@@ -311,75 +242,6 @@ export default function CrearPropiedad() {
       // Crear FormData con todos los campos requeridos
       const fd = new FormData()
 
-      // ✅ AGREGAR ARCHIVOS CON METADATOS DE 360°
-      imageFiles.forEach((file, index) => {
-        // Renombrar archivos 360° para mejor detección en backend
-        const imgObj = selectedImages[index]
-        if (imgObj?.is360 && !file.name.toLowerCase().includes("360")) {
-          const newFile = new File([file], `360_${file.name}`, { type: file.type })
-          formDataToSend.append("images", newFile)
-        } else {
-          formDataToSend.append("images", file)
-        }
-      })
-
-      // Preparar datos de la propiedad para el backend
-      const propertyData = {
-        // Información básica
-        title: formData.title.trim(),
-        address: formData.address.trim(),
-        type: formData.type,
-        description: formData.description.trim(),
-        propertyType: formData.propertyType,
-
-        // Características numéricas
-        rooms: Number.parseInt(formData.rooms),
-        bathrooms: Number.parseInt(formData.bathrooms),
-        area: Number.parseInt(formData.area),
-        price: formData.price.replace(/[^\d]/g, ""),
-
-        // Información del agente
-        agent: {
-          name: formData.agentName.trim(),
-          phone: formData.agentPhone.trim(),
-          email: formData.agentEmail.trim().toLowerCase(),
-          whatsapp: formData.agentWhatsapp.trim() || formData.agentPhone.trim(),
-        },
-
-        // Información adicional
-        additionalRoomInfo: formData.additionalRoomInfo.trim(),
-
-        // ✅ METADATOS DE IMÁGENES 360°
-        imageMetadata: selectedImages.map((img, index) => ({
-          index,
-          is360: img.is360,
-          name: img.name,
-          size: img.size,
-        })),
-
-        // Metadatos
-        createdAt: new Date().toISOString(),
-        status: "active",
-        highQualityImages: true,
-      }
-
-      // Agregar datos JSON al FormData
-      formDataToSend.append("propertyData", JSON.stringify(propertyData))
-
-      // SIMULACIÓN TEMPORAL (remover cuando se conecte al backend real)
-      await new Promise((resolve) => setTimeout(resolve, 1500))
-
-      console.log("✅ Datos preparados para backend:", {
-        propertyData,
-        imageCount: imageFiles.length,
-        images360Count: selectedImages.filter((img) => img.is360).length,
-        formDataKeys: Array.from(formDataToSend.keys()),
-      })
-
-      // Éxito
-      setSubmitSuccess(true)
-
-      // Opcional: limpiar formulario después del éxito
       // Campos de texto
       fd.append("property_title", formData.title.trim())
       fd.append("address", formData.address.trim())
@@ -470,11 +332,7 @@ export default function CrearPropiedad() {
       bathrooms: "",
       area: "",
       price: "",
-      agentName: "",
-      agentPhone: "",
-      agentEmail: "",
-      agentWhatsapp: "",
-      propertyType: "venta",
+      propertyType: "Venta",
       additionalRoomInfo: "",
       socioeconomic_stratum: "",
       parking_spaces: "",
@@ -518,7 +376,6 @@ export default function CrearPropiedad() {
       resetForm()
     }
   }
-
 
   // Loading state
   if (loadingUser) {
@@ -611,7 +468,6 @@ export default function CrearPropiedad() {
                 <span>¡Propiedad registrada exitosamente! El formulario se limpiará automáticamente.</span>
               </div>
             )}
-
 
             {/* Formulario */}
             <form onSubmit={handleSubmit} className="space-y-6 sm:space-y-8">
@@ -838,9 +694,8 @@ export default function CrearPropiedad() {
                       >
                         <div className="flex flex-col items-center justify-center pt-5 pb-6">
                           <Upload className="w-8 h-8 text-[#2F8EAC] mb-2" />
-                          <p className="text-sm text-gray-600">Subir imágenes</p>
-                          <p className="text-xs text-gray-500">PNG, JPG hasta 10MB (máx. 10 imágenes)</p>
-                          <p className="text-xs text-blue-600 mt-1">✨ Detección automática de imágenes 360°</p>
+                          <p className="text-sm text-gray-600">Subir imágenes *</p>
+                          <p className="text-xs text-gray-500">PNG, JPG hasta 10MB</p>
                         </div>
                         <input
                           id="image-upload"
@@ -853,107 +708,29 @@ export default function CrearPropiedad() {
                       </label>
                     </div>
 
-                    {/* ✅ VISTA PREVIA MEJORADA DE IMÁGENES */}
                     {selectedImages.length > 0 && (
-                      <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                          <h4 className="text-sm font-medium text-gray-700">
-                            Imágenes seleccionadas ({selectedImages.length})
-                          </h4>
-                          <div className="flex items-center gap-4 text-xs text-gray-500">
-                            <span className="flex items-center gap-1">
-                              <div className="w-3 h-3 bg-blue-100 border border-blue-300 rounded"></div>
-                              360° ({selectedImages.filter((img) => img.is360).length})
-                            </span>
-                            <span className="flex items-center gap-1">
-                              <div className="w-3 h-3 bg-gray-100 border border-gray-300 rounded"></div>
-                              Normal ({selectedImages.filter((img) => !img.is360).length})
-                            </span>
-                          </div>
-                        </div>
-
-                        <div className="grid grid-cols-1 gap-6">
-                          {selectedImages.map((imgObj, index) => (
-                            <div
-                              key={index}
-                              className={`relative group border-2 rounded-lg p-3 transition-all ${
-                                imgObj.is360 ? "border-blue-200 bg-blue-50" : "border-gray-200 bg-gray-50"
-                              }`}
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                        {selectedImages.map((img, index) => (
+                          <div key={index} className="relative group">
+                            <img
+                              src={img || "/placeholder.svg"}
+                              alt={`Propiedad ${index + 1}`}
+                              className="w-full h-24 object-cover rounded-lg border border-gray-200"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => removeImage(index)}
+                              className="absolute top-1 right-1 bg-white rounded-full p-1 shadow-sm opacity-0 group-hover:opacity-100 transition-opacity"
                             >
-                              {/* Header con información de la imagen */}
-                              <div className="flex items-center justify-between mb-3">
-                                <div className="flex items-center gap-2">
-                                  <p className="text-sm font-medium text-gray-700 truncate flex-1">
-                                    {imgObj.file?.name || `Imagen ${index + 1}`}
-                                  </p>
-                                  {imgObj.is360 && (
-                                    <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full font-medium">
-                                      360°
-                                    </span>
-                                  )}
-                                </div>
-                                <button
-                                  type="button"
-                                  onClick={() => removeImage(index)}
-                                  className="ml-2 bg-red-50 text-red-500 rounded-full p-1.5 hover:bg-red-100 transition-colors"
-                                  title="Eliminar imagen"
-                                >
-                                  <X className="w-4 h-4" />
-                                </button>
+                              <X className="w-4 h-4 text-red-500" />
+                            </button>
+                            {index === 0 && (
+                              <div className="absolute bottom-1 left-1 bg-green-500 text-white text-xs px-2 py-1 rounded">
+                                Principal
                               </div>
-
-                              {/* Control para alternar 360° */}
-                              <div className="mb-3">
-                                <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
-                                  <input
-                                    type="checkbox"
-                                    checked={imgObj.is360}
-                                    onChange={() => toggleIs360(index)}
-                                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                                  />
-                                  <span>Esta es una imagen 360°</span>
-                                  <Eye className="w-4 h-4 text-gray-400" />
-                                </label>
-                              </div>
-
-                              {/* Vista previa de la imagen */}
-                              <div className="w-full">
-                                {imgObj.is360 ? (
-                                  <div className="w-full h-[300px] sm:h-[350px] md:h-[400px] relative overflow-hidden rounded-lg border border-gray-200">
-                                    <PhotoSphereViewerContainer
-                                      imageUrl={imgObj.preview}
-                                      width="100%"
-                                      height="100%"
-                                      className="rounded-lg shadow-sm"
-                                      options={{
-                                        minFov: 30,
-                                        maxFov: 90,
-                                        defaultZoomLvl: 50,
-                                        moveSpeed: 1.2,
-                                        resolution: 32, // Resolución media para preview
-                                        loadingTxt: "Cargando vista previa 360°...",
-                                      }}
-                                    />
-                                  </div>
-                                ) : (
-                                  <div className="w-full">
-                                    <img
-                                      src={imgObj.preview || "/placeholder.svg"}
-                                      alt={`Propiedad ${index + 1}`}
-                                      className="w-full h-[300px] sm:h-[350px] md:h-[400px] object-cover rounded-lg border border-gray-200"
-                                    />
-                                  </div>
-                                )}
-                              </div>
-
-                              {/* Información adicional */}
-                              <div className="mt-2 text-xs text-gray-500 flex justify-between">
-                                <span>Tamaño: {(imgObj.size / 1024 / 1024).toFixed(2)} MB</span>
-                                <span>{imgObj.is360 ? "Imagen esférica" : "Imagen plana"}</span>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
+                            )}
+                          </div>
+                        ))}
                       </div>
                     )}
 
@@ -982,7 +759,6 @@ export default function CrearPropiedad() {
                       <span>📊</span>
                       Solicitar Valoración Automática
                     </button>
-
                     {precioEstimado && (
                       <p className="text-xs text-gray-500 text-center mt-2">
                         * El precio se ha actualizado automáticamente en el formulario
@@ -990,7 +766,7 @@ export default function CrearPropiedad() {
                     )}
                   </div>
 
-                  {/* Map Section */}
+                  {/* Mapa */}
                   <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-gray-100">
                     <h2 className="text-lg font-semibold text-gray-800 mb-2">Ubicación en el Mapa</h2>
                     <div className="w-16 h-0.5 bg-gray-200 mb-4"></div>
@@ -1007,7 +783,7 @@ export default function CrearPropiedad() {
                 </div>
               </div>
 
-              {/* Action Buttons */}
+              {/* Botones de acción */}
               <div className="flex flex-col sm:flex-row justify-between gap-4 pt-4">
                 <button
                   type="button"
@@ -1035,5 +811,4 @@ export default function CrearPropiedad() {
       </div>
     </>
   )
-}
 }

@@ -54,7 +54,7 @@ useEffect(() => {
           clearInterval(interval); // detener cuando se encuentre
           console.log("👤 user from localStorage (sidebar):", user);
 
-          axios.get(`https://domuhouse-express.onrender.com/api/admin/${user.id}/real-estate`)
+          axios.get(`https://domuhouse.onrender.com/api/admin/${user.id}/real-estate`)
             .then((res) => {
               console.log("📦 Datos de inmobiliaria:", res.data);
               setInmobiliariaData(res.data);
@@ -73,8 +73,6 @@ useEffect(() => {
 }, []);
 
 
-
-  
  
   // Componente personalizado para elementos del menú con estado activo
   const MenuItem = ({ icon: Icon, label, route, subtitle = null }) => {

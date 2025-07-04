@@ -88,10 +88,7 @@ export const AgentDetailsModal = ({ agent, isOpen, onClose }) => {
                   <Phone className="w-4 h-4 text-gray-400" />
                   <span className="text-sm text-gray-600">{agent.phone}</span>
                 </div>
-                <div className="flex items-center gap-3">
-                  <Calendar className="w-4 h-4 text-gray-400" />
-                  <span className="text-sm text-gray-600">Desde {formatDate(agent.createdAt)}</span>
-                </div>
+                
               </div>
             </div>
 

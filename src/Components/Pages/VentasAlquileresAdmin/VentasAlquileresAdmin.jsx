@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import {
   Search,
   Filter,
@@ -20,103 +20,12 @@ import { Header } from "../../Layouts/Header/Header"
 import { SidebarInmobiliaria } from "../../Layouts/SidebarInmobiliaria/SidebarInmobiliaria"
 import { PropertyDetailsModal } from "../PropertyDetailsModal/PropertyDetailsModal"
 import { PropertyEditModal } from "../PropertyEditModal/PropertyEditModal"
+import axios from "axios"
 
-const propiedadesData = [
-  {
-    id: 1,
-    titulo: "Apartamento Moderno en Zona Norte",
-    tipo: "Apartamento",
-    operacion: "Venta",
-    precio: 350000000,
-    ubicacion: "Zona Norte, Bogotá",
-    habitaciones: 3,
-    banos: 2,
-    area: 95,
-    estado: "Disponible",
-    fechaPublicacion: "2024-08-15",
-    visitas: 24,
-    imagen: "/api/placeholder/300/200",
-  },
-  {
-    id: 2,
-    titulo: "Casa Familiar con Jardín",
-    tipo: "Casa",
-    operacion: "Alquiler",
-    precio: 2500000,
-    ubicacion: "Chapinero, Bogotá",
-    habitaciones: 4,
-    banos: 3,
-    area: 180,
-    estado: "Ocupado",
-    fechaPublicacion: "2024-08-10",
-    visitas: 18,
-    imagen: "/api/placeholder/300/200",
-  },
-  {
-    id: 3,
-    titulo: "Estudio Minimalista Centro",
-    tipo: "Estudio",
-    operacion: "Alquiler",
-    precio: 1800000,
-    ubicacion: "Centro, Bogotá",
-    habitaciones: 1,
-    banos: 1,
-    area: 45,
-    estado: "Disponible",
-    fechaPublicacion: "2024-08-12",
-    visitas: 31,
-    imagen: "/api/placeholder/300/200",
-  },
-  {
-    id: 4,
-    titulo: "Penthouse con Terraza",
-    tipo: "Penthouse",
-    operacion: "Venta",
-    precio: 850000000,
-    ubicacion: "Zona Rosa, Bogotá",
-    habitaciones: 4,
-    banos: 4,
-    area: 220,
-    estado: "Disponible",
-    fechaPublicacion: "2024-08-08",
-    visitas: 45,
-    imagen: "/api/placeholder/300/200",
-  },
-  {
-    id: 5,
-    titulo: "Apartamento Ejecutivo",
-    tipo: "Apartamento",
-    operacion: "Alquiler",
-    precio: 3200000,
-    ubicacion: "Usaquén, Bogotá",
-    habitaciones: 2,
-    banos: 2,
-    area: 80,
-    estado: "Disponible",
-    fechaPublicacion: "2024-08-14",
-    visitas: 12,
-    imagen: "/api/placeholder/300/200",
-  },
-  {
-    id: 6,
-    titulo: "Casa Campestre",
-    tipo: "Casa",
-    operacion: "Venta",
-    precio: 480000000,
-    ubicacion: "La Calera, Cundinamarca",
-    habitaciones: 5,
-    banos: 4,
-    area: 300,
-    estado: "Negociación",
-    fechaPublicacion: "2024-08-05",
-    visitas: 8,
-    imagen: "/api/placeholder/300/200",
-  },
-]
 
 export const VentasAlquileresAdmin = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(true)
-  const [propiedades, setPropiedades] = useState(propiedadesData)
+  const [propiedades, setPropiedades] = useState([])
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const [filtros, setFiltros] = useState({
     busqueda: "",
@@ -128,6 +37,39 @@ export const VentasAlquileresAdmin = () => {
   })
   const [mostrarFiltros, setMostrarFiltros] = useState(false)
   const [vista, setVista] = useState("lista")
+
+  const adminId = localStorage.getItem("adminId")
+
+
+useEffect(() => {
+    const fetchPropiedades = async () => {
+      try {
+        const response = await axios.get(`https://domuhouse.onrender.com/api/properties/admin/${adminId}`)
+        const data = response.data
+
+        const propiedadesFormateadas = data.map((item) => ({
+          id: item.property_id,
+          titulo: item.property_title,
+          tipo: item.property_type,
+          operacion: item.operation_type === "Arriendo" ? "Alquiler" : item.operation_type,
+          precio: Number(item.price),
+          ubicacion: `${item.neighborhood}, ${item.city}`,
+          habitaciones: item.bedrooms,
+          banos: item.bathrooms,
+          area: Number(item.built_area),
+          estado: item.status,
+          visitas: 0, // por ahora
+          imagen: "/api/placeholder/300/200",
+        }))
+
+        setPropiedades(propiedadesFormateadas)
+      } catch (error) {
+        console.error("Error al obtener propiedades:", error)
+      }
+    }
+
+    fetchPropiedades()
+  }, [])
 
   // Estados para los modales
   const [selectedProperty, setSelectedProperty] = useState(null)

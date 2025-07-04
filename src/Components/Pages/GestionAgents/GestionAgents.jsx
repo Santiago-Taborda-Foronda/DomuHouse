@@ -46,7 +46,7 @@ export const GestionAgents = () => {
         return
       }
 
-      const response = await fetch("http://localhost:10101/api/agentes-info", {
+      const response = await fetch("https://domuhouse.onrender.com/api/agentes-info", {
         method: "GET",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -111,7 +111,7 @@ export const GestionAgents = () => {
         return
       }
 
-      const response = await fetch(`http://localhost:10101/api/agents/${id}`, {
+      const response = await fetch(`https://domuhouse.onrender.com/api/agents/${id}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -160,7 +160,7 @@ export const GestionAgents = () => {
         return
       }
 
-      const response = await fetch(`http://localhost:10101/api/agents/${updatedAgent.id}`, {
+      const response = await fetch(`https://domuhouse.onrender.com/api/agents/${updatedAgent.id}`, {
         method: "PUT",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -516,13 +516,7 @@ export const GestionAgents = () => {
                                 >
                                   <Eye className="w-4 h-4" />
                                 </button>
-                                <button
-                                  onClick={() => editarAgente(agente.id)}
-                                  className="p-1.5 lg:p-2 text-sky-600 hover:bg-green-50 rounded-lg transition-colors"
-                                  title="Editar agente"
-                                >
-                                  <Edit className="w-4 h-4" />
-                                </button>
+                                
                                 <button
                                   onClick={() => eliminarAgente(agente.id)}
                                   className="p-1.5 lg:p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"

@@ -5,8 +5,8 @@ import { Link, useNavigate } from "react-router"
 import { Eye, EyeOff, Building, User, UserCheck, ArrowLeft, ArrowRight, Copy, Check } from "lucide-react"
 import LogoDomuHouse from "../../../../assets/images/Logo-DomuHouse.png"
 
+
 export const Registrarse = () => {
-  
   const navigate = useNavigate()
   const [currentStep, setCurrentStep] = useState(1)
   const [showPassword, setShowPassword] = useState(false)
@@ -30,7 +30,6 @@ export const Registrarse = () => {
 
   // State for real estate form, including logo
   const [inmobiliariaData, setInmobiliariaData] = useState({
-    name_realestate: "",
     nombre_inmobiliaria: "",
     descripcion_inmobiliaria: "",
     nit: "",
@@ -113,28 +112,28 @@ export const Registrarse = () => {
   }
 
   const validateStep1 = () => {
-    if (!userData.name_person.trim()) {
-      setError("El nombre es requerido")
-      return false
-    }
-    if (!userData.last_name.trim()) {
-      setError("Los apellidos son requeridos")
-      return false
-    }
-    if (!userData.email.trim()) {
-      setError("El email es requerido")
-      return false
-    }
-    if (userData.password.length < 6) {
-      setError("La contraseña debe tener al menos 6 caracteres")
-      return false
-    }
-    if (userType === "agente" && !userData.token.trim()) {
-      setError("El token es requerido para agentes")
-      return false
-    }
-    return true
+  if (!userData.name_person.trim()) {
+    setError("El nombre es requerido")
+    return false
   }
+  if (!userData.last_name.trim()) {
+    setError("Los apellidos son requeridos")
+    return false
+  }
+  if (!userData.email.trim()) {
+    setError("El email es requerido")
+    return false
+  }
+  if (userData.password.length < 6) {
+    setError("La contraseña debe tener al menos 6 caracteres")
+    return false
+  }
+  if (userType === "agente" && !userData.token.trim()) {
+    setError("El token es requerido para agentes")
+    return false
+  }
+  return true
+}
 
   const validateStep2 = () => {
     if (userType !== "administrador") return true
@@ -218,7 +217,9 @@ export const Registrarse = () => {
       let endpoint, payload
 
       if (userType === "agente") {
-        endpoint = "https://domuhouse-express.onrender.com/api/registro-agente"
+
+        endpoint = "https://domuhouse.onrender.com/api/registro-agente"
+
         // Validar token antes de enviar
         if (!validateTokenBeforeSend()) {
           setIsLoading(false)
@@ -241,7 +242,7 @@ export const Registrarse = () => {
         payload = { ...userData, role: userType }
       } else {
         // Cliente
-        endpoint = "https://domuhouse-express.onrender.com/register/register"
+        endpoint = "https://domuhouse.onrender.com/register/register"
         payload = { ...userData, role: userType }
       }
 
@@ -310,9 +311,9 @@ export const Registrarse = () => {
   }
 
   const handleSubmitInmobiliaria = async () => {
-    setIsLoading(true)
-    setError("")
-    setSuccess("")
+  setIsLoading(true)
+  setError("")
+  setSuccess("")
 
     try {
       // Verificar que tenemos un person_id válido
@@ -323,7 +324,7 @@ export const Registrarse = () => {
 
       // Intentar con ambos endpoints
       const endpoints = [
-        "http://localhost:10101/api/inmobiliarias/registerRealEstate"
+        "https://domuhouse.onrender.com/api/inmobiliarias/registerRealEstate"
       ]
 
       let success = false
@@ -408,12 +409,13 @@ export const Registrarse = () => {
       }
     } catch (error) {
       console.error("Error al registrar inmobiliaria:", error)
+      console.error("Error al registrar inmobiliaria:", error)
       setError("Error de conexión. Por favor, intenta de nuevo. Detalles: " + error.message)
     } finally {
       setIsLoading(false)
     }
   }
-
+  
   const renderStep1 = () => (
     <div className="space-y-6">
       <div className="space-y-4">
@@ -612,21 +614,15 @@ export const Registrarse = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label htmlFor="nombre_inmobiliaria" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="name_realestate" className="block text-sm font-medium text-gray-700 mb-1">
             Nombre de la inmobiliaria *
           </label>
           <input
             type="text"
-            id="nombre_inmobiliaria"
-            name="nombre_inmobiliaria"
-            value={inmobiliariaData.nombre_inmobiliaria || inmobiliariaData.name_realestate}
-            onChange={(e) => {
-              setInmobiliariaData({
-                ...inmobiliariaData,
-                nombre_inmobiliaria: e.target.value,
-                name_realestate: e.target.value,
-              })
-            }}
+            id="name_realestate"
+            name="name_realestate"
+            value={inmobiliariaData.name_realestate}
+            onChange={handleInmobiliariaDataChange}
             placeholder="Ej: Inmobiliaria Los Pinos"
             className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-sky-500 focus:outline-none transition-colors"
             disabled={isLoading}
@@ -779,6 +775,7 @@ export const Registrarse = () => {
 
       <div className="bg-gray-50 p-4 rounded-lg">
         <p className="text-sm text-gray-600 mb-2">Información de contacto adicional</p>
+        <p className="text-sm text-gray-600 mb-2">Información de contacto adicional</p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <input
             type="tel"
@@ -904,3 +901,4 @@ export const Registrarse = () => {
     </div>
   )
 }
+

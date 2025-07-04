@@ -156,7 +156,6 @@ export const Contract = () => {
   // Función para guardar un nuevo contrato
   const handleSaveNewContrato = () => {
     const fileNames = selectedFiles.map((file) => file.name)
-
     const newContratoWithFiles = {
       ...newContrato,
       id: contratos.length + 1,
@@ -180,14 +179,12 @@ export const Contract = () => {
   const handleUpdateContrato = () => {
     if (selectedContrato) {
       const fileNames = [...selectedContrato.archivos, ...selectedFiles.map((file) => file.name)]
-
       const updatedContrato = {
         ...newContrato,
         archivos: fileNames,
       }
 
       setContratos(contratos.map((c) => (c.id === selectedContrato.id ? updatedContrato : c)))
-
       setIsEditModalOpen(false)
       setSelectedFiles([])
       setSelectedContrato(null)
@@ -222,22 +219,14 @@ export const Contract = () => {
           />
         </div>
 
-        {/* Sidebar overlay para móviles */}
-        <div className={`lg:hidden fixed inset-0 z-50 ${isSidebarOpen ? "block" : "hidden"}`}>
-          {/* Overlay oscuro */}
-          <div className="fixed inset-0 bg-transparent bg-opacity-50" onClick={toggleSidebar}></div>
-
-          {/* Sidebar móvil */}
-          <div className="fixed left-0 top-16 h-[calc(100vh-4rem)] w-72 bg-white shadow-lg transform transition-transform duration-300 ease-in-out overflow-y-auto">
-            <SidebarInmobiliaria
-              isOpen={isSidebarOpen}
-              toggleMenu={toggleSidebar}
-              isAuthenticated={isAuthenticated}
-              handleLogout={handleLogout}
-              isFixedLayout={false}
-            />
-          </div>
-        </div>
+        {/* AQUÍ ESTÁ LA CORRECCIÓN: Sidebar overlay para móviles */}
+        <SidebarInmobiliaria
+          isOpen={isSidebarOpen}
+          toggleMenu={toggleSidebar}
+          isAuthenticated={isAuthenticated}
+          handleLogout={handleLogout}
+          isFixedLayout={false}
+        />
 
         {/* Contenido principal con margen responsivo */}
         <main className="flex-1 lg:ml-72 transition-all duration-300">
@@ -445,9 +434,10 @@ export const Contract = () => {
         </main>
       </div>
 
+      {/* Todos los modales permanecen igual... */}
       {/* Modal para subir archivos */}
       {isUploadModalOpen && (
-        <div className="fixed inset-0 bg-transparent bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6">
               <div className="flex items-center justify-between mb-6">
@@ -456,7 +446,6 @@ export const Contract = () => {
                   <X className="w-6 h-6" />
                 </button>
               </div>
-
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Nombre del Contrato</label>
@@ -529,7 +518,6 @@ export const Contract = () => {
                     <span className="text-sm text-gray-500">Seleccionar archivos</span>
                     <input type="file" className="hidden" multiple onChange={handleFileChange} />
                   </label>
-
                   {/* Lista de archivos seleccionados */}
                   {selectedFiles.length > 0 && (
                     <div className="mt-3 space-y-2">
@@ -574,7 +562,7 @@ export const Contract = () => {
 
       {/* Modal para ver contrato */}
       {isViewModalOpen && selectedContrato && (
-        <div className="fixed inset-0 bg-transparent bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6">
               <div className="flex items-center justify-between mb-6">
@@ -651,7 +639,7 @@ export const Contract = () => {
 
       {/* Modal para editar contrato */}
       {isEditModalOpen && selectedContrato && (
-        <div className="fixed inset-0 bg-transparent bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6">
               <div className="flex items-center justify-between mb-6">
@@ -746,7 +734,6 @@ export const Contract = () => {
                     <span className="text-sm text-gray-500">Seleccionar archivos</span>
                     <input type="file" className="hidden" multiple onChange={handleFileChange} />
                   </label>
-
                   {/* Lista de archivos seleccionados */}
                   {selectedFiles.length > 0 && (
                     <div className="mt-3 space-y-2">
@@ -791,15 +778,13 @@ export const Contract = () => {
 
       {/* Modal de confirmación para eliminar */}
       {isDeleteDialogOpen && selectedContrato && (
-        <div className="fixed inset-0 bg-transparent bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full">
             <div className="p-6">
               <div className="flex items-center justify-center w-12 h-12 mx-auto mb-4 bg-red-100 rounded-full">
                 <Trash2 className="w-6 h-6 text-red-600" />
               </div>
-
               <h2 className="text-lg font-bold text-gray-900 text-center mb-2">¿Estás seguro?</h2>
-
               <p className="text-sm text-gray-500 text-center mb-6">
                 Esta acción no se puede deshacer. Esto eliminará permanentemente el contrato
                 <span className="font-medium text-gray-900"> "{selectedContrato.contrato}"</span> y todos sus datos

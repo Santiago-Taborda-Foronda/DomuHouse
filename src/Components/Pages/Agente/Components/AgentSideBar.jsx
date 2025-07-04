@@ -148,7 +148,7 @@ export default function AgentSideBar({ sidebarOpen, setSidebarOpen, toggleSideba
         <>
           {/* AQUÍ ESTÁ EL CAMBIO: Overlay transparente en lugar de negro */}
           <div
-            className="fixed inset-0 bg-transparent z-40 transition-opacity duration-300 lg:hidden"
+            className="fixed inset-0 bg-transparent bg-opacity-30 z-40 transition-opacity duration-300 lg:hidden"
             onClick={closeSidebar}
           ></div>
 

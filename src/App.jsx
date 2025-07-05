@@ -44,7 +44,6 @@ import { AnalyticsGlobales } from "./Components/Pages/SuperAdmin/AnalyticsGlobal
 import { GestionInmobiliarias } from "./Components/Pages/SuperAdmin/GestionInmobiliarias/GestionInmobiliarias"
 import { GestionAdministradores } from "./Components/Pages/SuperAdmin/GestionAdministradores/GestionAdministradores"
 import { EditarInmobiliaria } from './Components/Pages/EditarInmobiliaria/EditarInmobiliaria'
-import { ReportesInmobiliaria } from './Components/Pages/ReportesInmobiliaria/ReportesInmobiliaria'
 
 // import { ConfiguracionSistema } from "./Components/Pages/SuperAdmin/ConfiguracionSistema/ConfiguracionSistema"
 // import { FacturacionSuscripciones } from "./Components/Pages/SuperAdmin/FacturacionSuscripciones/FacturacionSuscripciones"

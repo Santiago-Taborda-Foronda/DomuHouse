@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import logoDomuHouse from '../../../assets/images/Logo-DomuHouse.png';
 import LogoLogin from '../../../assets/images/imagen-login.png';
 
-const URL = "http://localhost:10101/login/login";
+const URL = "https://domuhouse.onrender.com/login/login";
 
 export const Login = () => {
   const navigate = useNavigate();
@@ -91,6 +91,9 @@ export const Login = () => {
         // Guardar datos en localStorage
         localStorage.setItem('userData', JSON.stringify(userData));
         localStorage.setItem('authToken', data.token); // Guardar token por separado
+        if (userData.role_id === 1) {
+            localStorage.setItem('adminId', userData.id); // ✅ Agrega esta línea
+          }
         window.dispatchEvent(new Event('storage'));
 
         console.log('🎯 Redirigiendo usuario con role_id:', userData.role_id);

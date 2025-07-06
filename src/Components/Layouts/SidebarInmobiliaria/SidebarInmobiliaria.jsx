@@ -1,5 +1,6 @@
-"use client"
+"use client";
 
+import React, { useState, useEffect } from "react";
 import {
   X,
   LayoutDashboard,
@@ -14,49 +15,65 @@ import {
   UsersRound,
   Settings,
   Edit3,
-} from "lucide-react"
-import LogoDomuHouse from "../../../assets/images/Logo-DomuHouse.png"
-import { useNavigate, useLocation } from "react-router-dom"
+} from "lucide-react";
+import LogoDomuHouse from "../../../assets/images/Logo-DomuHouse.png";
+import { useNavigate, useLocation } from "react-router-dom";
+import axios from "axios"; // ⬅️ asegúrate también de tener esto si usas axios
+
+const truncateText = (text, maxLength) => {
+  if (!text) return '';
+  return text.length <= maxLength ? text : text.slice(0, maxLength) + '...';
+};
 
 export const SidebarInmobiliaria = ({ isOpen, toggleMenu, isAuthenticated, handleLogout, isFixedLayout = false }) => {
   const navigate = useNavigate()
-  const location = useLocation()
-
-  // Datos simulados de la inmobiliaria (en tu caso vendrían del contexto o props)
-  const inmobiliariaData = {
-    name: "Inmobiliaria Premium Real Estate Solutions",
-    nit: "900.123.456-7",
-    responsible: "María González",
-  }
-
-  // Función para truncar texto largo
-  const truncateText = (text, maxLength) => {
-    if (text.length <= maxLength) return text
-    return text.substring(0, maxLength) + "..."
-  }
-
-  // Función para verificar si una ruta está activa
-  const isActiveRoute = (route) => {
-    // Para la página de propiedades, también considerar rutas relacionadas
-    if (route === "/mi-inmobiliaria/propiedades") {
-      return (
-        location.pathname === route ||
-        location.pathname === "/mi-inmobiliaria" ||
-        location.pathname.startsWith("/mi-inmobiliaria/propiedades")
-      )
-    }
-    return location.pathname === route
-  }
-
-  // Función para manejar navegación
   const handleNavigation = (route) => {
-    navigate(route)
-    // Cerrar el sidebar en móviles después de navegar (solo si no es layout fijo)
-    if (!isFixedLayout && window.innerWidth < 1024) {
-      toggleMenu()
-    }
-  }
+  navigate(route);
+};
 
+  const location = useLocation()
+  const isActiveRoute = (route) => {
+  return location.pathname === route;
+};
+
+
+ const [inmobiliariaData, setInmobiliariaData] = useState({
+  name_realestate: "",
+  nit: "",
+  responsible: ""
+});
+
+
+
+useEffect(() => {
+  const fetchRealEstate = async () => {
+    try {
+      const interval = setInterval(() => {
+      const user = JSON.parse(localStorage.getItem("userData"));
+        if (user?.id) {
+          clearInterval(interval); // detener cuando se encuentre
+          console.log("👤 user from localStorage (sidebar):", user);
+
+          axios.get(`https://domuhouse.onrender.com/api/admin/${user.id}/real-estate`)
+            .then((res) => {
+              console.log("📦 Datos de inmobiliaria:", res.data);
+              setInmobiliariaData(res.data);
+            })
+            .catch((error) => {
+              console.error("Error al cargar la inmobiliaria:", error);
+            });
+        }
+      }, 100); // revisar cada 100ms
+    } catch (error) {
+      console.error("❌ Error en interval:", error);
+    }
+  };
+
+  fetchRealEstate();
+}, []);
+
+
+ 
   // Componente personalizado para elementos del menú con estado activo
   const MenuItem = ({ icon: Icon, label, route, subtitle = null }) => {
     const isActive = isActiveRoute(route)
@@ -88,7 +105,7 @@ export const SidebarInmobiliaria = ({ isOpen, toggleMenu, isAuthenticated, handl
         <div className="text-center mb-8 pb-4 border-b border-gray-100">
           {/* Nombre de la inmobiliaria */}
           <h1 className="text-lg font-bold text-[#2F8EAC] title-montserrat leading-tight mb-1">
-            {truncateText(inmobiliariaData.name, 40)}
+            {truncateText(inmobiliariaData.name_realestate, 40)}
           </h1>
           {/* Portal de Administrador como subtítulo */}
           <p className="text-sm text-gray-600 title-montserrat">Portal de Administrador</p>

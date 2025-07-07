@@ -30,7 +30,6 @@ export default function CrearPropiedad() {
     price: "",
     // Campos opcionales
     propertyType: "Venta",
-    additionalRoomInfo: "",
     socioeconomic_stratum: "",
     parking_spaces: "",
     total_area: "",
@@ -333,7 +332,6 @@ export default function CrearPropiedad() {
       area: "",
       price: "",
       propertyType: "Venta",
-      additionalRoomInfo: "",
       socioeconomic_stratum: "",
       parking_spaces: "",
       total_area: "",
@@ -539,7 +537,6 @@ export default function CrearPropiedad() {
                         >
                           <option value="Venta">En Venta</option>
                           <option value="Arriendo">En Arriendo</option>
-                          <option value="Arriendo con opción de compra">Arriendo con opción de compra</option>
                         </select>
                       </div>
                       <select
@@ -617,14 +614,6 @@ export default function CrearPropiedad() {
                           className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
                         />
                       </div>
-                      <input
-                        type="text"
-                        name="additionalRoomInfo"
-                        placeholder="Información Adicional de Habitaciones"
-                        value={formData.additionalRoomInfo}
-                        onChange={handleInputChange}
-                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
-                      />
                       <input
                         type="text"
                         name="price"

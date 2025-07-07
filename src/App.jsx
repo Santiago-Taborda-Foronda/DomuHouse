@@ -7,7 +7,7 @@ import { Tendencias } from './Components/Pages/Tendencias/Tendencias'
 import { Encuentrame } from './Components/Pages/Encuentrame/Encuentrame'
 import { Registrarse } from './Components/Pages/Home/Registrarse/Registrarse'
 import { PropiedadSeleccionada } from './Components/Pages/PropiedadSeleccionada/PropiedadSeleccionada';
-import { ContactAgent } from './Components/Pages/ContactAgent/ContactAgent';
+import  { ContactAgent }  from './Components/Pages/ContactAgent/ContactAgent';
 import {CrearInmobiliarias} from './Components/Pages/Inmobiliarias/CrearInmobiliarias'
 import { RegistrarseAdministrador } from './Components/Pages/Administrador/RegistrarseAdministrador/RegistrarseAdministrador'
 import { RecoverPassword } from './Components/Pages/RecoverPassword/RecoverPassword'
@@ -34,7 +34,7 @@ import { Contract } from './Components/Pages/contract/contract'
 import { VentasAlquileresAdmin } from './Components/Pages/VentasAlquileresAdmin/VentasAlquileresAdmin'
 import { ClientesAdmin } from './Components/Pages/ClientesAdmin/ClientesAdmin'
 import { AgendaAdmin } from './Components/Pages/AgendaAdmin/AgendaAdmin'
-// import { ReportesInmobiliaria } from "./Components/Pages/ReportesInmobiliaria/ReportesInmobiliaria";
+import { ReportesInmobiliaria } from "./Components/Pages/ReportesInmobiliaria/ReportesInmobiliaria";
 import { GenerarTokenAgente } from './Components/Pages/GenerarTokenAgente/GenerarTokenAgente'
 import { MetodosPagoPage } from './Components/Pages/MetodosPagoPage/MetodosPagoPage'
 

@@ -78,9 +78,9 @@ export const Perfil = () => {
     },
   ]
 
-  useEffect(() => {
-    setIsClient(true)
-  }, [])
+  // useEffect(() => {
+  //   setIsClient(true)
+  // }, [])
 
   // Función para obtener y decodificar el token
   const getTokenAndUserInfo = () => {
@@ -170,69 +170,132 @@ export const Perfil = () => {
   }
 
   // Cargar datos del perfil
-  useEffect(() => {
-    if (!isClient) return
+  // useEffect(() => {
+  //   if (!isClient) return
 
-    const cargarPerfil = async () => {
-      try {
-        setLoading(true)
-        setError(null)
+  //   const cargarPerfil = async () => {
+  //     try {
+  //       setLoading(true)
+  //       setError(null)
 
-        const authInfo = getTokenAndUserInfo()
-        if (!authInfo || !authInfo.token) {
-          console.error("❌ No se encontró token de autenticación")
-          setError("No se encontró token de autenticación. Por favor, inicia sesión nuevamente.")
-          setLoading(false)
-          return
-        }
+  //       const authInfo = getTokenAndUserInfo()
+  //       if (!authInfo || !authInfo.token) {
+  //         console.error("❌ No se encontró token de autenticación")
+  //         setError("No se encontró token de autenticación. Por favor, inicia sesión nuevamente.")
+  //         setLoading(false)
+  //         return
+  //       }
 
-        console.log("🔍 Información de autenticación extraída del JWT:", authInfo)
+  //       console.log("🔍 Información de autenticación extraída del JWT:", authInfo)
 
-        const baseUrl = "https://domuhouse.onrender.com"
-        const url = `${baseUrl}/api/perfil`
+  //       const baseUrl = "http://localhost:10101"
+  //       const url = `${baseUrl}/api/perfil`
 
-        const response = await fetchWithAuth(url)
-        console.log("🔍 Respuesta del servidor:", response)
+  //       const response = await fetchWithAuth(url)
+  //       console.log("🔍 Respuesta del servidor:", response)
 
-        if (response.success) {
-          console.log("✅ Perfil cargado exitosamente:", response.data)
+  //       if (response.success) {
+  //         console.log("✅ Perfil cargado exitosamente:", response.data)
 
-          // Mapear correctamente los datos, usando la info del JWT como fallback
-          const datosUsuario = {
-            nombre: response.data.nombre || authInfo.name || "",
-            telefono: response.data.telefono || "",
-            correo: response.data.correo || authInfo.email || "",
-            contraseña: "••••••••••••••••",
-            fechaRegistro: response.data.fechaRegistro || new Date().toISOString(),
-            role: response.data.role || authInfo.role || "",
-            propiedadesPublicadas: response.data.propiedadesPublicadas || 0,
-            propiedadesVendidas: response.data.propiedadesVendidas || 0,
-            verified: response.data.verified || false,
-            active: response.data.active || false,
-          }
+  //         // Mapear correctamente los datos, usando la info del JWT como fallback
+  //         const datosUsuario = {
+  //           nombre: response.data.nombre || authInfo.name || "",
+  //           telefono: response.data.telefono || "",
+  //           correo: response.data.correo || authInfo.email || "",
+  //           contraseña: "••••••••••••••••",
+  //           fechaRegistro: response.data.fechaRegistro || new Date().toISOString(),
+  //           role: response.data.role || authInfo.role || "",
+  //           propiedadesPublicadas: response.data.propiedadesPublicadas || 0,
+  //           propiedadesVendidas: response.data.propiedadesVendidas || 0,
+  //           verified: response.data.verified || false,
+  //           active: response.data.active || false,
+  //         }
 
-          setUserData(datosUsuario)
-          setTempUserData(datosUsuario)
-        } else {
-          console.error("❌ Error en la respuesta:", response.message)
-          setError(response.message || "Error al cargar el perfil")
-        }
-      } catch (err) {
-        console.error("❌ Error al cargar perfil:", err)
-        setError(err.message || "Error de conexión")
-      } finally {
-        setLoading(false)
-      }
+  //         setUserData(datosUsuario)
+  //         setTempUserData(datosUsuario)
+  //       } else {
+  //         console.error("❌ Error en la respuesta:", response.message)
+  //         setError(response.message || "Error al cargar el perfil")
+  //       }
+  //     } catch (err) {
+  //       console.error("❌ Error al cargar perfil:", err)
+  //       setError(err.message || "Error de conexión")
+  //     } finally {
+  //       setLoading(false)
+  //     }
+  //   }
+
+  //   cargarPerfil()
+  // }, [isClient])
+
+useEffect(() => {
+  setIsClient(true)
+
+  const cargarPerfil = async () => {
+    const authInfo = getTokenAndUserInfo()
+    if (!authInfo || !authInfo.token) {
+      console.error("❌ No se encontró token de autenticación")
+      setError("No se encontró token de autenticación. Por favor, inicia sesión nuevamente.")
+      setLoading(false)
+      return
     }
 
+    try {
+      setLoading(true)
+      setError(null)
+
+      const baseUrl = "http://localhost:10101"
+      const url = `${baseUrl}/api/perfil`
+
+      const response = await fetchWithAuth(url)
+      console.log("🔍 Respuesta del servidor:", response)
+
+      if (response.success) {
+        const datosUsuario = {
+          nombre: response.data.nombre || authInfo.name || "",
+          telefono: response.data.telefono || "",
+          correo: response.data.correo || authInfo.email || "",
+          contraseña: "••••••••••••••••",
+          fechaRegistro: response.data.fechaRegistro || new Date().toISOString(),
+          role: response.data.role || authInfo.role || "",
+          propiedadesPublicadas: response.data.propiedadesPublicadas || 0,
+          propiedadesVendidas: response.data.propiedadesVendidas || 0,
+          verified: response.data.verified || false,
+          active: response.data.active || false,
+        }
+
+        setUserData(datosUsuario)
+        setTempUserData(datosUsuario)
+      } else {
+        console.error("❌ Error en la respuesta:", response.message)
+        setError(response.message || "Error al cargar el perfil")
+      }
+    } catch (err) {
+      console.error("❌ Error al cargar perfil:", err)
+      setError(err.message || "Error de conexión")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  
+
+  if (typeof window !== "undefined") {
     cargarPerfil()
-  }, [isClient])
+  }
+}, [])
+
+useEffect(() => {
+  const token = localStorage.getItem("token");
+  console.log("🧪 Token en localStorage:", token);
+}, []);
+
 
   // Función para actualizar el perfil
   const actualizarPerfil = async (datosActualizados) => {
     try {
       setSaving(true)
-      const baseUrl = "https://domuhouse.onrender.com"
+      const baseUrl = "http://localhost:10101"
 
       const response = await fetchWithAuth(`${baseUrl}/api/perfil`, {
         method: "PUT",

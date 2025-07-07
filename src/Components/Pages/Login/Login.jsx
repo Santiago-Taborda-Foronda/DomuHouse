@@ -95,6 +95,8 @@ export const Login = () => {
         if (userData.role_id === 1) {
             localStorage.setItem('adminId', userData.id); // ✅ Agrega esta línea
           }
+        localStorage.setItem('token', data.token) // 🔑 Este es el que espera el componente Perfil
+
         window.dispatchEvent(new Event('storage'));
 
         console.log('🎯 Redirigiendo usuario con role_id:', userData.role_id);

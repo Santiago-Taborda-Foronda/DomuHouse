@@ -61,6 +61,7 @@ export const Login = () => {
       }
 
       console.log('📥 Respuesta del servidor (FRONTEND):', data);
+      console.log('🧪 Token recibido desde backend:', data.token);
       console.log('📥 Tipo de data.logged:', typeof data.logged);
       console.log('📥 Valor de data.logged:', data.logged);
       console.log('📥 data.logged === true?', data.logged === true);

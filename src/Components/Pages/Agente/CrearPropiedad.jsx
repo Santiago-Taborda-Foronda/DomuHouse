@@ -30,7 +30,6 @@ export default function CrearPropiedad() {
     price: "",
     // Campos opcionales
     propertyType: "Venta",
-    additionalRoomInfo: "",
     socioeconomic_stratum: "",
     parking_spaces: "",
     total_area: "",
@@ -282,7 +281,7 @@ export default function CrearPropiedad() {
       })
 
       // ✅ Envío al endpoint correcto
-      const url = `https://domuhouse.onrender.com/api/agents/${agentId}/properties`
+      const url = `https://domuhouse-express.onrender.com/api/agents/${agentId}/properties`
       console.log("🌐 Enviando a:", url)
 
       const response = await fetch(url, {
@@ -617,14 +616,7 @@ export default function CrearPropiedad() {
                           className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
                         />
                       </div>
-                      <input
-                        type="text"
-                        name="additionalRoomInfo"
-                        placeholder="Información Adicional de Habitaciones"
-                        value={formData.additionalRoomInfo}
-                        onChange={handleInputChange}
-                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
-                      />
+                
                       <input
                         type="text"
                         name="price"

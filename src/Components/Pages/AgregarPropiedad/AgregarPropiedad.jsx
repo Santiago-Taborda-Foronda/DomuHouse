@@ -372,7 +372,7 @@ const AgregarPropiedad = () => {
       }
 
       // Llamada al API del backend
-      const response = await fetch("https://domuhouse.onrender.com/api/properties/create", {
+      const response = await fetch("https://domuhouse-express.onrender.com/api/properties/create", {
         method: "POST",
         headers,
         body: formDataToSend,
@@ -694,14 +694,14 @@ const AgregarPropiedad = () => {
                     />
                   </div>
 
-                  <input
+                  {/* <input
                     type="text"
                     name="additionalRoomInfo"
                     placeholder="Información Adicional de Habitaciones"
                     value={formData.additionalRoomInfo}
                     onChange={handleInputChange}
                     className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
+                  /> */}
 
                   <input
                     type="text"

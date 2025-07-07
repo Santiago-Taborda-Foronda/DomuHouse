@@ -149,9 +149,9 @@ export default function AgentDashboard() {
       console.log("🔍 Cargando datos para agente ID:", id)
 
       const [propertiesRes, visitsRes, messagesRes] = await Promise.all([
-        fetch(`https://domuhouse.onrender.com/api/agents/${id}/properties`),
-        fetch(`https://domuhouse.onrender.com/api/agents/${id}/visits`),
-        fetch(`https://domuhouse.onrender.com/api/agents/${id}/messages?limit=10`),
+        fetch(`https://domuhouse-express.onrender.com/api/agents/${id}/properties`),
+        fetch(`https://domuhouse-express.onrender.com/api/agents/${id}/visits`),
+        fetch(`https://domuhouse-express.onrender.com/api/agents/${id}/messages?limit=10`),
       ])
 
       console.log("📡 Respuestas del servidor:", {

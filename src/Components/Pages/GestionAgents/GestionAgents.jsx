@@ -44,7 +44,7 @@ export const GestionAgents = () => {
         return
       }
 
-      const response = await fetch("http://localhost:10101/api/agentes-info", {
+      const response = await fetch("https://imagen-domuhouse-express.onrender.com/api/agentes-info", {
         method: "GET",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -109,7 +109,7 @@ export const GestionAgents = () => {
         return
       }
 
-      const response = await fetch(`http://localhost:10101/api/agents/${id}`, {
+      const response = await fetch(`https://imagen-domuhouse-express.onrender.com/api/agents/${id}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -158,7 +158,7 @@ export const GestionAgents = () => {
         return
       }
 
-      const response = await fetch(`http://localhost:10101/api/agents/${updatedAgent.id}`, {
+      const response = await fetch(`https://imagen-domuhouse-express.onrender.com/api/agents/${updatedAgent.id}`, {
         method: "PUT",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -449,7 +449,7 @@ export const GestionAgents = () => {
                           <th className="px-4 lg:px-6 py-3 lg:py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                             Propiedades
                           </th>
-                        e
+                        
                           <th className="px-4 lg:px-6 py-3 lg:py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                             Acciones
                           </th>

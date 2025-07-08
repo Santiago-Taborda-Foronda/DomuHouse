@@ -218,7 +218,7 @@ export const Registrarse = () => {
 
       if (userType === "agente") {
 
-        endpoint = "https://domuhouse.onrender.com/api/registro-agente"
+        endpoint = "https://imagen-domuhouse-express.onrender.com/api/registro-agente"
 
         // Validar token antes de enviar
         if (!validateTokenBeforeSend()) {
@@ -238,11 +238,11 @@ export const Registrarse = () => {
         console.log("Enviando datos de agente:", payload)
         console.log("Token específico:", tokenToSend)
       } else if (userType === "administrador") {
-        endpoint = "https://domuhouse.onrender.com/api/admin/registerAdmin"
+        endpoint = "https://imagen-domuhouse-express.onrender.com/api/admin/registerAdmin"
         payload = { ...userData, role: userType }
       } else {
         // Cliente
-        endpoint = "https://domuhouse.onrender.com/register/register"
+        endpoint = "https://imagen-domuhouse-express.onrender.com/register/register"
         payload = { ...userData, role: userType }
       }
 
@@ -324,7 +324,7 @@ export const Registrarse = () => {
 
       // Intentar con ambos endpoints
       const endpoints = [
-        "https://domuhouse.onrender.com/api/inmobiliarias/registerRealEstate"
+        "https://imagen-domuhouse-express.onrender.com/api/inmobiliarias/registerRealEstate"
       ]
 
       let success = false

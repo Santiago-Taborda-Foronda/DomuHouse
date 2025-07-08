@@ -19,16 +19,24 @@ export const ChatDomu = () => {
     setMessages((prev) => [...prev, userMessage]);
 
     try {
-      const response = await axios.post("https://domuhouse-express.onrender.com/ia/ingresar-inmueble", {
-        descripcion: inputText,
-      });
+      const response = await axios.post(
+        "https://imagen-domuhouse-express.onrender.com/ia/ingresar-inmueble",
+        { descripcion: inputText }
+      );
 
+      console.log("🔥 RESPUESTA DEL BACKEND:", response.data);
+
+      // Extraer dinámicamente lo que venga
       const replyText =
-        response.data?.data?.recomendaciones?.[0] || "Gracias por tu mensaje. Te responderemos pronto.";
+        response.data?.data?.respuesta || // respuesta principal
+        response.data?.mensaje ||        // mensaje alternativo
+        response.data?.error ||          // posible error controlado
+        "Gracias por tu mensaje. Te responderemos pronto."; // fallback
 
       const botMessage = { from: "bot", text: replyText };
       setMessages((prev) => [...prev, botMessage]);
     } catch (error) {
+      console.error("Error al enviar mensaje:", error);
       const errorMessage = {
         from: "bot",
         text: "Ocurrió un error al procesar tu solicitud.",

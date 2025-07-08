@@ -83,7 +83,7 @@ export default function EstadoInteres() {
       setLoading(true)
       setError("")
       try {
-        const response = await fetch("https://domuhouse-express.onrender.com/api/interests")
+        const response = await fetch("https://imagen-domuhouse-express.onrender.com/interests")
         if (!response.ok) {
           throw new Error("Error al cargar los intereses")
         }
@@ -148,7 +148,7 @@ export default function EstadoInteres() {
     setIsSubmitting(true)
     try {
       // Llamar al backend para actualizar
-      const response = await fetch(`https://domuhouse-express.onrender.com/api/interests/${selectedClient.id}`, {
+      const response = await fetch(`https://imagen-domuhouse-express.onrender.com/api/interests/${selectedClient.id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

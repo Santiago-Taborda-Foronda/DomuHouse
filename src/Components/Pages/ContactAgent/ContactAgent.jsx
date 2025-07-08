@@ -1,75 +1,75 @@
-"use client"
-
 import { useState } from "react"
 import { useLocation, useNavigate } from "react-router-dom"
 import { Header } from "../../Layouts/Header/Header"
-import { Mail, Phone, UserIcon, Calendar, PhoneCall, MessageCircle } from "lucide-react"
-import { RateAgentModal } from "../RateAgentModal/RateAgentModal"
+import { Mail, UserIcon, PhoneCall, MessageCircle } from "lucide-react"
 
 export const ContactAgent = () => {
   const { state } = useLocation()
-  const navigate = useNavigate()
   const agent = state?.agent
   const property = state?.property
 
   const [content, setContent] = useState("")
-  const [subject, setSubject] = `Interés en la propiedad ${state?.property?.title || ""}`.trim()
   const [loading, setLoading] = useState(false)
   const [msg, setMsg] = useState({ ok: false, text: "" })
-  const [showRatingModal, setShowRatingModal] = useState(false)
-
 
   // Usar los datos del agente pasados o los datos por defecto
   const currentAgent = agent ?? {
     name: "Agente Inmobiliario",
-    phone: "+57 300 000 0000",
+    phone: "+57 300 000 0000",
     email: "agente@inmobiliaria.com",
     person_id: 0,
-    initials: "AG"
-  };
+    initials: "AG",
+  }
 
   console.log("Datos del agente:", agent)
+
   if (!agent || !property) {
     // Si no hay datos, usar los por defecto en lugar de navegar hacia atrás
     console.warn("No agent or property data found, using defaults")
   }
 
   /* ------------ envío -------------- */
-  const handleSend = async () => {
-    const user = JSON.parse(localStorage.getItem("userData") || "{}");
-    const senderId = user.person_id || user.id || 0;
-    const receiverId = currentAgent.person_id;   // ✅ ahora NO es undefined
+const [subject, setSubject] = useState(`Interés en la propiedad ${state?.property?.title || ""}`.trim())
 
-    if (!senderId || !receiverId || !content.trim()) {
-      setMsg({ ok: false, text: "Completa el mensaje antes de enviar." });
-      return;
-    }
+const handleSend = async () => {
+  const user = JSON.parse(localStorage.getItem("userData") || "{}")
+  const senderEmail = user.email || ""
+  const receiverEmail = currentAgent.email
 
-    const subject = `Interés en la propiedad ${property?.title || ""}`.trim();
+  if (!senderEmail || !receiverEmail || !content.trim()) {
+    setMsg({ ok: false, text: "Completa tu mensaje antes de enviar." })
+    return
+  }
 
-    try {
-      setLoading(true);
-      const res = await fetch("http://localhost:10101/api/messages", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ senderId, receiverId, subject, content })
-      });
-      if (!res.ok) throw new Error();
-      setContent("");
-      setMsg({ ok: true, text: "Mensaje enviado correctamente ✅" });
-    } catch {
-      setMsg({ ok: false, text: "No se pudo enviar. Intenta de nuevo." });
-    } finally {
-      setLoading(false);
-    }
-  };
+  try {
+    setLoading(true)
+    const res = await fetch("http://localhost:10101/api/by-email", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        senderEmail,
+        receiverEmail,
+        subject,      // ✅ ahora también enviamos el subject
+        content: content.trim()
+      }),
+    })
 
+    if (!res.ok) throw new Error()
+    setContent("")
+    setMsg({ ok: true, text: "Mensaje enviado correctamente ✅" })
 
+    // Limpiar mensaje temporalmente
+    setTimeout(() => setMsg({ ok: false, text: "" }), 3000)
+  } catch {
+    setMsg({ ok: false, text: "No se pudo enviar. Intenta de nuevo." })
+  } finally {
+    setLoading(false)
+  }
+}
 
 
   const handleCancel = () => {
     setContent("")
-    setSubject("")
     setMsg({ ok: false, text: "" })
   }
 
@@ -114,8 +114,6 @@ export const ContactAgent = () => {
                 <MessageCircle className="w-5 h-5 text-[#2F8EAC]" />
                 <span>WhatsApp</span>
               </a>
-
-              <RateAgentModal agentName={currentAgent.name} />
             </div>
           </div>
           {/* Lado derecho - Formulario grande y alto */}
@@ -154,10 +152,11 @@ export const ContactAgent = () => {
             </div>
             {msg.text && (
               <div
-                className={`mt-4 p-3 rounded-md text-sm text-center ${msg.ok
-                  ? "bg-green-50 text-green-700 border border-green-200"
-                  : "bg-red-50 text-red-700 border border-red-200"
-                  }`}
+                className={`mt-4 p-3 rounded-md text-sm text-center ${
+                  msg.ok
+                    ? "bg-green-50 text-green-700 border border-green-200"
+                    : "bg-red-50 text-red-700 border border-red-200"
+                }`}
               >
                 {msg.text}
               </div>

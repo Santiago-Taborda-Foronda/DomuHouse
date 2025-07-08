@@ -281,7 +281,7 @@ export default function CrearPropiedad() {
       })
 
       // ✅ Envío al endpoint correcto
-      const url = `https://domuhouse.onrender.com/api/agents/${agentId}/properties`
+      const url = `https://domuhouse-express.onrender.com/api/agents/${agentId}/properties`
       console.log("🌐 Enviando a:", url)
 
       const response = await fetch(url, {

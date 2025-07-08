@@ -1,5 +1,3 @@
-"use client"
-
 import { useState, useEffect } from "react"
 import { Eye, Edit, Trash2, Search, Filter, Users, Star, Phone, Mail, Shield } from "lucide-react"
 import { Header } from "../../Layouts/Header/Header"
@@ -46,7 +44,7 @@ export const GestionAgents = () => {
         return
       }
 
-      const response = await fetch("https://domuhouse.onrender.com/api/agentes-info", {
+      const response = await fetch("http://localhost:10101/api/agentes-info", {
         method: "GET",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -111,7 +109,7 @@ export const GestionAgents = () => {
         return
       }
 
-      const response = await fetch(`https://domuhouse.onrender.com/api/agents/${id}`, {
+      const response = await fetch(`http://localhost:10101/api/agents/${id}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -160,7 +158,7 @@ export const GestionAgents = () => {
         return
       }
 
-      const response = await fetch(`https://domuhouse.onrender.com/api/agents/${updatedAgent.id}`, {
+      const response = await fetch(`http://localhost:10101/api/agents/${updatedAgent.id}`, {
         method: "PUT",
         headers: {
           Authorization: `Bearer ${token}`,

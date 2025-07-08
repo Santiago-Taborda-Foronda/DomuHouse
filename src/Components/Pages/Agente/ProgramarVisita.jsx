@@ -40,7 +40,7 @@ export default function ProgramarVisita() {
     setVisitsLoading(true)
     setVisitsError("")
 
-    fetch(`https://domuhouse.onrender.com/api/agents/${agentId}/visits`)
+    fetch(`https://domuhouse-express.onrender.com/api/agents/${agentId}/visits`)
       .then((res) => {
         if (!res.ok) throw new Error("Error al cargar visitas")
         return res.json()
@@ -69,7 +69,7 @@ export default function ProgramarVisita() {
     setPropertiesLoading(true)
     setPropertiesError("")
 
-    fetch(`https://domuhouse.onrender.com/api/agents/${agentId}/properties`)
+    fetch(`https://domuhouse-express.onrender.com/api/agents/${agentId}/properties`)
       .then((res) => {
         if (!res.ok) throw new Error("Error al cargar propiedades")
         return res.json()
@@ -97,7 +97,7 @@ export default function ProgramarVisita() {
     setClientsLoading(true)
     setClientsError("")
 
-    fetch("https://domuhouse.onrender.com/api/clients")
+    fetch("https://domuhouse-express.onrender.com/api/clients")
       .then((r) => {
         if (!r.ok) throw new Error("Error al cargar clientes")
         return r.json()
@@ -233,7 +233,7 @@ export default function ProgramarVisita() {
 
       console.log("📤 Enviando payload:", data)
 
-      const response = await fetch(`https://domuhouse.onrender.com/api/agents/${agentId}/visits/schedule`, {
+      const response = await fetch(`https://domuhouse-express.onrender.com/api/agents/${agentId}/visits/schedule`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -267,7 +267,7 @@ export default function ProgramarVisita() {
 
       // ✅ Recargar visitas después de crear una nueva
       if (agentId) {
-        fetch(`https://domuhouse.onrender.com/api/agents/${agentId}/visits`)
+        fetch(`https://domuhouse-express.onrender.com/api/agents/${agentId}/visits`)
           .then((res) => res.json())
           .then((data) => {
             const list = Array.isArray(data) ? data : data.visits || data.results || data.data || []

@@ -4,6 +4,7 @@ import { Route, Routes } from 'react-router'
 import { Header } from './Components/Layouts/Header/Header'
 import { Home } from './Components/Pages/Home/Home'
 import { Tendencias } from './Components/Pages/Tendencias/Tendencias'
+import CrearPropiedadUsuario from "./Components/Pages/Usuario/CrearPropiedadUsuario"
 import { Encuentrame } from './Components/Pages/Encuentrame/Encuentrame'
 import { Registrarse } from './Components/Pages/Home/Registrarse/Registrarse'
 import { PropiedadSeleccionada } from './Components/Pages/PropiedadSeleccionada/PropiedadSeleccionada';
@@ -69,6 +70,7 @@ export const App = () => {
       <Route path="/inmobiliaria-seleccionada" element={<InmobiliariaSeleccionada />} />
       <Route path="/mi-inmobiliaria/propiedades" element={<MiInmobiliaria />} />
       <Route path="/agregar-propiedad" element={<AgregarPropiedad />} />
+      <Route path="/Usuario/CrearPropiedadUsuario" element={<CrearPropiedadUsuario />} />
       {/* <Route path="/actualizar-inmobiliaria" element={<ActualizarInmobiliaria />} /> */}
       <Route path="/privacidad" element={<Privacidad />} />
       <Route path="/terminos" element={<Terminos />} />
@@ -83,6 +85,7 @@ export const App = () => {
       <Route path="/mi-inmobiliaria/clientes" element={<ClientesAdmin />} />
       <Route path="/mi-inmobiliaria/agenda" element={<AgendaAdmin />} />
       <Route path="/mi-inmobiliaria/reportes" element={<ReportesInmobiliaria />} />
+      <Route path="/editar-inmobiliaria/:id" element={<EditarInmobiliaria />} />
       <Route path="/mi-inmobiliaria/configuracion" element={<EditarInmobiliaria />} />
       {/* Rutas del Agente  */}
         <Route path="/AgentDashboard" element={<AgentDashboard />} />

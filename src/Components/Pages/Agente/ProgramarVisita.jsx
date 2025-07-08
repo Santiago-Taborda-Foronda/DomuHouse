@@ -40,7 +40,7 @@ export default function ProgramarVisita() {
     setVisitsLoading(true)
     setVisitsError("")
 
-    fetch(`https://domuhouse-express.onrender.com/api/agents/${agentId}/visits`)
+    fetch(`https://domuhouse-express.onrender.com/agents/${agentId}/visits`)
       .then((res) => {
         if (!res.ok) throw new Error("Error al cargar visitas")
         return res.json()

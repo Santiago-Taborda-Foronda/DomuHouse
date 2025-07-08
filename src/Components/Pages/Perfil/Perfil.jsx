@@ -1,11 +1,11 @@
 "use client"
+
 import { useState, useEffect } from "react"
 import {
   User,
   Edit2,
   Save,
   X,
-  Building2,
   Eye,
   Edit,
   Trash2,
@@ -17,6 +17,7 @@ import {
   Camera,
   Loader2,
   AlertCircle,
+  Shield,
 } from "lucide-react"
 
 export const Perfil = () => {
@@ -33,244 +34,14 @@ export const Perfil = () => {
     correo: "",
     contraseña: "••••••••••••••••",
     fechaRegistro: "",
+    role: "",
     propiedadesPublicadas: 0,
     propiedadesVendidas: 0,
+    verified: false,
+    active: false,
   })
+
   const [tempUserData, setTempUserData] = useState({ ...userData })
-
-  // Verificar si estamos en el cliente
-  useEffect(() => {
-    setIsClient(true)
-  }, [])
-
-  // Función corregida para obtener el token - ahora busca 'authToken' primero
-  const getToken = () => {
-    if (typeof window === "undefined") {
-      console.log("🔍 getToken: Ejecutándose en el servidor, retornando null")
-      return null
-    }
-
-    // Buscar primero 'authToken' que es como lo guarda tu Login
-    const authToken = localStorage.getItem("authToken") || sessionStorage.getItem("authToken")
-    const token = localStorage.getItem("token") || sessionStorage.getItem("token")
-
-    console.log("🔍 Tokens encontrados:", {
-      authToken: authToken ? "✅ Existe" : "❌ No existe",
-      token: token ? "✅ Existe" : "❌ No existe",
-    })
-
-    // Verificar también otros posibles nombres de token
-    const possibleTokenKeys = ["access_token", "jwt", "user_token"]
-    possibleTokenKeys.forEach((key) => {
-      const tokenValue = localStorage.getItem(key) || sessionStorage.getItem(key)
-      if (tokenValue) {
-        console.log(`🔍 Token encontrado con clave '${key}':`, tokenValue.substring(0, 20) + "...")
-      }
-    })
-
-    // Priorizar 'authToken' ya que es como lo guarda tu Login
-    const finalToken = authToken || token
-    console.log("🔍 Token final:", finalToken ? "✅ Disponible" : "❌ No disponible")
-
-    if (finalToken) {
-      console.log("🔍 Token (primeros 20 caracteres):", finalToken.substring(0, 20) + "...")
-    }
-
-    return finalToken
-  }
-
-  // Función para hacer peticiones autenticadas
-  const fetchWithAuth = async (url, options = {}) => {
-    const token = getToken()
-
-    if (!token) {
-      throw new Error("No se encontró token de autenticación")
-    }
-
-    console.log("🌐 Haciendo petición a:", url)
-    console.log("🔑 Usando token:", token.substring(0, 20) + "...")
-
-    const response = await fetch(url, {
-      ...options,
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-        ...options.headers,
-      },
-    })
-
-    console.log("📡 Status de respuesta:", response.status)
-    console.log("📡 Response OK:", response.ok)
-
-    if (!response.ok) {
-      if (response.status === 401) {
-        // Token expirado o inválido
-        if (typeof window !== "undefined") {
-          localStorage.removeItem("token")
-          localStorage.removeItem("authToken")
-          sessionStorage.removeItem("token")
-          sessionStorage.removeItem("authToken")
-          window.location.href = "/login"
-        }
-        throw new Error("Sesión expirada")
-      }
-
-      // Intentar obtener el mensaje de error del servidor
-      try {
-        const errorData = await response.json()
-        throw new Error(errorData.message || `Error ${response.status}: ${response.statusText}`)
-      } catch (e) {
-        throw new Error(`Error ${response.status}: ${response.statusText}`)
-      }
-    }
-
-    return response.json()
-  }
-
-  // Cargar datos del perfil al montar el componente
-  useEffect(() => {
-    if (!isClient) {
-      console.log("🔍 useEffect: Esperando a que el cliente esté listo...")
-      return
-    }
-
-    console.log("🔍 useEffect: Cliente listo, iniciando carga del perfil...")
-
-    const cargarPerfil = async () => {
-      try {
-        setLoading(true)
-        setError(null)
-
-        // Debugging: Mostrar todas las claves en localStorage
-        console.log("🔍 Todas las claves en localStorage:", Object.keys(localStorage))
-        console.log("🔍 Todas las claves en sessionStorage:", Object.keys(sessionStorage))
-
-        // Verificar si hay token antes de hacer la petición
-        const token = getToken()
-        if (!token) {
-          console.error("❌ No se encontró token de autenticación")
-          setError("No se encontró token de autenticación. Por favor, inicia sesión nuevamente.")
-          setLoading(false)
-          return
-        }
-
-        console.log("🔍 Token encontrado, haciendo petición al servidor...")
-
-        // Usar la misma URL base que tu Login
-        const baseUrl = "https://domuhouse.onrender.com"
-        const url = `${baseUrl}/api/perfil`
-
-        console.log("🔍 URL de la petición:", url)
-
-        const response = await fetchWithAuth(url)
-
-        console.log("🔍 Respuesta del servidor:", response)
-
-        if (response.success) {
-          console.log("✅ Perfil cargado exitosamente:", response.data)
-          setUserData(response.data)
-          setTempUserData(response.data)
-        } else {
-          console.error("❌ Error en la respuesta:", response.message)
-          setError(response.message || "Error al cargar el perfil")
-        }
-      } catch (err) {
-        console.error("❌ Error al cargar perfil:", err)
-        setError(err.message || "Error de conexión")
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    cargarPerfil()
-  }, [isClient])
-
-  // Función para actualizar el perfil
-  const actualizarPerfil = async (datosActualizados) => {
-    try {
-      setSaving(true)
-
-      const baseUrl = "https://domuhouse.onrender.com"
-      const response = await fetchWithAuth(`${baseUrl}/api/users/perfil`, {
-        method: "PUT",
-        body: JSON.stringify(datosActualizados),
-      })
-
-      if (response.success) {
-        setUserData(response.data)
-        setTempUserData(response.data)
-        return { success: true }
-      } else {
-        throw new Error(response.message || "Error al actualizar el perfil")
-      }
-    } catch (err) {
-      console.error("Error al actualizar perfil:", err)
-      return { success: false, error: err.message }
-    } finally {
-      setSaving(false)
-    }
-  }
-
-  const handleEdit = () => {
-    setIsEditing(true)
-    setTempUserData({ ...userData })
-  }
-
-  const handleSave = async () => {
-    // Validaciones básicas
-    if (!tempUserData.nombre.trim()) {
-      alert("El nombre es obligatorio")
-      return
-    }
-
-    if (!tempUserData.correo.trim()) {
-      alert("El correo es obligatorio")
-      return
-    }
-
-    // Validar formato de correo
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!emailRegex.test(tempUserData.correo)) {
-      alert("El formato del correo no es válido")
-      return
-    }
-
-    // Validar formato de teléfono (opcional)
-    if (tempUserData.telefono && !tempUserData.telefono.match(/^\+?[0-9\s-]+$/)) {
-      alert("El formato del teléfono no es válido")
-      return
-    }
-
-    const resultado = await actualizarPerfil(tempUserData)
-
-    if (resultado.success) {
-      setIsEditing(false)
-      alert("Perfil actualizado exitosamente")
-    } else {
-      alert(`Error al actualizar: ${resultado.error}`)
-    }
-  }
-
-  const handleCancel = () => {
-    setTempUserData({ ...userData })
-    setIsEditing(false)
-  }
-
-  const handleInputChange = (field, value) => {
-    setTempUserData((prev) => ({
-      ...prev,
-      [field]: value,
-    }))
-  }
-
-  const handleRetry = () => {
-    console.log("🔄 Reintentando...")
-    debugTokenInfo()
-
-    if (typeof window !== "undefined") {
-      window.location.reload()
-    }
-  }
 
   // Datos de ejemplo para las propiedades
   const propiedadesPublicadas = [
@@ -307,7 +78,274 @@ export const Perfil = () => {
     },
   ]
 
-  const propiedadesFavoritas = []
+  // Función mejorada para obtener y decodificar el token
+  const getTokenAndUserInfo = () => {
+    if (typeof window === "undefined") return null
+
+    // Intenta obtener el token de diferentes lugares
+    const token = localStorage.getItem("token") || 
+                  sessionStorage.getItem("token") || 
+                  localStorage.getItem("authToken") || 
+                  sessionStorage.getItem("authToken")
+
+    console.log("🔑 Token obtenido del storage:", token)
+
+    if (!token) {
+      console.error("No se encontró token en storage")
+      return null
+    }
+
+    try {
+      const payload = JSON.parse(atob(token.split(".")[1]))
+      console.log("🔍 Payload decodificado:", payload)
+      
+      return {
+        token,
+        userId: payload.id,
+        role: payload.role_id?.toString() || payload.role?.toString() || "2",
+        email: payload.email,
+        name: payload.name_person || payload.name || "Usuario",
+        fullPayload: payload,
+      }
+    } catch (e) {
+      console.error("Error decodificando token:", e)
+      return { token }
+    }
+  }
+
+  // Función mejorada para hacer peticiones autenticadas
+  const fetchWithAuth = async (url, options = {}) => {
+    const authInfo = getTokenAndUserInfo()
+    
+    if (!authInfo?.token) {
+      console.error("❌ No hay token disponible para la petición")
+      throw new Error("No se encontró token de autenticación")
+    }
+
+    console.log("🌐 Realizando petición a:", url)
+    console.log("🔑 Token que se enviará:", authInfo.token)
+
+    const headers = {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${authInfo.token}`,
+      ...options.headers,
+    }
+
+    try {
+      const response = await fetch(url, { 
+        ...options, 
+        headers,
+        credentials: 'include' // Importante para cookies de sesión
+      })
+      
+      console.log("📡 Respuesta recibida. Status:", response.status)
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        console.error("❌ Error en la respuesta:", errorData)
+        throw new Error(errorData.message || `Error ${response.status}: ${response.statusText}`)
+      }
+
+      const data = await response.json()
+      console.log("✅ Datos recibidos:", data)
+      return data
+    } catch (error) {
+      console.error("❌ Error en fetchWithAuth:", error)
+      throw error
+    }
+  }
+
+  // Cargar datos del perfil
+  useEffect(() => {
+    setIsClient(true)
+
+    const cargarPerfil = async () => {
+      try {
+        setLoading(true)
+        setError(null)
+
+        const authInfo = getTokenAndUserInfo()
+        console.log("🔍 Información de autenticación:", authInfo)
+
+        if (!authInfo?.token) {
+          console.error("❌ No se encontró token de autenticación")
+          setError("No se encontró token de autenticación. Por favor, inicia sesión nuevamente.")
+          setLoading(false)
+          return
+        }
+
+        // Primero intenta cargar desde el backend
+        try {
+          const baseUrl = "http://localhost:10101"
+          const url = `${baseUrl}/api/perfil`
+          
+          console.log("🔍 Intentando cargar perfil desde:", url)
+          const response = await fetchWithAuth(url)
+          
+          if (response.success) {
+            console.log("✅ Perfil cargado desde backend:", response.data)
+            const datosUsuario = {
+              nombre: response.data.nombre || authInfo.name,
+              telefono: response.data.telefono || "",
+              correo: response.data.correo || authInfo.email,
+              contraseña: "••••••••••••••••",
+              fechaRegistro: response.data.fechaRegistro || new Date().toISOString(),
+              role: response.data.role || authInfo.role,
+              propiedadesPublicadas: response.data.propiedadesPublicadas || 0,
+              propiedadesVendidas: response.data.propiedadesVendidas || 0,
+              verified: response.data.verified || false,
+              active: response.data.active || true,
+            }
+
+            setUserData(datosUsuario)
+            setTempUserData(datosUsuario)
+          } else {
+            console.error("⚠️ El backend respondió pero con error. Usando datos del token.")
+            throw new Error(response.message || "Error en la respuesta del servidor")
+          }
+        } catch (backendError) {
+          console.warn("⚠️ No se pudo cargar desde el backend. Usando datos del token:", backendError)
+          
+          // Fallback: usa los datos del token si el backend falla
+          const datosUsuario = {
+            nombre: authInfo.name,
+            telefono: "",
+            correo: authInfo.email,
+            contraseña: "••••••••••••••••",
+            fechaRegistro: new Date().toISOString(),
+            role: authInfo.role,
+            propiedadesPublicadas: 0,
+            propiedadesVendidas: 0,
+            verified: false,
+            active: true,
+          }
+
+          setUserData(datosUsuario)
+          setTempUserData(datosUsuario)
+        }
+      } catch (err) {
+        console.error("❌ Error al cargar perfil:", err)
+        setError(err.message || "Error de conexión")
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    if (typeof window !== "undefined") {
+      cargarPerfil()
+    }
+  }, [])
+
+  // Función para actualizar el perfil
+  const actualizarPerfil = async (datosActualizados) => {
+    try {
+      setSaving(true)
+      const baseUrl = "http://localhost:10101"
+
+      console.log("🔄 Intentando actualizar perfil con datos:", datosActualizados)
+      
+      const response = await fetchWithAuth(`${baseUrl}/api/perfil`, {
+        method: "PUT",
+        body: JSON.stringify({
+          nombre: datosActualizados.nombre,
+          telefono: datosActualizados.telefono,
+          correo: datosActualizados.correo,
+        }),
+      })
+
+      console.log("📡 Respuesta de actualización:", response)
+
+      if (response.success) {
+        const datosActualizadosCompletos = {
+          ...userData,
+          nombre: response.data.nombre || datosActualizados.nombre,
+          telefono: response.data.telefono || datosActualizados.telefono,
+          correo: response.data.correo || datosActualizados.correo,
+        }
+
+        setUserData(datosActualizadosCompletos)
+        setTempUserData(datosActualizadosCompletos)
+        return { success: true }
+      } else {
+        throw new Error(response.message || "Error al actualizar el perfil")
+      }
+    } catch (err) {
+      console.error("❌ Error al actualizar perfil:", err)
+      return { success: false, error: err.message }
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleEdit = () => {
+    setIsEditing(true)
+    setTempUserData({ ...userData })
+  }
+
+  const handleSave = async () => {
+    if (!tempUserData.nombre.trim()) {
+      alert("El nombre es obligatorio")
+      return
+    }
+    if (!tempUserData.correo.trim()) {
+      alert("El correo es obligatorio")
+      return
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(tempUserData.correo)) {
+      alert("El formato del correo no es válido")
+      return
+    }
+
+    const resultado = await actualizarPerfil(tempUserData)
+    if (resultado.success) {
+      setIsEditing(false)
+      alert("Perfil actualizado exitosamente")
+    } else {
+      alert(`Error al actualizar: ${resultado.error}`)
+    }
+  }
+
+  const handleCancel = () => {
+    setTempUserData({ ...userData })
+    setIsEditing(false)
+  }
+
+  const handleInputChange = (field, value) => {
+    setTempUserData((prev) => ({
+      ...prev,
+      [field]: value,
+    }))
+  }
+
+  // Función para obtener el nombre del rol
+  const getNombreRol = (role) => {
+    switch (String(role)) {
+      case "1":
+        return "ADMINISTRADOR"
+      case "2":
+        return "AGENTE"
+      case "3":
+        return "USUARIO"
+      default:
+        return `ROL ${role}`
+    }
+  }
+
+  // Función para obtener el color del rol
+  const getColorRol = (role) => {
+    switch (String(role)) {
+      case "1":
+        return "bg-red-100 text-red-700 border-red-200"
+      case "2":
+        return "bg-blue-100 text-blue-700 border-blue-200"
+      case "3":
+        return "bg-green-100 text-green-700 border-green-200"
+      default:
+        return "bg-gray-100 text-gray-700 border-gray-200"
+    }
+  }
 
   // Funciones auxiliares
   const formatearPrecio = (precio) => {
@@ -350,8 +388,6 @@ export const Perfil = () => {
         return propiedadesPublicadas
       case "adquiridas":
         return propiedadesAdquiridas
-      case "favoritas":
-        return propiedadesFavoritas
       default:
         return []
     }
@@ -363,8 +399,6 @@ export const Perfil = () => {
         return "Mis Propiedades Publicadas"
       case "adquiridas":
         return "Propiedades Adquiridas"
-      case "favoritas":
-        return "Propiedades Favoritas"
       default:
         return ""
     }
@@ -372,32 +406,6 @@ export const Perfil = () => {
 
   const datosActuales = obtenerDatos()
 
-  // Función para debugging - mostrar información del token
-  const debugTokenInfo = () => {
-    if (typeof window === "undefined") return
-
-    console.log("=== DEBUG TOKEN INFO ===")
-    console.log("localStorage keys:", Object.keys(localStorage))
-    console.log("sessionStorage keys:", Object.keys(sessionStorage))
-
-    // Buscar cualquier cosa que parezca un token
-    Object.keys(localStorage).forEach((key) => {
-      const value = localStorage.getItem(key)
-      if (value && (value.length > 50 || key.toLowerCase().includes("token") || key.toLowerCase().includes("auth"))) {
-        console.log(`localStorage['${key}']:`, value.substring(0, 50) + "...")
-      }
-    })
-
-    Object.keys(sessionStorage).forEach((key) => {
-      const value = sessionStorage.getItem(key)
-      if (value && (value.length > 50 || key.toLowerCase().includes("token") || key.toLowerCase().includes("auth"))) {
-        console.log(`sessionStorage['${key}']:`, value.substring(0, 50) + "...")
-      }
-    })
-    console.log("========================")
-  }
-
-  // No renderizar nada hasta que estemos en el cliente
   if (!isClient) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
@@ -409,7 +417,6 @@ export const Perfil = () => {
     )
   }
 
-  // Mostrar loading
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
@@ -421,7 +428,6 @@ export const Perfil = () => {
     )
   }
 
-  // Mostrar error
   if (error) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
@@ -430,7 +436,7 @@ export const Perfil = () => {
           <h2 className="text-xl font-semibold text-gray-900 mb-2">Error al cargar el perfil</h2>
           <p className="text-gray-600 mb-4">{error}</p>
           <button
-            onClick={handleRetry}
+            onClick={() => window.location.reload()}
             className="px-6 py-3 bg-[#2F8EAC] text-white rounded-lg hover:bg-[#287b93] transition-colors"
           >
             Reintentar
@@ -457,7 +463,14 @@ export const Perfil = () => {
                 </button>
               </div>
               <h1 className="text-2xl font-bold text-gray-900 mt-4">{userData.nombre}</h1>
-              <p className="text-gray-600">Miembro desde {formatearFecha(userData.fechaRegistro)}</p>
+              <div className="flex items-center gap-2 mt-2">
+                <Shield className="w-4 h-4" />
+                <span className={`px-3 py-1 text-sm font-medium rounded-full border ${getColorRol(userData.role)}`}>
+                  {getNombreRol(userData.role)}
+                </span>
+              </div>
+
+              
             </div>
 
             {/* Estadísticas */}
@@ -569,15 +582,13 @@ export const Perfil = () => {
                     Contraseña
                   </label>
                   <input
-                    type={isEditing ? "text" : "password"}
-                    value={isEditing ? tempUserData.contraseña : userData.contraseña}
-                    onChange={(e) => handleInputChange("contraseña", e.target.value)}
-                    className={`w-full px-4 py-3 border border-gray-300 rounded-lg focus:border-[#2F8EAC] focus:outline-none focus:ring-2 focus:ring-[#2F8EAC]/20 transition-all ${
-                      isEditing ? "text-gray-900 bg-white" : "text-gray-600 bg-gray-50"
-                    }`}
-                    readOnly={!isEditing}
-                    placeholder={isEditing ? "Ingresa nueva contraseña (opcional)" : ""}
+                    type="password"
+                    value={userData.contraseña}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-600 bg-gray-50"
+                    readOnly
+                    placeholder="••••••••••••••••"
                   />
+                  <p className="text-xs text-gray-500 mt-1">Para cambiar tu contraseña, contacta al administrador</p>
                 </div>
               </div>
             </div>
@@ -608,16 +619,6 @@ export const Perfil = () => {
                 >
                   Adquiridas ({propiedadesAdquiridas.length})
                 </button>
-                <button
-                  onClick={() => setActiveTab("favoritas")}
-                  className={`flex-1 px-6 py-4 text-sm font-medium transition-all ${
-                    activeTab === "favoritas"
-                      ? "text-white bg-[#2F8EAC] shadow-lg"
-                      : "text-gray-600 bg-gray-50 hover:bg-gray-100"
-                  }`}
-                >
-                  Favoritas ({propiedadesFavoritas.length})
-                </button>
               </div>
             </div>
 
@@ -625,103 +626,80 @@ export const Perfil = () => {
             <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
               <div className="px-6 py-4 border-b border-gray-100">
                 <h3 className="font-semibold text-gray-800">{obtenerTitulo()}</h3>
-                <p className="text-sm text-gray-500">
-                  {activeTab === "favoritas"
-                    ? `Tus propiedades favoritas (${datosActuales.length} propiedades)`
-                    : `Administra tus propiedades (${datosActuales.length} propiedades)`}
-                </p>
+                <p className="text-sm text-gray-500">Administra tus propiedades ({datosActuales.length} propiedades)</p>
               </div>
 
-              {datosActuales.length === 0 ? (
-                <div className="text-center py-16">
-                  <Building2 className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">
-                    {activeTab === "favoritas" ? "No tienes propiedades favoritas" : "No hay propiedades"}
-                  </h3>
-                  <p className="text-gray-500 mb-6">
-                    {activeTab === "favoritas"
-                      ? "Aún no has marcado ninguna propiedad como favorita."
-                      : `Aún no has ${activeTab === "adquiridas" ? "adquirido" : "agregado"} ninguna propiedad.`}
-                  </p>
-                  {activeTab === "publicadas" && (
-                    <button className="px-6 py-3 bg-[#2F8EAC] text-white rounded-lg hover:bg-[#287b93] transition-colors">
-                      Publicar Primera Propiedad
-                    </button>
-                  )}
-                </div>
-              ) : (
-                <div className="divide-y divide-gray-100">
-                  {datosActuales.map((propiedad) => (
-                    <div key={propiedad.id} className="p-6 hover:bg-gray-50 transition-colors">
-                      <div className="flex gap-4">
-                        <img
-                          src={propiedad.image || "/placeholder.svg"}
-                          alt={propiedad.title}
-                          className="w-24 h-20 object-cover rounded-lg border border-gray-200"
-                        />
-                        <div className="flex-1">
-                          <div className="flex items-start justify-between mb-2">
-                            <div>
-                              <h4 className="font-semibold text-gray-900">{propiedad.title}</h4>
-                              <p className="text-sm text-gray-600 flex items-center gap-1">
-                                <MapPin className="w-3 h-3" />
-                                {propiedad.address}
-                              </p>
-                            </div>
-                            <span
-                              className={`inline-flex px-3 py-1 text-xs font-medium rounded-full ${getEstadoColor(propiedad.status)}`}
-                            >
-                              {propiedad.status}
-                            </span>
+              <div className="divide-y divide-gray-100">
+                {datosActuales.map((propiedad) => (
+                  <div key={propiedad.id} className="p-6 hover:bg-gray-50 transition-colors">
+                    <div className="flex gap-4">
+                      <img
+                        src={propiedad.image || "/placeholder.svg"}
+                        alt={propiedad.title}
+                        className="w-24 h-20 object-cover rounded-lg border border-gray-200"
+                      />
+                      <div className="flex-1">
+                        <div className="flex items-start justify-between mb-2">
+                          <div>
+                            <h4 className="font-semibold text-gray-900">{propiedad.title}</h4>
+                            <p className="text-sm text-gray-600 flex items-center gap-1">
+                              <MapPin className="w-3 h-3" />
+                              {propiedad.address}
+                            </p>
                           </div>
-                          <div className="flex items-center gap-4 text-sm text-gray-600 mb-3">
-                            <span>{propiedad.rooms} hab</span>
-                            <span>{propiedad.bathrooms} baños</span>
-                            <span>{propiedad.area} m²</span>
-                            <span className="capitalize text-blue-600">{propiedad.propertyType}</span>
-                          </div>
-                          <div className="flex items-center justify-between">
-                            <div className="text-lg font-bold text-gray-900">{formatearPrecio(propiedad.price)}</div>
-                            <div className="flex items-center gap-2">
-                              <button
-                                className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                                title="Ver detalles"
-                              >
-                                <Eye className="w-4 h-4" />
-                              </button>
-                              {activeTab !== "adquiridas" && (
-                                <button
-                                  className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
-                                  title="Editar propiedad"
-                                >
-                                  <Edit className="w-4 h-4" />
-                                </button>
-                              )}
-                              <button
-                                className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                                title={activeTab === "favoritas" ? "Quitar de favoritas" : "Eliminar propiedad"}
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </button>
-                            </div>
-                          </div>
-                          {activeTab === "adquiridas" && propiedad.fechaAdquisicion && (
-                            <div className="mt-3 pt-3 border-t border-gray-100">
-                              <div className="flex items-center gap-4 text-xs text-gray-500">
-                                <span className="flex items-center gap-1">
-                                  <Calendar className="w-3 h-3" />
-                                  Adquirida: {formatearFecha(propiedad.fechaAdquisicion)}
-                                </span>
-                                <span>Vendedor: {propiedad.vendedor}</span>
-                              </div>
-                            </div>
-                          )}
+                          <span
+                            className={`inline-flex px-3 py-1 text-xs font-medium rounded-full ${getEstadoColor(propiedad.status)}`}
+                          >
+                            {propiedad.status}
+                          </span>
                         </div>
+                        <div className="flex items-center gap-4 text-sm text-gray-600 mb-3">
+                          <span>{propiedad.rooms} hab</span>
+                          <span>{propiedad.bathrooms} baños</span>
+                          <span>{propiedad.area} m²</span>
+                          <span className="capitalize text-blue-600">{propiedad.propertyType}</span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <div className="text-lg font-bold text-gray-900">{formatearPrecio(propiedad.price)}</div>
+                          <div className="flex items-center gap-2">
+                            <button
+                              className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                              title="Ver detalles"
+                            >
+                              <Eye className="w-4 h-4" />
+                            </button>
+                            {activeTab !== "adquiridas" && (
+                              <button
+                                className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                                title="Editar propiedad"
+                              >
+                                <Edit className="w-4 h-4" />
+                              </button>
+                            )}
+                            <button
+                              className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                              title="Eliminar propiedad"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
+                        {activeTab === "adquiridas" && propiedad.fechaAdquisicion && (
+                          <div className="mt-3 pt-3 border-t border-gray-100">
+                            <div className="flex items-center gap-4 text-xs text-gray-500">
+                              <span className="flex items-center gap-1">
+                                <Calendar className="w-3 h-3" />
+                                Adquirida: {formatearFecha(propiedad.fechaAdquisicion)}
+                              </span>
+                              <span>Vendedor: {propiedad.vendedor}</span>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
-                  ))}
-                </div>
-              )}
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>

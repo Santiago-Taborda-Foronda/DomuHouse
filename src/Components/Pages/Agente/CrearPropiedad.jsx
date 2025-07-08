@@ -281,7 +281,7 @@ export default function CrearPropiedad() {
       })
 
       // ✅ Envío al endpoint correcto
-      const url = `https://domuhouse-express.onrender.com/api/agents/${agentId}/properties`
+      const url = `https://imagen-domuhouse-express.onrender.com/api/agents/${agentId}/properties`
       console.log("🌐 Enviando a:", url)
 
       const response = await fetch(url, {
@@ -332,6 +332,7 @@ export default function CrearPropiedad() {
       area: "",
       price: "",
       propertyType: "Venta",
+      additionalRoomInfo: "",
       socioeconomic_stratum: "",
       parking_spaces: "",
       total_area: "",
@@ -537,6 +538,7 @@ export default function CrearPropiedad() {
                         >
                           <option value="Venta">En Venta</option>
                           <option value="Arriendo">En Arriendo</option>
+                          <option value="Arriendo con opción de compra">Arriendo con opción de compra</option>
                         </select>
                       </div>
                       <select
@@ -614,6 +616,7 @@ export default function CrearPropiedad() {
                           className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
                         />
                       </div>
+                
                       <input
                         type="text"
                         name="price"

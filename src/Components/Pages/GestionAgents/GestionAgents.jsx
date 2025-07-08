@@ -449,9 +449,7 @@ export const GestionAgents = () => {
                           <th className="px-4 lg:px-6 py-3 lg:py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                             Propiedades
                           </th>
-                          <th className="px-4 lg:px-6 py-3 lg:py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                            Puntuación
-                          </th>
+                        e
                           <th className="px-4 lg:px-6 py-3 lg:py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                             Acciones
                           </th>
@@ -502,9 +500,7 @@ export const GestionAgents = () => {
                                 <div className="text-xs text-gray-500">propiedades</div>
                               </div>
                             </td>
-                            <td className="px-4 lg:px-6 py-4">
-                              <div className="flex items-center gap-1">{renderStars(agente.rating)}</div>
-                            </td>
+                            
                             <td className="px-4 lg:px-6 py-4">
                               <div className="flex items-center gap-1 lg:gap-2">
                                 <button

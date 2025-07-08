@@ -58,6 +58,9 @@ useEffect(() => {
             .then((res) => {
               console.log("📦 Datos de inmobiliaria:", res.data);
               setInmobiliariaData(res.data);
+
+                            localStorage.setItem("realEstate", JSON.stringify(res.data));
+
             })
             .catch((error) => {
               console.error("Error al cargar la inmobiliaria:", error);
@@ -116,7 +119,14 @@ useEffect(() => {
           </div>
           {/* Botón de editar */}
           <button
-            onClick={() => handleNavigation("/mi-inmobiliaria/configuracion")}
+           onClick={() => {
+              if (inmobiliariaData && inmobiliariaData.id) {
+                handleNavigation(`/editar-inmobiliaria/${inmobiliariaData.id}`);
+              } else {
+                alert("Aún no se han cargado los datos de la inmobiliaria.");
+              }
+            }}
+
             className="mt-3 px-3 py-1.5 text-xs bg-transparent border border-[#2F8EAC] text-[#2F8EAC] rounded-full hover:bg-[#2F8EAC] hover:text-white transition-all duration-200 flex items-center gap-1 mx-auto"
           >
             <Edit3 size={12} />
@@ -290,7 +300,7 @@ useEffect(() => {
               </section>
 
               {/* Administración */}
-              <section>
+              {/* <section>
                 <h3 className="font-semibold text-gray-700 mb-3 title-montserrat text-xs uppercase tracking-wide">
                   Administración
                 </h3>
@@ -308,7 +318,7 @@ useEffect(() => {
                     subtitle="Datos de la inmobiliaria"
                   />
                 </ul>
-              </section>
+              </section> */}
             </div>
 
             {/* Cerrar sesión - solo mostrar si está autenticado */}

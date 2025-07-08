@@ -56,7 +56,7 @@ export const EditarInmobiliaria = () => {
 
       const fetchData = async () => {
         try {
-          const response = await fetch(`http://localhost:10101/api/inmobiliarias/${id}`);
+          const response = await fetch(`https://imagen-domuhouse-express.onrender.com/api/inmobiliarias/${id}`);
           const data = await response.json();
           setInitialData(data);
 

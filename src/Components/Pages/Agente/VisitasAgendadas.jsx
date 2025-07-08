@@ -54,7 +54,7 @@ export default function VisitasAgendadas() {
         setLoading(true)
         setError(null)
 
-        const res = await fetch(`http://localhost:10101/api/agents/${agentId}/visits`)
+        const res = await fetch(`https://imagen-domuhouse-express.onrender.com/api/agents/${agentId}/visits`)
 
         if (!res.ok) {
           throw new Error(`Error ${res.status}: ${res.statusText}`)

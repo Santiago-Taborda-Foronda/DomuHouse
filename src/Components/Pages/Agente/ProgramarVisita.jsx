@@ -97,7 +97,7 @@ export default function ProgramarVisita() {
     setClientsLoading(true)
     setClientsError("")
 
-    fetch("https://domuhouse-express.onrender.com/api/clients")
+    fetch("https://imagen-domuhouse-express.onrender.com/api/clients")
       .then((r) => {
         if (!r.ok) throw new Error("Error al cargar clientes")
         return r.json()
@@ -233,7 +233,7 @@ export default function ProgramarVisita() {
 
       console.log("📤 Enviando payload:", data)
 
-      const response = await fetch(`https://domuhouse-express.onrender.com/api/agents/${agentId}/visits/schedule`, {
+      const response = await fetch(`https://imagen-domuhouse-express.onrender.com/api/agents/${agentId}/visits/schedule`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

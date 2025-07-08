@@ -78,218 +78,163 @@ export const Perfil = () => {
     },
   ]
 
-  // useEffect(() => {
-  //   setIsClient(true)
-  // }, [])
-
-  // Función para obtener y decodificar el token
+  // Función mejorada para obtener y decodificar el token
   const getTokenAndUserInfo = () => {
     if (typeof window === "undefined") return null
 
-    const authToken = localStorage.getItem("authToken") || sessionStorage.getItem("authToken")
-    const token = localStorage.getItem("token") || sessionStorage.getItem("token")
-    const finalToken = authToken || token
+    // Intenta obtener el token de diferentes lugares
+    const token = localStorage.getItem("token") || 
+                  sessionStorage.getItem("token") || 
+                  localStorage.getItem("authToken") || 
+                  sessionStorage.getItem("authToken")
 
-    if (!finalToken) return null
+    console.log("🔑 Token obtenido del storage:", token)
 
-    try {
-      // Decodificar el JWT para extraer la información del usuario
-      const tokenParts = finalToken.split(".")
-      if (tokenParts.length === 3) {
-        const payload = JSON.parse(atob(tokenParts[1]))
-
-        return {
-          token: finalToken,
-          userId: payload.id || payload.person_id || payload.user_id,
-          role: payload.role_id || payload.role,
-          email: payload.email,
-          name: payload.name_person || payload.name,
-          fullPayload: payload,
-        }
-      }
-    } catch (e) {
-      console.error("Error decodificando JWT:", e)
+    if (!token) {
+      console.error("No se encontró token en storage")
+      return null
     }
 
-    return { token: finalToken }
+    try {
+      const payload = JSON.parse(atob(token.split(".")[1]))
+      console.log("🔍 Payload decodificado:", payload)
+      
+      return {
+        token,
+        userId: payload.id,
+        role: payload.role_id?.toString() || payload.role?.toString() || "2",
+        email: payload.email,
+        name: payload.name_person || payload.name || "Usuario",
+        fullPayload: payload,
+      }
+    } catch (e) {
+      console.error("Error decodificando token:", e)
+      return { token }
+    }
   }
 
-  // Función para hacer peticiones autenticadas
+  // Función mejorada para hacer peticiones autenticadas
   const fetchWithAuth = async (url, options = {}) => {
     const authInfo = getTokenAndUserInfo()
-
-    if (!authInfo || !authInfo.token) {
+    
+    if (!authInfo?.token) {
+      console.error("❌ No hay token disponible para la petición")
       throw new Error("No se encontró token de autenticación")
     }
 
-    console.log("🌐 Haciendo petición a:", url)
-    console.log("🔑 Info de autenticación:", {
-      hasToken: !!authInfo.token,
-      userId: authInfo.userId,
-      role: authInfo.role,
-      email: authInfo.email,
-    })
+    console.log("🌐 Realizando petición a:", url)
+    console.log("🔑 Token que se enviará:", authInfo.token)
 
-    const response = await fetch(url, {
-      ...options,
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${authInfo.token}`,
-        ...options.headers,
-      },
-    })
-
-    console.log("📡 Status de respuesta:", response.status)
-
-    if (!response.ok) {
-      if (response.status === 401) {
-        // Token expirado o inválido
-        if (typeof window !== "undefined") {
-          localStorage.removeItem("token")
-          localStorage.removeItem("authToken")
-          sessionStorage.removeItem("token")
-          sessionStorage.removeItem("authToken")
-          window.location.href = "/login"
-        }
-        throw new Error("Sesión expirada")
-      }
-
-      if (response.status === 403) {
-        throw new Error("No tienes permisos para acceder a esta información")
-      }
-
-      try {
-        const errorData = await response.json()
-        throw new Error(errorData.message || `Error ${response.status}: ${response.statusText}`)
-      } catch (e) {
-        throw new Error(`Error ${response.status}: ${response.statusText}`)
-      }
-    }
-
-    return response.json()
-  }
-
-  // Cargar datos del perfil
-  // useEffect(() => {
-  //   if (!isClient) return
-
-  //   const cargarPerfil = async () => {
-  //     try {
-  //       setLoading(true)
-  //       setError(null)
-
-  //       const authInfo = getTokenAndUserInfo()
-  //       if (!authInfo || !authInfo.token) {
-  //         console.error("❌ No se encontró token de autenticación")
-  //         setError("No se encontró token de autenticación. Por favor, inicia sesión nuevamente.")
-  //         setLoading(false)
-  //         return
-  //       }
-
-  //       console.log("🔍 Información de autenticación extraída del JWT:", authInfo)
-
-  //       const baseUrl = "http://localhost:10101"
-  //       const url = `${baseUrl}/api/perfil`
-
-  //       const response = await fetchWithAuth(url)
-  //       console.log("🔍 Respuesta del servidor:", response)
-
-  //       if (response.success) {
-  //         console.log("✅ Perfil cargado exitosamente:", response.data)
-
-  //         // Mapear correctamente los datos, usando la info del JWT como fallback
-  //         const datosUsuario = {
-  //           nombre: response.data.nombre || authInfo.name || "",
-  //           telefono: response.data.telefono || "",
-  //           correo: response.data.correo || authInfo.email || "",
-  //           contraseña: "••••••••••••••••",
-  //           fechaRegistro: response.data.fechaRegistro || new Date().toISOString(),
-  //           role: response.data.role || authInfo.role || "",
-  //           propiedadesPublicadas: response.data.propiedadesPublicadas || 0,
-  //           propiedadesVendidas: response.data.propiedadesVendidas || 0,
-  //           verified: response.data.verified || false,
-  //           active: response.data.active || false,
-  //         }
-
-  //         setUserData(datosUsuario)
-  //         setTempUserData(datosUsuario)
-  //       } else {
-  //         console.error("❌ Error en la respuesta:", response.message)
-  //         setError(response.message || "Error al cargar el perfil")
-  //       }
-  //     } catch (err) {
-  //       console.error("❌ Error al cargar perfil:", err)
-  //       setError(err.message || "Error de conexión")
-  //     } finally {
-  //       setLoading(false)
-  //     }
-  //   }
-
-  //   cargarPerfil()
-  // }, [isClient])
-
-useEffect(() => {
-  setIsClient(true)
-
-  const cargarPerfil = async () => {
-    const authInfo = getTokenAndUserInfo()
-    if (!authInfo || !authInfo.token) {
-      console.error("❌ No se encontró token de autenticación")
-      setError("No se encontró token de autenticación. Por favor, inicia sesión nuevamente.")
-      setLoading(false)
-      return
+    const headers = {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${authInfo.token}`,
+      ...options.headers,
     }
 
     try {
-      setLoading(true)
-      setError(null)
+      const response = await fetch(url, { 
+        ...options, 
+        headers,
+        credentials: 'include' // Importante para cookies de sesión
+      })
+      
+      console.log("📡 Respuesta recibida. Status:", response.status)
 
-      const baseUrl = "http://localhost:10101"
-      const url = `${baseUrl}/api/perfil`
-
-      const response = await fetchWithAuth(url)
-      console.log("🔍 Respuesta del servidor:", response)
-
-      if (response.success) {
-        const datosUsuario = {
-          nombre: response.data.nombre || authInfo.name || "",
-          telefono: response.data.telefono || "",
-          correo: response.data.correo || authInfo.email || "",
-          contraseña: "••••••••••••••••",
-          fechaRegistro: response.data.fechaRegistro || new Date().toISOString(),
-          role: response.data.role || authInfo.role || "",
-          propiedadesPublicadas: response.data.propiedadesPublicadas || 0,
-          propiedadesVendidas: response.data.propiedadesVendidas || 0,
-          verified: response.data.verified || false,
-          active: response.data.active || false,
-        }
-
-        setUserData(datosUsuario)
-        setTempUserData(datosUsuario)
-      } else {
-        console.error("❌ Error en la respuesta:", response.message)
-        setError(response.message || "Error al cargar el perfil")
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        console.error("❌ Error en la respuesta:", errorData)
+        throw new Error(errorData.message || `Error ${response.status}: ${response.statusText}`)
       }
-    } catch (err) {
-      console.error("❌ Error al cargar perfil:", err)
-      setError(err.message || "Error de conexión")
-    } finally {
-      setLoading(false)
+
+      const data = await response.json()
+      console.log("✅ Datos recibidos:", data)
+      return data
+    } catch (error) {
+      console.error("❌ Error en fetchWithAuth:", error)
+      throw error
     }
   }
 
-  
+  // Cargar datos del perfil
+  useEffect(() => {
+    setIsClient(true)
 
-  if (typeof window !== "undefined") {
-    cargarPerfil()
-  }
-}, [])
+    const cargarPerfil = async () => {
+      try {
+        setLoading(true)
+        setError(null)
 
-useEffect(() => {
-  const token = localStorage.getItem("token");
-  console.log("🧪 Token en localStorage:", token);
-}, []);
+        const authInfo = getTokenAndUserInfo()
+        console.log("🔍 Información de autenticación:", authInfo)
 
+        if (!authInfo?.token) {
+          console.error("❌ No se encontró token de autenticación")
+          setError("No se encontró token de autenticación. Por favor, inicia sesión nuevamente.")
+          setLoading(false)
+          return
+        }
+
+        // Primero intenta cargar desde el backend
+        try {
+          const baseUrl = "http://localhost:10101"
+          const url = `${baseUrl}/api/perfil`
+          
+          console.log("🔍 Intentando cargar perfil desde:", url)
+          const response = await fetchWithAuth(url)
+          
+          if (response.success) {
+            console.log("✅ Perfil cargado desde backend:", response.data)
+            const datosUsuario = {
+              nombre: response.data.nombre || authInfo.name,
+              telefono: response.data.telefono || "",
+              correo: response.data.correo || authInfo.email,
+              contraseña: "••••••••••••••••",
+              fechaRegistro: response.data.fechaRegistro || new Date().toISOString(),
+              role: response.data.role || authInfo.role,
+              propiedadesPublicadas: response.data.propiedadesPublicadas || 0,
+              propiedadesVendidas: response.data.propiedadesVendidas || 0,
+              verified: response.data.verified || false,
+              active: response.data.active || true,
+            }
+
+            setUserData(datosUsuario)
+            setTempUserData(datosUsuario)
+          } else {
+            console.error("⚠️ El backend respondió pero con error. Usando datos del token.")
+            throw new Error(response.message || "Error en la respuesta del servidor")
+          }
+        } catch (backendError) {
+          console.warn("⚠️ No se pudo cargar desde el backend. Usando datos del token:", backendError)
+          
+          // Fallback: usa los datos del token si el backend falla
+          const datosUsuario = {
+            nombre: authInfo.name,
+            telefono: "",
+            correo: authInfo.email,
+            contraseña: "••••••••••••••••",
+            fechaRegistro: new Date().toISOString(),
+            role: authInfo.role,
+            propiedadesPublicadas: 0,
+            propiedadesVendidas: 0,
+            verified: false,
+            active: true,
+          }
+
+          setUserData(datosUsuario)
+          setTempUserData(datosUsuario)
+        }
+      } catch (err) {
+        console.error("❌ Error al cargar perfil:", err)
+        setError(err.message || "Error de conexión")
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    if (typeof window !== "undefined") {
+      cargarPerfil()
+    }
+  }, [])
 
   // Función para actualizar el perfil
   const actualizarPerfil = async (datosActualizados) => {
@@ -297,6 +242,8 @@ useEffect(() => {
       setSaving(true)
       const baseUrl = "http://localhost:10101"
 
+      console.log("🔄 Intentando actualizar perfil con datos:", datosActualizados)
+      
       const response = await fetchWithAuth(`${baseUrl}/api/perfil`, {
         method: "PUT",
         body: JSON.stringify({
@@ -306,16 +253,14 @@ useEffect(() => {
         }),
       })
 
+      console.log("📡 Respuesta de actualización:", response)
+
       if (response.success) {
         const datosActualizadosCompletos = {
           ...userData,
-          nombre: response.data.nombre || "",
-          telefono: response.data.telefono || "",
-          correo: response.data.correo || "",
-          propiedadesPublicadas: response.data.propiedadesPublicadas || 0,
-          propiedadesVendidas: response.data.propiedadesVendidas || 0,
-          verified: response.data.verified || false,
-          active: response.data.active || false,
+          nombre: response.data.nombre || datosActualizados.nombre,
+          telefono: response.data.telefono || datosActualizados.telefono,
+          correo: response.data.correo || datosActualizados.correo,
         }
 
         setUserData(datosActualizadosCompletos)
@@ -325,7 +270,7 @@ useEffect(() => {
         throw new Error(response.message || "Error al actualizar el perfil")
       }
     } catch (err) {
-      console.error("Error al actualizar perfil:", err)
+      console.error("❌ Error al actualizar perfil:", err)
       return { success: false, error: err.message }
     } finally {
       setSaving(false)
@@ -380,9 +325,9 @@ useEffect(() => {
       case "1":
         return "ADMINISTRADOR"
       case "2":
-        return "USUARIO"
-      case "3":
         return "AGENTE"
+      case "3":
+        return "USUARIO"
       default:
         return `ROL ${role}`
     }
@@ -524,21 +469,8 @@ useEffect(() => {
                   {getNombreRol(userData.role)}
                 </span>
               </div>
-              <p className="text-gray-600 mt-1">Miembro desde {formatearFecha(userData.fechaRegistro)}</p>
 
-              {/* Mostrar estado de verificación */}
-              <div className="flex items-center gap-4 mt-2">
-                <span
-                  className={`px-2 py-1 text-xs rounded-full ${userData.verified ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"}`}
-                >
-                  {userData.verified ? "Verificado" : "Sin verificar"}
-                </span>
-                <span
-                  className={`px-2 py-1 text-xs rounded-full ${userData.active ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}
-                >
-                  {userData.active ? "Activo" : "Inactivo"}
-                </span>
-              </div>
+              
             </div>
 
             {/* Estadísticas */}

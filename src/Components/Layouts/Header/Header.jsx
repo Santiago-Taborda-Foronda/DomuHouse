@@ -219,12 +219,7 @@ export const Header = ({ toggleSidebar, toggleAgentSidebar }) => {
             // Perfil de usuario y botón de perfil
             <div className="flex items-center space-x-2">
               {/* Botón directo al perfil */}
-              <Button
-                name="Mi Perfil"
-                Route="/perfil"
-                className="bg-gray-100 hover:bg-[#2F8EAC] hover:text-white text-gray-700 px-3 py-2 rounded-xl text-sm transition duration-150 ease-in-out"
-              />
-
+            
               {/* Menú desplegable del usuario */}
               <div className="relative">
                 <button
@@ -258,7 +253,7 @@ export const Header = ({ toggleSidebar, toggleAgentSidebar }) => {
                       <User size={16} />
                       Mi Perfil
                     </button>
-                    <button
+                    {/* <button
                       onClick={() => {
                         setShowUserMenu(false)
                         window.location.href = "/configuracion"
@@ -267,7 +262,18 @@ export const Header = ({ toggleSidebar, toggleAgentSidebar }) => {
                     >
                       <Settings size={16} />
                       Configuración
+                    </button> */}
+                  <button
+                      onClick={() => {
+                        setShowUserMenu(false)
+                        window.location.href = "/Usuario/CrearPropiedadUsuario"
+                      }}
+                      className="flex items-center gap-2 w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 rounded-lg mx-1"
+                    >
+                      <Home size={16} />
+                      Crear Propiedad
                     </button>
+
                     <hr className="my-1" />
                     <button
                       onClick={handleLogout}

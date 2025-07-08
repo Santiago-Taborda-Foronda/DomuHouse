@@ -49,7 +49,7 @@ export const ResetPasswordToken = () => {
 
     try {
       // 🔥 CORREGIDO: Solo enviar token y nuevaPassword (sin correo)
-      const response = await fetch("http://localhost:10101/api/password/cambiar-password", {
+      const response = await fetch("https://domuhouse-express.onrender.com/api/password/cambiar-password", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

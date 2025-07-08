@@ -89,7 +89,7 @@ export default function MisPropiedades() {
     try {
       setLoading(true)
       setError("")
-      const endpoint = `https://domuhouse-express.onrender.com/api/agents/${currentAgentId}/properties`
+      const endpoint = `https://imagen-domuhouse-express.onrender.com/api/agents/${currentAgentId}/properties`
       const token = localStorage.getItem("token") || ""
 
       const res = await fetch(endpoint, {
@@ -160,7 +160,7 @@ export default function MisPropiedades() {
 
     try {
       const token = localStorage.getItem("token") || ""
-      const res = await fetch(`https://domuhouse-express.onrender.com/api/agents/${agentId}/properties/${prop.id}`, {
+      const res = await fetch(`https://imagen-domuhouse-express.onrender.com/api/agents/${agentId}/properties/${prop.id}`, {
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
@@ -224,7 +224,7 @@ export default function MisPropiedades() {
     setIsSubmitting(true)
     try {
       const token = localStorage.getItem("token") || ""
-      const res = await fetch(`https://domuhouse-express.onrender.com/api/agents/${agentId}/properties/${selectedProperty.id}`, {
+      const res = await fetch(`https://imagen-domuhouse-express.onrender.com/api/agents/${agentId}/properties/${selectedProperty.id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -295,7 +295,7 @@ export default function MisPropiedades() {
     setIsSubmitting(true)
     try {
       const token = localStorage.getItem("token") || ""
-      const res = await fetch(`https://domuhouse-express.onrender.com/api/agents/${agentId}/properties/${selectedProperty.id}`, {
+      const res = await fetch(`https://imagen-domuhouse-express.onrender.com/api/agents/${agentId}/properties/${selectedProperty.id}`, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",

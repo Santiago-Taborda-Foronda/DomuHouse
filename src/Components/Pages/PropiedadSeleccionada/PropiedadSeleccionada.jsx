@@ -24,7 +24,7 @@ export const PropiedadSeleccionada = () => {
     try {
       console.log('🔗 Fetching related properties for:', propertyId);
 
-      const response = await fetch(`https://domuhouse.onrender.com/api/properties/approved`)
+      const response = await fetch(`https://imagen-domuhouse-express.onrender.com/api/properties/approved`)
 
       if (!response.ok) {
         console.warn('❌ Could not fetch related properties');
@@ -60,7 +60,7 @@ export const PropiedadSeleccionada = () => {
       console.log('🔍 Fetching property with ID:', propertyId);
 
       // ✅ NUEVA RUTA
-      const response = await fetch(`https://domuhouse.onrender.com/api/properties/details/${propertyId}`)
+      const response = await fetch(`https://imagen-domuhouse-express.onrender.com/api/properties/details/${propertyId}`)
 
       if (!response.ok) {
         throw new Error(`Error ${response.status}: Propiedad no encontrada`)
@@ -92,7 +92,7 @@ export const PropiedadSeleccionada = () => {
       console.log('🖼️ Fetching images for property:', propertyId);
 
       // ✅ NUEVA RUTA PARA IMÁGENES
-      const response = await fetch(`https://domuhouse.onrender.com/api/properties/details/${propertyId}/images`)
+      const response = await fetch(`https://imagen-domuhouse-express.onrender.com/api/properties/details/${propertyId}/images`)
 
       if (!response.ok) {
         console.warn(`❌ Images not available for property ${propertyId}: ${response.status}`)

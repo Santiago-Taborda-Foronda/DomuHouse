@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react"
 import { Eye, Edit, Trash2, Search, Calendar, Clock, User, X, Check, AlertTriangle, Loader2 } from "lucide-react"
+import { useState, useEffect } from "react"
+import { Eye, Edit, Trash2, Search, Calendar, Clock, User, X, Check, AlertTriangle, Loader2 } from "lucide-react"
 import AgentSideBar from "./Components/AgentSideBar"
 import { Header } from "../../Layouts/Header/Header"
 
@@ -16,6 +18,18 @@ export default function VisitasAgendadas() {
   const [selectedVisit, setSelectedVisit] = useState(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitSuccess, setSubmitSuccess] = useState(false)
+  const [visits, setVisits] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+
+  /* ----------------------- AGENT ID ------------------------------ */
+  const [agentId, setAgentId] = useState(null)
+
+  useEffect(() => {
+    const stored = typeof window !== "undefined" ? localStorage.getItem("agentId") : null
+    if (stored) setAgentId(stored)
+    /* Si manejas JWT, obtén el id aquí y llama setAgentId(decodedId) */
+  }, [])
   const [visits, setVisits] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -226,11 +240,53 @@ export default function VisitasAgendadas() {
   }
 
   // Handler actualizado para editar visita usando editVisit
-  const handleSaveEdit = async () => {
+  // Handler actualizado para confirmar visita usando changeVisitStatus
+  const handleSaveConfirmation = async () => {
     if (!selectedVisit) return
 
     setIsSubmitting(true)
     try {
+      // Usar la función changeVisitStatus
+      await changeVisitStatus(selectedVisit.id, "Confirmada")
+
+      // Actualizar el estado local
+      setVisits(visits.map((v) => (v.id === selectedVisit.id ? { ...v, estado: "Confirmada" } : v)))
+
+      setShowConfirmModal(false)
+      setSelectedVisit(null)
+    } catch (error) {
+      console.error("Error al confirmar visita:", error)
+      alert("Error al confirmar la visita: " + error.message)
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  // Handler actualizado para editar visita usando editVisit
+  const handleSaveEdit = async () => {
+    if (!selectedVisit) return
+
+    if (!selectedVisit) return
+
+    setIsSubmitting(true)
+    try {
+      // Preparar los datos para enviar al backend
+      const updatedData = {
+        clientName: editForm.cliente,
+        propertyTitle: editForm.propiedad,
+        visitDate: editForm.fecha,
+        visitTime: editForm.hora,
+        visitStatus: editForm.estado,
+        clientPhone: editForm.telefono,
+        clientEmail: editForm.email,
+        propertyAddress: editForm.direccion,
+        notes: editForm.notas,
+      }
+
+      // Usar la función editVisit
+      await editVisit(selectedVisit.id, updatedData)
+
+      // Actualizar el estado local
       // Preparar los datos para enviar al backend
       const updatedData = {
         clientName: editForm.cliente,
@@ -275,26 +331,34 @@ export default function VisitasAgendadas() {
     } catch (error) {
       console.error("Error al actualizar visita:", error)
       alert("Error al actualizar la visita: " + error.message)
+      alert("Error al actualizar la visita: " + error.message)
     } finally {
       setIsSubmitting(false)
     }
   }
 
   // Handler actualizado para eliminar visita usando deleteVisit
+  // Handler actualizado para eliminar visita usando deleteVisit
   const confirmDelete = async () => {
+    if (!selectedVisit) return
+
     if (!selectedVisit) return
 
     setIsSubmitting(true)
     try {
       // Usar la función deleteVisit
       await deleteVisit(selectedVisit.id)
+      // Usar la función deleteVisit
+      await deleteVisit(selectedVisit.id)
 
+      // Actualizar el estado local
       // Actualizar el estado local
       setVisits(visits.filter((v) => v.id !== selectedVisit.id))
       setShowDeleteModal(false)
       setSelectedVisit(null)
     } catch (error) {
       console.error("Error al eliminar visita:", error)
+      alert("Error al eliminar la visita: " + error.message)
       alert("Error al eliminar la visita: " + error.message)
     } finally {
       setIsSubmitting(false)
@@ -419,6 +483,9 @@ export default function VisitasAgendadas() {
             sidebarOpen={true}
             setSidebarOpen={() => {}}
             toggleSidebar={() => {}}
+            sidebarOpen={true}
+            setSidebarOpen={() => {}}
+            toggleSidebar={() => {}}
           />
         </div>
 
@@ -434,6 +501,7 @@ export default function VisitasAgendadas() {
         {/* Overlay para móvil cuando el sidebar está abierto */}
         {sidebarOpen && (
           <div className="fixed inset-0 bg-black/50 bg-opacity-50 z-40 lg:hidden" onClick={() => setSidebarOpen(false)} />
+          <div className="fixed inset-0 bg-black/50 bg-opacity-50 z-40 lg:hidden" onClick={() => setSidebarOpen(false)} />
         )}
 
         {/* Contenido principal con margen izquierdo para el sidebar */}
@@ -447,6 +515,13 @@ export default function VisitasAgendadas() {
                   Gestiona y controla todas las visitas programadas ({filteredVisits.length} visitas)
                 </p>
               </div>
+              <button
+                onClick={refreshVisits}
+                className="bg-[#2F8EAC] text-white px-4 py-2 rounded-lg hover:bg-[#267a95] transition-colors flex items-center gap-2"
+              >
+                <Calendar className="w-4 h-4" />
+                Actualizar
+              </button>
               <button
                 onClick={refreshVisits}
                 className="bg-[#2F8EAC] text-white px-4 py-2 rounded-lg hover:bg-[#267a95] transition-colors flex items-center gap-2"
@@ -512,6 +587,12 @@ export default function VisitasAgendadas() {
               </div>
               <div className="bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-gray-100">
                 <p className="text-xl sm:text-2xl font-bold text-cyan-500">
+                  {
+                    visits.filter((v) => {
+                      const today = new Date().toISOString().split("T")[0]
+                      return v.fecha === today
+                    }).length
+                  }
                   {
                     visits.filter((v) => {
                       const today = new Date().toISOString().split("T")[0]
@@ -704,6 +785,7 @@ export default function VisitasAgendadas() {
         {showConfirmModal && selectedVisit && (
           <div
             className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-opacity-75 bg-black/50"
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-opacity-75 bg-black/50"
             onClick={(e) => {
               if (e.target === e.currentTarget) {
                 closeModals()
@@ -745,6 +827,8 @@ export default function VisitasAgendadas() {
                         value={selectedVisit.fecha}
                         readOnly
                         className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-gray-50"
+                        readOnly
+                        className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-gray-50"
                       />
                     </div>
                     <div>
@@ -752,6 +836,8 @@ export default function VisitasAgendadas() {
                       <input
                         type="text"
                         value={selectedVisit.hora}
+                        readOnly
+                        className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-gray-50"
                         readOnly
                         className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-gray-50"
                       />
@@ -784,9 +870,30 @@ export default function VisitasAgendadas() {
                     />
                   </div>
                   <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Teléfono</label>
+                    <input
+                      type="text"
+                      value={selectedVisit.telefono}
+                      readOnly
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-gray-50"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Dirección</label>
+                    <input
+                      type="text"
+                      value={selectedVisit.direccion}
+                      readOnly
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-gray-50"
+                    />
+                  </div>
+                  <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Notas</label>
                     <textarea
                       rows={3}
+                      value={selectedVisit.notas}
+                      readOnly
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-gray-50"
                       value={selectedVisit.notas}
                       readOnly
                       className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-gray-50"
@@ -819,11 +926,35 @@ export default function VisitasAgendadas() {
                         Confirmar Visita
                       </>
                     )}
+                    disabled={isSubmitting || selectedVisit.estado === "Confirmada"}
+                    className={`w-full sm:flex-1 py-3 px-4 rounded-xl font-medium transition-colors flex items-center justify-center gap-2 ${
+                      isSubmitting || selectedVisit.estado === "Confirmada"
+                        ? "bg-gray-400 text-gray-600 cursor-not-allowed"
+                        : "bg-[#2F8EAC] text-white hover:bg-[#267a95]"
+                    }`}
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Confirmando...
+                      </>
+                    ) : selectedVisit.estado === "Confirmada" ? (
+                      <>
+                        <Check className="w-4 h-4" />
+                        Ya Confirmada
+                      </>
+                    ) : (
+                      <>
+                        <Check className="w-4 h-4" />
+                        Confirmar Visita
+                      </>
+                    )}
                   </button>
                   <button
                     onClick={closeModals}
                     className="w-full sm:flex-1 border border-gray-200 text-gray-700 py-3 px-4 rounded-xl hover:bg-gray-50 transition-colors font-medium"
                   >
+                    Cerrar
                     Cerrar
                   </button>
                 </div>
@@ -835,6 +966,7 @@ export default function VisitasAgendadas() {
         {/* Modal de Editar Visita */}
         {showEditModal && selectedVisit && (
           <div
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-opacity-75 bg-black/50"
             className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-opacity-75 bg-black/50"
             onClick={(e) => {
               if (e.target === e.currentTarget) {
@@ -930,6 +1062,7 @@ export default function VisitasAgendadas() {
                       <label className="block text-sm font-medium text-gray-700 mb-2">Hora:</label>
                       <input
                         type="time"
+                        type="time"
                         name="hora"
                         value={editForm.hora}
                         onChange={handleEditFormChange}
@@ -990,6 +1123,17 @@ export default function VisitasAgendadas() {
                           Guardar Cambios
                         </>
                       )}
+                      {isSubmitting ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          Guardando...
+                        </>
+                      ) : (
+                        <>
+                          <Check className="w-4 h-4" />
+                          Guardar Cambios
+                        </>
+                      )}
                     </button>
                   </div>
                 </div>
@@ -1001,6 +1145,7 @@ export default function VisitasAgendadas() {
         {/* Modal de Confirmación de Eliminación */}
         {showDeleteModal && selectedVisit && (
           <div
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-opacity-75 bg-black/50"
             className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-opacity-75 bg-black/50"
             onClick={(e) => {
               if (e.target === e.currentTarget) {
@@ -1047,6 +1192,17 @@ export default function VisitasAgendadas() {
                         : "bg-red-600 text-white hover:bg-red-700"
                     }`}
                   >
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Eliminando...
+                      </>
+                    ) : (
+                      <>
+                        <Trash2 className="w-4 h-4" />
+                        Eliminar
+                      </>
+                    )}
                     {isSubmitting ? (
                       <>
                         <Loader2 className="w-4 h-4 animate-spin" />

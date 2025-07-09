@@ -1,35 +1,20 @@
 "use client"
-
 import { useState, useEffect } from "react"
-import { Calendar, TrendingUp, Users, Building2, DollarSign, Bell } from "lucide-react"
+import { TrendingUp, Users, Building2, Bell, Eye } from "lucide-react"
 import { Header } from "../../Layouts/Header/Header"
 import { SidebarInmobiliaria } from "../../Layouts/SidebarInmobiliaria/SidebarInmobiliaria"
 
 export const DashboardAdmin = () => {
-  // Estados de UI
   const [isAuthenticated, setIsAuthenticated] = useState(true)
-  const [fechaSeleccionada, setFechaSeleccionada] = useState(new Date())
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const [loading, setLoading] = useState(true)
-
-  // Estados de datos del dashboard
   const [dashboardData, setDashboardData] = useState({
     propiedadesActivas: 0,
     usuariosRegistrados: 0,
-    ventasMes: 0,
-    ingresosMensuales: 0,
+    visitasAgendadas: 0,
     actividadReciente: [],
     tareasPendientes: [],
   })
-
-  // Funciones auxiliares
-  const formatearPrecio = (precio) => {
-    return new Intl.NumberFormat("es-CO", {
-      style: "currency",
-      currency: "COP",
-      minimumFractionDigits: 0,
-    }).format(precio)
-  }
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen)
@@ -40,17 +25,13 @@ export const DashboardAdmin = () => {
     setIsAuthenticated(false)
   }
 
-  // Función principal para obtener datos del dashboard
   const fetchDashboardData = async () => {
     try {
       setLoading(true)
       const adminId = localStorage.getItem("adminId")
+      if (!adminId) throw new Error("No se encontró el ID del administrador")
 
-      if (!adminId) {
-        throw new Error("No se encontró el ID del administrador")
-      }
-
-      // Obtener propiedades activas del admin
+      // Obtener propiedades del admin
       const resProps = await fetch(`http://localhost:10101/api/properties/admin/${adminId}`)
       const propiedadesAdmin = await resProps.json()
       const propiedadesActivas = propiedadesAdmin?.length || 0
@@ -60,75 +41,46 @@ export const DashboardAdmin = () => {
       const userData = await resUsers.json()
       const usuariosRegistrados = userData?.totalClients || 0
 
-      // Obtener datos completos de propiedades para análisis
-      const resOperaciones = await fetch(
-        `https://imagen-domuhouse-express.onrender.com/api/properties/admin/${adminId}`,
-      )
-      const propiedadesFull = await resOperaciones.json()
+      // Obtener visitas agendadas
+      const resVisitas = await fetch("http://localhost:10101/api/visitas")
+      const visitasData = await resVisitas.json()
+      const visitasAgendadas = visitasData?.length || 0
 
-      // Calcular datos del mes actual
-      const ahora = new Date()
-      const inicioMes = new Date(ahora.getFullYear(), ahora.getMonth(), 1)
-
-      // Filtrar ventas del mes
-      const ventas = propiedadesFull.filter((p) => {
-        const fecha = new Date(p.sale_date)
-        return p.operation_type === "Venta" && fecha >= inicioMes && fecha <= ahora && p.status === "Ocupado"
-      })
-
-      // Filtrar alquileres del mes
-      const alquileres = propiedadesFull.filter((p) => {
-        const fecha = new Date(p.rent_date)
-        return p.operation_type === "Arriendo" && fecha >= inicioMes && fecha <= ahora && p.status === "Ocupado"
-      })
-
-      // Calcular ingresos
-      const ingresosVentas = ventas.reduce((sum, p) => sum + Number(p.price || 0), 0)
-      const ingresosAlquileres = alquileres.reduce((sum, p) => sum + Number(p.price || 0), 0)
-      const ingresosMensuales = ingresosVentas + ingresosAlquileres
-      const ventasMes = ventas.length + alquileres.length
-
-      // Generar actividad reciente
+      // Crear actividad reciente con información detallada de visitas
       const actividad = []
-
-      ventas.forEach((v) => {
-        actividad.push({
-          tipo: "Venta realizada",
-          cantidad: 1,
-          fecha: new Date(v.sale_date).toLocaleDateString(),
+      if (visitasData && visitasData.length > 0) {
+        visitasData.slice(0, 6).forEach((visita) => {
+          actividad.push({
+            tipo: "Visita agendada",
+            nombre: visita.nombre || "Cliente",
+            propiedad: visita.nombre_propiedad || visita.direccion || "Propiedad no especificada",
+            fecha: visita.visit_date
+              ? new Date(visita.visit_date).toLocaleDateString("es-ES", {
+                  day: "2-digit",
+                  month: "2-digit",
+                  year: "numeric",
+                })
+              : "Fecha no disponible",
+            telefono: visita.telefono || "",
+            status: visita.status || "Pendiente",
+          })
         })
-      })
+      }
 
-      alquileres.forEach((a) => {
-        actividad.push({
-          tipo: "Alquiler realizado",
-          cantidad: 1,
-          fecha: new Date(a.rent_date).toLocaleDateString(),
-        })
-      })
+      const actividadReciente = actividad
 
-      const actividadReciente = actividad.slice(0, 6)
-
-      // Generar tareas pendientes
+      // Crear tareas pendientes solo con visitas
       const tareas = []
-      if (ventas.length > 0) {
-        tareas.push(`${ventas.length} venta${ventas.length > 1 ? "s" : ""} realizada${ventas.length > 1 ? "s" : ""}`)
-      }
-      if (alquileres.length > 0) {
+      if (visitasAgendadas > 0)
         tareas.push(
-          `${alquileres.length} alquiler${alquileres.length > 1 ? "es" : ""} realizado${alquileres.length > 1 ? "s" : ""}`,
+          `${visitasAgendadas} visita${visitasAgendadas > 1 ? "s" : ""} agendada${visitasAgendadas > 1 ? "s" : ""}`,
         )
-      }
-      if (tareas.length === 0) {
-        tareas.push("No hay actividad reciente")
-      }
+      if (tareas.length === 0) tareas.push("No hay actividad reciente")
 
-      // Actualizar estado con todos los datos
       setDashboardData({
         propiedadesActivas,
         usuariosRegistrados,
-        ventasMes,
-        ingresosMensuales,
+        visitasAgendadas,
         actividadReciente,
         tareasPendientes: tareas,
       })
@@ -144,16 +96,13 @@ export const DashboardAdmin = () => {
     }
   }
 
-  // Effects
   useEffect(() => {
     fetchDashboardData()
   }, [])
 
   useEffect(() => {
     const handleResize = () => {
-      if (window.innerWidth >= 1024) {
-        setIsSidebarOpen(false)
-      }
+      if (window.innerWidth >= 1024) setIsSidebarOpen(false)
     }
     window.addEventListener("resize", handleResize)
     return () => window.removeEventListener("resize", handleResize)
@@ -213,7 +162,7 @@ export const DashboardAdmin = () => {
             </div>
 
             {/* Tarjetas de estadísticas principales */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
               {/* Propiedades Activas */}
               <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6">
                 <div className="flex items-center justify-between">
@@ -229,15 +178,17 @@ export const DashboardAdmin = () => {
                 </div>
               </div>
 
-              {/* Operaciones del mes */}
+              {/* Visitas Agendadas */}
               <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6">
                 <div className="flex items-center justify-between">
                   <div>
                     <div className="flex items-center gap-2 mb-2">
-                      <Calendar className="w-5 h-5 text-[#2F8EAC]" />
-                      <span className="text-2xl sm:text-3xl font-bold text-gray-900">{dashboardData.ventasMes}</span>
+                      <Eye className="w-5 h-5 text-[#2F8EAC]" />
+                      <span className="text-2xl sm:text-3xl font-bold text-gray-900">
+                        {dashboardData.visitasAgendadas}
+                      </span>
                     </div>
-                    <p className="text-xs sm:text-sm text-gray-600">Operaciones del Mes</p>
+                    <p className="text-xs sm:text-sm text-gray-600">Visitas Agendadas</p>
                   </div>
                 </div>
               </div>
@@ -256,21 +207,6 @@ export const DashboardAdmin = () => {
                   </div>
                 </div>
               </div>
-
-              {/* Ingresos Mensuales */}
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6 sm:col-span-2 lg:col-span-1">
-                <div className="flex items-center justify-between">
-                  <div className="w-full">
-                    <div className="flex items-center gap-2 mb-2">
-                      <DollarSign className="w-5 h-5 text-[#2F8EAC]" />
-                      <span className="text-base sm:text-lg font-bold text-gray-900 break-words">
-                        {formatearPrecio(dashboardData.ingresosMensuales)}
-                      </span>
-                    </div>
-                    <p className="text-xs sm:text-sm text-gray-600">Ingresos Mensuales</p>
-                  </div>
-                </div>
-              </div>
             </div>
 
             {/* Fila con actividad reciente y panel lateral */}
@@ -280,28 +216,45 @@ export const DashboardAdmin = () => {
                 <div className="flex items-center justify-between mb-4 sm:mb-6">
                   <div>
                     <h3 className="text-base sm:text-lg font-semibold text-gray-800">Actividad Reciente</h3>
-                    <p className="text-xs sm:text-sm text-gray-500">Últimas operaciones realizadas</p>
+                    <p className="text-xs sm:text-sm text-gray-500">Últimas visitas agendadas</p>
                   </div>
                   <TrendingUp className="w-5 h-5 text-[#2F8EAC]" />
                 </div>
-
                 <div className="space-y-3 sm:space-y-4">
                   {dashboardData.actividadReciente.length > 0 ? (
                     dashboardData.actividadReciente.map((item, index) => (
-                      <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                        <div className="flex items-center gap-3">
-                          <div className="w-2 h-2 bg-[#2F8EAC] rounded-full"></div>
-                          <div>
-                            <p className="text-sm font-medium text-gray-800">{item.tipo}</p>
-                            <p className="text-xs text-gray-500">{item.fecha}</p>
+                      <div
+                        key={index}
+                        className="flex items-start justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                      >
+                        <div className="flex items-start gap-3 flex-1">
+                          <div className="w-2 h-2 rounded-full bg-blue-500 mt-2 flex-shrink-0"></div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                              <p className="text-sm font-medium text-gray-800">{item.tipo}</p>
+                              <span
+                                className={`px-2 py-1 text-xs rounded-full ${
+                                  item.status === "Confirmada"
+                                    ? "bg-sky-100 text-blue-700"
+                                    : item.status === "Pendiente"
+                                      ? "bg-indigo-100 text-sky-700 font-bold"
+                                      : "bg-gray-100 text-gray-700"
+                                }`}
+                              >
+                                {item.status}
+                              </span>
+                            </div>
+                            <p className="text-sm text-gray-900 font-medium truncate">{item.nombre}</p>
+                            <p className="text-xs text-gray-600 truncate">{item.propiedad}</p>
+                            <p className="text-xs text-gray-500 mt-1">{item.fecha}</p>
                           </div>
                         </div>
-                        <span className="text-sm font-semibold text-[#2F8EAC]">+{item.cantidad}</span>
+                      
                       </div>
                     ))
                   ) : (
                     <div className="text-center py-8">
-                      <p className="text-sm text-gray-500">No hay actividad reciente</p>
+                      <p className="text-sm text-gray-500">No hay visitas agendadas</p>
                     </div>
                   )}
                 </div>
@@ -309,32 +262,6 @@ export const DashboardAdmin = () => {
 
               {/* Panel derecho */}
               <div className="space-y-6">
-                {/* Selector de fecha */}
-                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-sm sm:text-base font-semibold text-gray-800">Seleccionar fecha</h3>
-                    <Calendar className="w-5 h-5 text-[#2F8EAC]" />
-                  </div>
-                  <div className="text-center">
-                    <div className="text-xs sm:text-sm text-gray-600 mb-2">
-                      {fechaSeleccionada.toLocaleDateString("es-ES", { month: "long", year: "numeric" })}
-                    </div>
-                    <div className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">
-                      {fechaSeleccionada.toLocaleDateString("es-ES", {
-                        weekday: "short",
-                        day: "numeric",
-                        month: "short",
-                      })}
-                    </div>
-                    <input
-                      type="date"
-                      className="w-full px-3 sm:px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#2F8EAC] focus:border-[#2F8EAC] transition-colors text-sm"
-                      value={fechaSeleccionada.toISOString().split("T")[0]}
-                      onChange={(e) => setFechaSeleccionada(new Date(e.target.value))}
-                    />
-                  </div>
-                </div>
-
                 {/* Resumen de Actividad */}
                 <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6">
                   <div className="flex items-center justify-between mb-4">

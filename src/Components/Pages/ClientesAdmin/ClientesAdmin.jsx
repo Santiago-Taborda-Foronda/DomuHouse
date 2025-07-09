@@ -1,7 +1,10 @@
-import React, { useState, useEffect } from 'react'
-import { Calendar, TrendingUp, Users, Building2, DollarSign, Eye, Bell, Search, Filter, Phone, Mail, MapPin, User, Home, CreditCard } from 'lucide-react'
-import { Header } from '../../Layouts/Header/Header'
-import { SidebarInmobiliaria } from '../../Layouts/SidebarInmobiliaria/SidebarInmobiliaria'
+"use client"
+
+import { useState, useEffect, useMemo } from "react"
+import { Calendar, TrendingUp, Users, DollarSign, Search, Phone, Mail, User, Home, CreditCard } from "lucide-react"
+import { Header } from "../../Layouts/Header/Header"
+import { SidebarInmobiliaria } from "../../Layouts/SidebarInmobiliaria/SidebarInmobiliaria"
+import { ClientDetailsModal } from "../ClientDetailsModal/ClientDetailsModal"
 
 // Configuración de la API
 const API_BASE_URL = 'http://localhost:10101/api'
@@ -52,18 +55,18 @@ export const ClientesAdmin = () => {
 
   // Función para manejar logout
   const handleLogout = () => {
-    console.log('Cerrando sesión...');
-    setIsAuthenticated(false);
-  };
+    console.log("Cerrando sesión...")
+    setIsAuthenticated(false)
+  }
 
   // Función para formatear precio
   const formatearPrecio = (precio) => {
-    return new Intl.NumberFormat('es-CO', {
-      style: 'currency',
-      currency: 'COP',
-      minimumFractionDigits: 0
-    }).format(precio);
-  };
+    return new Intl.NumberFormat("es-CO", {
+      style: "currency",
+      currency: "COP",
+      minimumFractionDigits: 0,
+    }).format(precio)
+  }
 
   // Función para formatear fecha
   const formatearFecha = (fecha) => {
@@ -212,12 +215,12 @@ export const ClientesAdmin = () => {
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <Header hasSidebar={true} toggleSidebar={toggleSidebar} />
-      
+
       {/* Layout principal */}
       <div className="flex pt-16">
         {/* Sidebar fijo para desktop */}
         <div className="hidden lg:block fixed left-0 top-16 h-[calc(100vh-4rem)] w-72 bg-white shadow-lg border-r border-gray-200 overflow-y-auto z-30">
-          <SidebarInmobiliaria 
+          <SidebarInmobiliaria
             isOpen={true}
             toggleMenu={() => {}}
             isAuthenticated={isAuthenticated}
@@ -228,7 +231,7 @@ export const ClientesAdmin = () => {
 
         {/* Sidebar overlay para móviles */}
         <div className="lg:hidden">
-          <SidebarInmobiliaria 
+          <SidebarInmobiliaria
             isOpen={isSidebarOpen}
             toggleMenu={toggleSidebar}
             isAuthenticated={isAuthenticated}
@@ -243,9 +246,7 @@ export const ClientesAdmin = () => {
             {/* Header de la página */}
             <div className="mb-6 md:mb-8">
               <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Clientes</h1>
-              <p className="text-gray-600 text-sm mt-1">
-                Gestiona y visualiza información de tus clientes
-              </p>
+              <p className="text-gray-600 text-sm mt-1">Gestiona y visualiza información de tus clientes</p>
             </div>
             
             {/* Filtros y búsqueda */}
@@ -327,6 +328,16 @@ export const ClientesAdmin = () => {
           </div>
         </main>
       </div>
+
+      {/* Modal de detalles */}
+      <ClientDetailsModal
+        client={selectedClient}
+        isOpen={isDetailsModalOpen}
+        onClose={() => {
+          setIsDetailsModalOpen(false)
+          setSelectedClient(null)
+        }}
+      />
     </div>
   )
 }

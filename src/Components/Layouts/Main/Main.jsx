@@ -1,3 +1,5 @@
+"use client"
+
 import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import Casa from "../../../assets/images/casLujo2.jpg"
@@ -7,7 +9,7 @@ import { ChatDomu } from "../../UI/ChatDomu/ChatDomu"
 import { Button } from "../../UI/Button/Button"
 import "../../../App"
 
-const PropertyCard = ({ address, title, rooms, bathrooms, area, price, type, agentName, onClick }) => {
+const PropertyCard = ({ address, title, rooms, bathrooms, area, price, type, agentName, imageUrl, onClick }) => {
   // Función para obtener el color y texto de la etiqueta según el tipo
   const getOperationStyle = (operationType) => {
     switch (operationType?.toLowerCase()) {
@@ -23,6 +25,52 @@ const PropertyCard = ({ address, title, rooms, bathrooms, area, price, type, age
 
   const operationStyle = getOperationStyle(type)
 
+  // ✅ FUNCIÓN MEJORADA PARA LAS INICIALES
+  const getAgentInitials = (name) => {
+    if (!name || name.trim() === "" || name === "Agente") return "AG"
+
+    return name
+      .trim()
+      .split(" ")
+      .filter((n) => n.length > 0) // Filtrar espacios vacíos
+      .map((n) => n[0])
+      .join("")
+      .substring(0, 2)
+      .toUpperCase()
+  }
+
+  // ✅ FUNCIÓN MEJORADA PARA FORMATEAR EL NOMBRE
+  const formatAgentName = (name) => {
+    if (!name || name.trim() === "") return "Agente"
+    return name.trim()
+  }
+
+  // ✅ FUNCIÓN PARA MANEJAR ERRORES DE IMAGEN
+  const handleImageError = (e) => {
+    console.log("Error cargando imagen:", imageUrl)
+    e.target.src = Casa // Fallback a imagen por defecto
+  }
+
+  // ✅ FUNCIÓN MEJORADA PARA MANEJAR URLs DE CLOUDINARY
+  const getImageUrl = () => {
+    if (!imageUrl) return Casa
+
+    // Si ya es una URL completa de Cloudinary o cualquier servicio, usarla directamente
+    if (imageUrl.startsWith("http://") || imageUrl.startsWith("https://")) {
+      return imageUrl
+    }
+
+    // Si es una ruta relativa, construir la URL completa
+    if (imageUrl.startsWith("/")) {
+      return `https://imagen-domuhouse-express.onrender.com/${imageUrl}`
+    }
+
+    // Si no tiene protocolo ni slash inicial, asumir que es una ruta relativa
+    return `https://imagen-domuhouse-express.onrender.com/${imageUrl}`
+  }
+
+  console.log("PropertyCard recibió:", { agentName, title, imageUrl })
+
   return (
     <div
       className="bg-white flex flex-col rounded-2xl w-full max-w-xs sm:max-w-sm shadow-lg overflow-hidden cursor-pointer hover:shadow-xl transition-shadow duration-300"
@@ -30,7 +78,13 @@ const PropertyCard = ({ address, title, rooms, bathrooms, area, price, type, age
     >
       {/* Imagen de la propiedad con etiqueta de tipo */}
       <div className="relative w-full h-40 sm:h-44 md:h-48 lg:h-52">
-        <img src={Casa || "/placeholder.svg"} alt="Propiedad" className="w-full h-full object-cover" />
+        <img
+          src={getImageUrl() || "/placeholder.svg"}
+          alt={title || "Propiedad"}
+          className="w-full h-full object-cover"
+          onError={handleImageError}
+          loading="lazy"
+        />
         {/* Etiqueta de tipo de operación */}
         <div
           className={`absolute top-3 right-3 ${operationStyle.bg} text-white px-3 py-1 rounded-full text-xs sm:text-sm font-medium`}
@@ -69,15 +123,11 @@ const PropertyCard = ({ address, title, rooms, bathrooms, area, price, type, age
         <div className="flex items-center justify-between mt-2 sm:mt-3">
           <div className="flex items-center gap-2 sm:gap-3">
             <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-[#2F8EAC] to-[#1e6b7a] flex items-center justify-center text-white text-xs sm:text-sm font-bold shadow-md">
-              {agentName
-                ? agentName
-                    .split(" ")
-                    .map((n) => n[0])
-                    .join("")
-                    .substring(0, 2)
-                : "AG"}
+              {getAgentInitials(agentName)}
             </div>
-            <span className="text-xs sm:text-sm text-gray-700 font-medium">{agentName}</span>
+            <div className="flex flex-col">
+              <span className="text-xs sm:text-sm text-gray-700 font-medium">{formatAgentName(agentName)}</span>
+            </div>
           </div>
           <span className="text-base sm:text-lg font-bold text-gray-900">${price}</span>
         </div>
@@ -88,7 +138,6 @@ const PropertyCard = ({ address, title, rooms, bathrooms, area, price, type, age
 
 export const Main = () => {
   const navigate = useNavigate()
-
   const [showAdvanced, setShowAdvanced] = useState(false)
   const [priceRange, setPriceRange] = useState(250000000)
   const [properties, setProperties] = useState([])
@@ -108,21 +157,39 @@ export const Main = () => {
 
   const toggleAdvanced = () => setShowAdvanced(!showAdvanced)
 
-  const API_BASE_URL = "http://localhost:10101"
+  // ✅ DEBUG: Para verificar propiedades cargadas
+  useEffect(() => {
+    if (properties.length > 0) {
+      console.log(
+        "🔍 Propiedades cargadas:",
+        properties.slice(0, 2).map((p) => ({
+          id: p.property_id,
+          title: p.property_title,
+          agent_name: p.agent_name,
+          name_person: p.name_person,
+          last_name: p.last_name,
+          // ✅ Agregar debug de imágenes
+          main_image_url: p.main_image_url,
+          image_url: p.image_url,
+          has_images: p.has_images,
+          image_count: p.image_count,
+        })),
+      )
+    }
+  }, [properties])
 
-  // Cargar propiedades iniciales
+  // ✅ Cargar propiedades con imágenes principales
   useEffect(() => {
     const fetchProperties = async () => {
       setIsLoading(true)
       try {
-        const res = await fetch(`${API_BASE_URL}/api/properties/approved`)
-
+        // ✅ Usar la nueva ruta que incluye las imágenes principales
+        const res = await fetch("https://imagen-domuhouse-express.onrender.com/api/properties/with-images")
         if (!res.ok) {
           throw new Error(`HTTP error! status: ${res.status}`)
         }
-
         const data = await res.json()
-        console.log("Datos recibidos:", data)
+        console.log("Datos recibidos con imágenes:", data)
 
         if (data.success && Array.isArray(data.properties)) {
           setProperties(data.properties)
@@ -132,122 +199,120 @@ export const Main = () => {
           console.warn("Formato de datos inesperado:", data)
           setProperties([])
         }
-
         setError(null)
       } catch (error) {
         console.error("Error al cargar propiedades:", error)
-        setError("Error al cargar propiedades: " + error.message)
-        setProperties([])
+        // ✅ Fallback a la ruta original si la nueva no existe
+        try {
+          console.log("🔄 Intentando con ruta original...")
+          const fallbackRes = await fetch("https://imagen-domuhouse-express.onrender.com/api/properties/approved")
+          if (fallbackRes.ok) {
+            const fallbackData = await fallbackRes.json()
+            if (fallbackData.success && Array.isArray(fallbackData.properties)) {
+              setProperties(fallbackData.properties)
+            } else if (Array.isArray(fallbackData)) {
+              setProperties(fallbackData)
+            }
+            setError(null)
+          } else {
+            throw new Error("Ambas rutas fallaron")
+          }
+        } catch (fallbackError) {
+          setError("Error al cargar propiedades: " + error.message)
+          setProperties([])
+        }
       } finally {
         setIsLoading(false)
       }
     }
+
     fetchProperties()
   }, [])
 
-  // ✅ FUNCIÓN MEJORADA PARA MANEJAR CLICKS DE TIPO DE OPERACIÓN
- const handleOperationTypeClick = async (operationType) => {
-  console.log(`🏠 Filtro seleccionado: ${operationType}`)
+  const handleOperationTypeClick = async (operationType) => {
+    console.log(`🏠 Filtro seleccionado: ${operationType}`)
+    if (isLoading) {
+      console.log("⏳ Ya hay una búsqueda en progreso...")
+      return
+    }
 
-  // Prevenir múltiples clicks mientras se carga
-  if (isLoading) {
-    console.log("⏳ Ya hay una búsqueda en progreso...")
-    return
+    setIsLoading(true)
+    setError(null)
+
+    try {
+      const newFilters = { ...filters, operation_type: operationType }
+      setFilters(newFilters)
+
+      const queryParams = new URLSearchParams()
+      queryParams.append("operation_type", operationType)
+
+      const url = `https://imagen-domuhouse-express.onrender.com/api/search/search?${queryParams.toString()}`
+      console.log(`🔗 Fetching: ${url}`)
+
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 15000)
+
+      const response = await fetch(url, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        signal: controller.signal,
+      })
+
+      clearTimeout(timeoutId)
+
+      if (!response.ok) {
+        const errorText = await response.text()
+        console.error(`❌ Error response: ${errorText}`)
+        throw new Error(`HTTP Error: ${response.status} - ${response.statusText}. Details: ${errorText}`)
+      }
+
+      const data = await response.json()
+      console.log(`📊 Datos recibidos para ${operationType}:`, data)
+
+      let propertiesToSet = []
+      if (Array.isArray(data)) {
+        propertiesToSet = data
+      } else if (data && data.success && Array.isArray(data.properties)) {
+        propertiesToSet = data.properties
+      } else if (data && data.properties && Array.isArray(data.properties)) {
+        propertiesToSet = data.properties
+      } else if (data && data.data && Array.isArray(data.data)) {
+        propertiesToSet = data.data
+      } else if (data && data.results && Array.isArray(data.results)) {
+        propertiesToSet = data.results
+      } else {
+        console.warn("❌ Formato de datos inesperado:", data)
+        propertiesToSet = []
+      }
+
+      setProperties(propertiesToSet)
+
+      if (propertiesToSet.length === 0) {
+        console.warn(`⚠️ No se encontraron propiedades para ${operationType}`)
+        setError(`No se encontraron propiedades en ${operationType.toLowerCase()}`)
+      } else {
+        console.log(`✅ ${propertiesToSet.length} propiedades encontradas para ${operationType}`)
+        setError(null)
+      }
+    } catch (error) {
+      console.error(`❌ Error al filtrar por ${operationType}:`, error)
+      if (error.name === "AbortError") {
+        setError("La búsqueda tardó demasiado tiempo. Intenta nuevamente.")
+      } else if (error.message.includes("Failed to fetch")) {
+        setError("Error de conexión. Verifica que el servidor esté funcionando en el puerto 10101.")
+      } else if (error.message.includes("NetworkError")) {
+        setError("Error de red. Verifica tu conexión a internet.")
+      } else {
+        setError(`Error al filtrar propiedades: ${error.message}`)
+      }
+    } finally {
+      setIsLoading(false)
+    }
   }
 
-  setIsLoading(true)
-  setError(null)
-
-  try {
-    // ✅ FIX: Actualizar los filtros correctamente
-    const newFilters = { ...filters, operation_type: operationType }
-    setFilters(newFilters)
-
-    // ✅ FIX: Construir la URL correctamente
-    const queryParams = new URLSearchParams()
-    queryParams.append("operation_type", operationType)
-
-    const url = `${API_BASE_URL}/api/search/search?${queryParams.toString()}`
-    console.log(`🔗 Fetching: ${url}`)
-
-    // ✅ FIX: Hacer la petición correctamente
-    const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), 15000) // Aumentar timeout
-
-    const response = await fetch(url, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        // ✅ Agregar headers adicionales si es necesario
-        "Accept": "application/json",
-      },
-      signal: controller.signal,
-    })
-
-    clearTimeout(timeoutId)
-
-    console.log(`📊 Response status: ${response.status}`)
-    console.log(`📊 Response headers:`, response.headers)
-
-    if (!response.ok) {
-      // ✅ FIX: Manejo de errores más específico
-      const errorText = await response.text()
-      console.error(`❌ Error response: ${errorText}`)
-      throw new Error(`HTTP Error: ${response.status} - ${response.statusText}. Details: ${errorText}`)
-    }
-
-    const data = await response.json()
-    console.log(`📊 Datos recibidos para ${operationType}:`, data)
-
-    // ✅ FIX: Procesamiento de respuesta más robusto
-    let propertiesToSet = []
-
-    if (Array.isArray(data)) {
-      propertiesToSet = data
-    } else if (data && data.success && Array.isArray(data.properties)) {
-      propertiesToSet = data.properties
-    } else if (data && data.properties && Array.isArray(data.properties)) {
-      propertiesToSet = data.properties
-    } else if (data && data.data && Array.isArray(data.data)) {
-      propertiesToSet = data.data
-    } else if (data && data.results && Array.isArray(data.results)) {
-      propertiesToSet = data.results
-    } else {
-      console.warn("❌ Formato de datos inesperado:", data)
-      propertiesToSet = []
-    }
-
-    setProperties(propertiesToSet)
-
-    if (propertiesToSet.length === 0) {
-      console.warn(`⚠️ No se encontraron propiedades para ${operationType}`)
-      setError(`No se encontraron propiedades en ${operationType.toLowerCase()}`)
-    } else {
-      console.log(`✅ ${propertiesToSet.length} propiedades encontradas para ${operationType}`)
-      setError(null)
-    }
-
-  } catch (error) {
-    console.error(`❌ Error al filtrar por ${operationType}:`, error)
-
-    if (error.name === "AbortError") {
-      setError("La búsqueda tardó demasiado tiempo. Intenta nuevamente.")
-    } else if (error.message.includes("Failed to fetch")) {
-      setError("Error de conexión. Verifica que el servidor esté funcionando en el puerto 10101.")
-    } else if (error.message.includes("NetworkError")) {
-      setError("Error de red. Verifica tu conexión a internet.")
-    } else {
-      setError(`Error al filtrar propiedades: ${error.message}`)
-    }
-
-    // ✅ FIX: No limpiar las propiedades si hay error, mantener las anteriores
-    // setProperties([]) // Comentado para mantener propiedades anteriores
-  } finally {
-    setIsLoading(false)
-  }
-}
-
-  // ✅ FUNCIÓN DE BÚSQUEDA PRINCIPAL MEJORADA
   const handleSearch = async (e) => {
     e.preventDefault()
     setIsLoading(true)
@@ -260,7 +325,6 @@ export const Main = () => {
         price_max: priceRange,
       }
 
-      // Recoger datos del formulario
       if (formData.get("property_type")) searchParams.property_type = formData.get("property_type")
       if (formData.get("city")) searchParams.city = formData.get("city")
       if (formData.get("neighborhood")) searchParams.neighborhood = formData.get("neighborhood")
@@ -282,9 +346,7 @@ export const Main = () => {
         }
       })
 
-      console.log("🔗 Query string:", queryParams.toString())
-
-      const response = await fetch(`${API_BASE_URL}/api/search/search?${queryParams}`)
+      const response = await fetch(`https://imagen-domuhouse-express.onrender.com/api/search/search?${queryParams}`)
 
       if (!response.ok) {
         throw new Error(`Search failed: ${response.status}`)
@@ -311,7 +373,6 @@ export const Main = () => {
 
   const handlePropertyClick = (property) => {
     console.log("Propiedad seleccionada:", property)
-
     if (!property) {
       console.error("No se recibió ninguna propiedad")
       return
@@ -330,7 +391,6 @@ export const Main = () => {
           property: property,
         },
       })
-
       console.log(`Navegando a /propiedad/${propId}`)
     } catch (error) {
       console.error("Error al navegar:", error)
@@ -346,7 +406,6 @@ export const Main = () => {
 
   const resetFilters = async () => {
     console.log("🔄 Reseteando filtros...")
-
     setFilters({
       operation_type: "",
       property_type: "",
@@ -361,21 +420,33 @@ export const Main = () => {
     setPriceRange(500000000)
     setShowAdvanced(false)
 
-    // Recargar todas las propiedades
     setIsLoading(true)
     try {
-      const res = await fetch(`${API_BASE_URL}/api/properties/approved`)
+      // ✅ Usar la nueva ruta con imágenes
+      const res = await fetch(`https://imagen-domuhouse-express.onrender.com/api/properties/with-images`)
       if (!res.ok) {
-        throw new Error(`HTTP error! status: ${res.status}`)
-      }
-      const data = await res.json()
-
-      if (data.success && Array.isArray(data.properties)) {
-        setProperties(data.properties)
-      } else if (Array.isArray(data)) {
-        setProperties(data)
+        // Fallback a la ruta original
+        const fallbackRes = await fetch(`https://imagen-domuhouse-express.onrender.com/api/properties/approved`)
+        if (!fallbackRes.ok) {
+          throw new Error(`HTTP error! status: ${fallbackRes.status}`)
+        }
+        const fallbackData = await fallbackRes.json()
+        if (fallbackData.success && Array.isArray(fallbackData.properties)) {
+          setProperties(fallbackData.properties)
+        } else if (Array.isArray(fallbackData)) {
+          setProperties(fallbackData)
+        } else {
+          setProperties([])
+        }
       } else {
-        setProperties([])
+        const data = await res.json()
+        if (data.success && Array.isArray(data.properties)) {
+          setProperties(data.properties)
+        } else if (Array.isArray(data)) {
+          setProperties(data)
+        } else {
+          setProperties([])
+        }
       }
       setError(null)
     } catch (error) {
@@ -386,62 +457,135 @@ export const Main = () => {
     }
   }
 
-    return (
-        <>
-        <div
+  // ✅ FUNCIÓN PARA OBTENER LA IMAGEN PRINCIPAL DE LA PROPIEDAD
+  const getPropertyImage = (property) => {
+    // ✅ Priorizar los nuevos campos procesados por la API
+    if (property.main_image_url) {
+      return property.main_image_url
+    }
+
+    if (property.image_url) {
+      return property.image_url
+    }
+
+    // ✅ Fallback: intentar extraer de los campos originales
+    const possibleImageFields = [
+      "image",
+      "images",
+      "main_image",
+      "primary_image",
+      "featured_image",
+      "property_images",
+      "photo_url",
+      "picture_url",
+    ]
+
+    for (const field of possibleImageFields) {
+      const imageValue = property[field]
+
+      if (imageValue) {
+        // Si es un string JSON, intentar parsearlo
+        if (typeof imageValue === "string" && imageValue.trim() !== "") {
+          try {
+            const parsedImages = JSON.parse(imageValue)
+
+            // Si es un array, tomar la primera imagen
+            if (Array.isArray(parsedImages) && parsedImages.length > 0) {
+              return parsedImages[0]
+            }
+
+            // Si es un objeto con estructura normales/esféricas
+            if (typeof parsedImages === "object") {
+              if (parsedImages.normales && Array.isArray(parsedImages.normales) && parsedImages.normales.length > 0) {
+                return parsedImages.normales[0]
+              }
+              if (
+                parsedImages.esfericas &&
+                Array.isArray(parsedImages.esfericas) &&
+                parsedImages.esfericas.length > 0
+              ) {
+                return parsedImages.esfericas[0]
+              }
+            }
+          } catch (parseError) {
+            // Si no se puede parsear, asumir que es una URL directa
+            if (imageValue.startsWith("http") || imageValue.startsWith("/")) {
+              return imageValue
+            }
+          }
+        }
+
+        // Si es un array directamente
+        if (Array.isArray(imageValue) && imageValue.length > 0) {
+          return imageValue[0].url || imageValue[0].image_url || imageValue[0]
+        }
+
+        // Si es un objeto con url
+        if (typeof imageValue === "object" && imageValue.url) {
+          return imageValue.url
+        }
+      }
+    }
+
+    // Si no se encuentra ninguna imagen, devolver null para usar el fallback
+    return null
+  }
+
+  return (
+    <>
+      <div
         className="relative h-[400px] xs:h-[450px] sm:h-[550px] md:h-[650px] lg:h-[750px] bg-cover bg-center flex flex-col justify-center items-center text-white text-center px-4 sm:px-6 md:px-8 lg:px-12"
         style={{ backgroundImage: `url(${Casa2})` }}
       >
-                <div className="absolute inset-0 bg-black/30 z-0"></div>
-
+        <div className="absolute inset-0 bg-black/30 z-0"></div>
         <div className="relative z-10 w-full flex flex-col justify-center items-center">
           {/* Título principal */}
           <h1 className="font-bold text-xl xs:text-2xl sm:text-3xl md:text-4xl lg:text-5xl mb-4 xs:mb-6 sm:mb-8 lg:mb-10 leading-tight">
             Encuentra Tu Lugar Ideal
           </h1>
 
-          {/* Botones de tipo de operación - MEJORADOS */}
+          {/* Botones de tipo de operación */}
           <div className="flex flex-row gap-3 sm:gap-4 mb-4 sm:mb-6">
-  <button
-    type="button" // ✅ FIX: Especificar type="button" para evitar submit del form
-    onClick={(e) => {
-      e.preventDefault() // ✅ FIX: Prevenir comportamiento por defecto
-      e.stopPropagation() // ✅ FIX: Evitar propagación del evento
-      if (!isLoading) {
-        console.log("🔥 Botón Venta clickado")
-        handleOperationTypeClick("Venta")
-      }
-    }}
-    disabled={isLoading}
-    className={`rounded-2xl px-4 xs:px-6 sm:px-8 lg:px-10 py-1.5 xs:py-2 text-xs xs:text-sm sm:text-base transition-all duration-300 ${
-      filters.operation_type === "Venta"
-        ? "bg-[#2F8EAC] text-white border-2 border-[#2F8EAC] shadow-lg transform scale-105"
-        : "bg-transparent border-2 border-white text-white hover:bg-white hover:text-[#2F8EAC] hover:scale-105"
-    } ${isLoading ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:shadow-lg"}`}
-  >
-    {isLoading && filters.operation_type === "Venta" ? "Buscando..." : "Venta"}
-  </button>
-  
-  <button
-    type="button" // ✅ FIX: Especificar type="button"
-    onClick={(e) => {
-      e.preventDefault() // ✅ FIX: Prevenir comportamiento por defecto
-      e.stopPropagation() // ✅ FIX: Evitar propagación del evento
-      if (!isLoading) {
-        console.log("🔥 Botón Arriendo clickado")
-        handleOperationTypeClick("Arriendo")
-      }
-    }}
-    disabled={isLoading}
-    className={`rounded-2xl px-4 xs:px-6 sm:px-8 lg:px-10 py-1.5 xs:py-2 text-xs xs:text-sm sm:text-base transition-all duration-300 ${
-      filters.operation_type === "Arriendo"
-        ? "bg-[#2F8EAC] text-white border-2 border-[#2F8EAC] shadow-lg transform scale-105"
-        : "bg-transparent border-2 border-white text-white hover:bg-white hover:text-[#2F8EAC] hover:scale-105"
-    } ${isLoading ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:shadow-lg"}`}
-  >
-    {isLoading && filters.operation_type === "Arriendo" ? "Buscando..." : "Arriendo"}
-  </button>
-</div>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                if (!isLoading) {
+                  console.log("🔥 Botón Venta clickado")
+                  handleOperationTypeClick("Venta")
+                }
+              }}
+              disabled={isLoading}
+              className={`rounded-2xl px-4 xs:px-6 sm:px-8 lg:px-10 py-1.5 xs:py-2 text-xs xs:text-sm sm:text-base transition-all duration-300 ${
+                filters.operation_type === "Venta"
+                  ? "bg-[#2F8EAC] text-white border-2 border-[#2F8EAC] shadow-lg transform scale-105"
+                  : "bg-transparent border-2 border-white text-white hover:bg-white hover:text-[#2F8EAC] hover:scale-105"
+              } ${isLoading ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:shadow-lg"}`}
+            >
+              {isLoading && filters.operation_type === "Venta" ? "Buscando..." : "Venta"}
+            </button>
+
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                if (!isLoading) {
+                  console.log("🔥 Botón Arriendo clickado")
+                  handleOperationTypeClick("Arriendo")
+                }
+              }}
+              disabled={isLoading}
+              className={`rounded-2xl px-4 xs:px-6 sm:px-8 lg:px-10 py-1.5 xs:py-2 text-xs xs:text-sm sm:text-base transition-all duration-300 ${
+                filters.operation_type === "Arriendo"
+                  ? "bg-[#2F8EAC] text-white border-2 border-[#2F8EAC] shadow-lg transform scale-105"
+                  : "bg-transparent border-2 border-white text-white hover:bg-white hover:text-[#2F8EAC] hover:scale-105"
+              } ${isLoading ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:shadow-lg"}`}
+            >
+              {isLoading && filters.operation_type === "Arriendo" ? "Buscando..." : "Arriendo"}
+            </button>
+          </div>
 
           {/* Formulario de búsqueda */}
           <form
@@ -614,6 +758,7 @@ export const Main = () => {
         <h3 className="text-base xs:text-lg sm:text-xl lg:text-2xl text-[#2F8EAC] text-center font-medium">
           Propiedades Destacadas
         </h3>
+
         <h2 className="text-xl xs:text-2xl sm:text-3xl lg:text-4xl font-bold text-center px-3 xs:px-4 sm:px-6 lg:px-8 leading-tight mb-4 xs:mb-6 sm:mb-8">
           Recomendaciones Para Ti
         </h2>
@@ -647,6 +792,30 @@ export const Main = () => {
               properties.map((property, index) => {
                 const uniqueId = property.property_id || property.id || property.ID || `property-${index}`
 
+                // ✅ LÓGICA CORREGIDA PARA EL NOMBRE DEL AGENTE
+                const agentFullName =
+                  property.agent_name?.trim() || // Primero intenta usar agent_name que viene de la BD
+                  (property.name_person && property.last_name
+                    ? `${property.name_person.trim()} ${property.last_name.trim()}`.trim()
+                    : property.name_person?.trim() || property.last_name?.trim() || "Agente")
+
+                // ✅ OBTENER LA IMAGEN DE LA PROPIEDAD
+                const propertyImage = getPropertyImage(property)
+
+                console.log("🔍 Debug propiedad:", {
+                  property_id: property.property_id,
+                  title: property.property_title,
+                  agent_name: property.agent_name,
+                  name_person: property.name_person,
+                  last_name: property.last_name,
+                  agentFullName: agentFullName,
+                  propertyImage: propertyImage,
+                  main_image_url: property.main_image_url,
+                  image_url: property.image_url,
+                  has_images: property.has_images,
+                  image_count: property.image_count,
+                })
+
                 return (
                   <PropertyCard
                     key={uniqueId}
@@ -659,8 +828,17 @@ export const Main = () => {
                     area={property.built_area || property.area || 0}
                     price={property.price ? property.price.toLocaleString() : "0"}
                     type={property.operation_type || property.tipo_operacion}
-                    agentName={property.agent_name || property.agente_nombre || "Agente"}
-                    onClick={() => handlePropertyClick(property)}
+                    agentName={agentFullName} // ✅ Aquí se pasa el nombre correcto
+                    imageUrl={propertyImage} // ✅ Aquí se pasa la imagen de la propiedad
+                    onClick={() => {
+                      console.log("🔍 Propiedad clickeada:", {
+                        id: property.property_id,
+                        agent_name: property.agent_name,
+                        agentFullName: agentFullName,
+                        image: propertyImage,
+                      })
+                      handlePropertyClick(property)
+                    }}
                   />
                 )
               })
@@ -683,11 +861,7 @@ export const Main = () => {
           </div>
         </div>
 
-        {/* Botón Ver Más */}
-        <Button
-          name="➡ Ver Más"
-          className="bg-[#2F8EAC] border border-[#2F8EAC] text-white rounded-3xl px-4 xs:px-5 sm:px-6 py-1.5 xs:py-2 flex items-center gap-1 xs:gap-2 mt-6 xs:mt-8 sm:mt-10"
-        />
+              
       </section>
     </>
   )

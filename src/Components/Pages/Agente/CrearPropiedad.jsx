@@ -1,40 +1,43 @@
 "use client"
 
-import { useState } from "react"
-import { Upload, X, Eye, Camera } from "lucide-react"
+import { useState, useEffect } from "react"
+import { Upload, X, AlertCircle, CheckCircle } from "lucide-react"
 import AgentSideBar from "./Components/AgentSideBar"
 import { Header } from "../../Layouts/Header/Header"
-import PhotoSphereViewerContainer from "../../../Components/images360/Image360Viewer"
 
 export default function CrearPropiedad() {
   const [activeSection, setActiveSection] = useState("Crear Propiedad")
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
-  const toggleAgentSidebar = () => {
-    setSidebarOpen(!sidebarOpen)
-  }
+  // Estados para información del usuario
+  const [currentUser, setCurrentUser] = useState(null)
+  const [agentId, setAgentId] = useState(null)
+  const [loadingUser, setLoadingUser] = useState(true)
 
+  // Estados del formulario
   const [formData, setFormData] = useState({
-    // Campos básicos
+    // Campos básicos requeridos
     title: "",
     address: "",
     type: "",
     description: "",
-    // Campos numéricos específicos
+    city: "",
+    neighborhood: "",
+    // Campos numéricos requeridos
     rooms: "",
     bathrooms: "",
     area: "",
     price: "",
-    // Información del agente
-    agentName: "",
-    agentPhone: "",
-    agentEmail: "",
-    agentWhatsapp: "",
-    // Información adicional
-    propertyType: "venta",
-    additionalRoomInfo: "",
+    // Campos opcionales
+    propertyType: "Venta",
+    socioeconomic_stratum: "",
+    parking_spaces: "",
+    total_area: "",
+    latitude: "",
+    longitude: "",
   })
 
+  // Estados para multimedia y UI
   const [selectedImages, setSelectedImages] = useState([])
   const [imageFiles, setImageFiles] = useState([])
   const [precioEstimado, setPrecioEstimado] = useState("")
@@ -43,6 +46,38 @@ export default function CrearPropiedad() {
   const [submitSuccess, setSubmitSuccess] = useState(false)
   const [fullAddress, setFullAddress] = useState("Bogotá, Colombia")
 
+  const toggleAgentSidebar = () => {
+    setSidebarOpen(!sidebarOpen)
+  }
+
+  // ✅ 2. Cargar datos del agente desde localStorage
+  useEffect(() => {
+    console.log("🔍 Cargando datos del agente desde localStorage...")
+    setLoadingUser(true)
+    try {
+      const stored = JSON.parse(localStorage.getItem("userData") || "{}")
+      console.log("📦 Datos encontrados en localStorage:", stored)
+
+      const id = stored.person_id ?? stored.id
+      if (!id) {
+        throw new Error("❌ No se encontró person_id o id en localStorage")
+      }
+
+      setAgentId(id)
+      setCurrentUser(stored)
+      console.log("✅ Agente cargado correctamente:", {
+        id,
+        name: `${stored.first_name} ${stored.last_name}`,
+        email: stored.email,
+      })
+    } catch (err) {
+      console.error("❌ Error cargando datos del agente:", err)
+      setSubmitError("No se encontró el ID del agente. Por favor, inicia sesión nuevamente.")
+    } finally {
+      setLoadingUser(false)
+    }
+  }, [])
+
   const handleInputChange = (e) => {
     const { name, value } = e.target
     setFormData((prev) => ({
@@ -50,163 +85,152 @@ export default function CrearPropiedad() {
       [name]: value,
     }))
 
+    // Actualizar dirección del mapa
     if (name === "address") {
       setFullAddress(value || "Bogotá, Colombia")
     }
-  }
 
-  // ✅ FUNCIÓN MEJORADA PARA DETECCIÓN DE IMÁGENES 360°
-  const detectIs360Image = (file) => {
-    const fileName = file.name.toLowerCase()
-    const is360Keywords = [
-      "360",
-      "_360",
-      "pano",
-      "panorama",
-      "sphere",
-      "spherical",
-      "equirectangular",
-      "esferica",
-      "panoramica",
-      "360deg",
-    ]
-
-    // Verificar por nombre de archivo
-    const nameDetection = is360Keywords.some((keyword) => fileName.includes(keyword))
-
-    // Verificar por dimensiones (las imágenes 360° suelen tener ratio 2:1)
-    return new Promise((resolve) => {
-      if (nameDetection) {
-        resolve(true)
-        return
-      }
-
-      // Crear imagen temporal para verificar dimensiones
-      const img = new Image()
-      img.onload = () => {
-        const ratio = img.width / img.height
-        // Las imágenes equirectangulares tienen ratio 2:1
-        const is360ByRatio = Math.abs(ratio - 2) < 0.1
-        resolve(is360ByRatio)
-        URL.revokeObjectURL(img.src)
-      }
-      img.onerror = () => resolve(nameDetection)
-      img.src = URL.createObjectURL(file)
-    })
-  }
-
-  const handleImageUpload = async (e) => {
-    const files = Array.from(e.target.files)
-    if (files.length === 0) return
-
-    if (selectedImages.length + files.length > 10) {
-      setSubmitError("Máximo 10 imágenes permitidas")
-      return
+    // Limpiar errores cuando el usuario empiece a escribir
+    if (submitError) {
+      setSubmitError("")
     }
+  }
 
-    setSubmitError("") // Limpiar errores previos
+  const handleImageUpload = (e) => {
+    const files = Array.from(e.target.files)
 
-    // ✅ PROCESAR IMÁGENES CON DETECCIÓN MEJORADA
-    const processedImages = await Promise.all(
-      files.map(async (file) => {
-        const is360 = await detectIs360Image(file)
+    // Validar archivos
+    const validFiles = files.filter((file) => {
+      const isValidType = file.type.startsWith("image/")
+      const isValidSize = file.size <= 10 * 1024 * 1024 // 10MB
 
-        return {
-          preview: URL.createObjectURL(file),
-          file: file,
-          is360: is360,
-          name: file.name,
-          size: file.size,
-          dimensions: null, // Se calculará después si es necesario
-        }
-      }),
-    )
+      if (!isValidType) {
+        setSubmitError(`${file.name} no es una imagen válida`)
+        return false
+      }
 
-    setSelectedImages((prev) => [...prev, ...processedImages])
-    setImageFiles((prev) => [...prev, ...files])
+      if (!isValidSize) {
+        setSubmitError(`${file.name} es muy grande (máximo 10MB)`)
+        return false
+      }
 
-    e.target.value = ""
+      return true
+    })
 
-    console.log(`📷 ${files.length} imágenes agregadas. Total: ${selectedImages.length + files.length}`)
-    console.log("🔍 Imágenes 360° detectadas:", processedImages.filter((img) => img.is360).length)
+    if (validFiles.length > 0) {
+      const imageUrls = validFiles.map((file) => URL.createObjectURL(file))
+      setSelectedImages((prev) => [...prev, ...imageUrls])
+      setImageFiles((prev) => [...prev, ...validFiles])
+      setSubmitError("") // Limpiar errores
+    }
   }
 
   const removeImage = (indexToRemove) => {
-    // Limpiar URL del objeto para evitar memory leaks
-    if (selectedImages[indexToRemove]?.preview) {
-      URL.revokeObjectURL(selectedImages[indexToRemove].preview)
-    }
-
-    // Remover de ambos arrays
+    // Liberar memoria del objeto URL
+    URL.revokeObjectURL(selectedImages[indexToRemove])
     setSelectedImages((prev) => prev.filter((_, index) => index !== indexToRemove))
     setImageFiles((prev) => prev.filter((_, index) => index !== indexToRemove))
-
-    console.log(`🗑️ Imagen ${indexToRemove} eliminada`)
   }
 
-  // ✅ FUNCIÓN PARA ALTERNAR MANUALMENTE EL ESTADO 360°
-  const toggleIs360 = (index) => {
-    setSelectedImages((prev) => prev.map((img, i) => (i === index ? { ...img, is360: !img.is360 } : img)))
+  // Función helper para limpiar valores numéricos
+  const numeric = (v) => {
+    const cleaned = String(v).replace(/[^\d.]/g, "")
+    const number = Number(cleaned)
+    return isNaN(number) ? 0 : number
   }
 
-  // Función para validar el formulario
+  // ✅ Mapeo correcto de tipos de propiedad a IDs del backend
+  const getPropertyTypeId = (type) => {
+    const typeMap = {
+      casa: 1,
+      apartamento: 2,
+      local: 3,
+      oficina: 4,
+      terreno: 5,
+    }
+    const id = typeMap[type?.toLowerCase()]
+    console.log(`🏠 Mapeando tipo "${type}" → ID: ${id}`)
+    return id || 1
+  }
+
+  // Mapeo de operaciones
+  const mapOperationType = (frontendType) => {
+    const operationMap = {
+      Venta: "Venta",
+      Arriendo: "Arriendo",
+      "Arriendo con opción de compra": "Arriendo con opción de compra",
+    }
+    return operationMap[frontendType] || "Venta"
+  }
+
+  // ✅ 3. Validación completa del formulario
   const validateForm = () => {
+    console.log("🔍 Validando formulario...")
+    if (!agentId) {
+      setSubmitError("❌ No se pudo obtener el ID del agente. Recarga la página.")
+      return false
+    }
+
+    // Campos requeridos
     const requiredFields = [
-      "title",
-      "address",
-      "type",
-      "description",
-      "rooms",
-      "bathrooms",
-      "area",
-      "price",
-      "agentName",
-      "agentPhone",
-      "agentEmail",
+      { field: "title", label: "Título" },
+      { field: "address", label: "Dirección" },
+      { field: "type", label: "Tipo de propiedad" },
+      { field: "description", label: "Descripción" },
+      { field: "rooms", label: "Habitaciones" },
+      { field: "bathrooms", label: "Baños" },
+      { field: "area", label: "Área construida" },
+      { field: "price", label: "Precio" },
+      { field: "city", label: "Ciudad" },
+      { field: "neighborhood", label: "Barrio" },
     ]
 
-    for (const field of requiredFields) {
-      if (!formData[field]) {
-        setSubmitError(`El campo ${field} es requerido`)
+    for (const { field, label } of requiredFields) {
+      if (!formData[field] || String(formData[field]).trim() === "") {
+        setSubmitError(`❌ El campo "${label}" es requerido`)
         return false
       }
     }
 
-    // Validar que rooms, bathrooms y area sean números válidos
-    if (isNaN(formData.rooms) || formData.rooms < 0) {
-      setSubmitError("El número de habitaciones debe ser válido")
+    // Validaciones numéricas
+    if (numeric(formData.rooms) < 0) {
+      setSubmitError("❌ El número de habitaciones debe ser válido")
       return false
     }
 
-    if (isNaN(formData.bathrooms) || formData.bathrooms < 0) {
-      setSubmitError("El número de baños debe ser válido")
+    if (numeric(formData.bathrooms) < 0) {
+      setSubmitError("❌ El número de baños debe ser válido")
       return false
     }
 
-    if (isNaN(formData.area) || formData.area <= 0) {
-      setSubmitError("El área debe ser un número válido mayor a 0")
+    if (numeric(formData.area) <= 0) {
+      setSubmitError("❌ El área debe ser mayor a 0")
       return false
     }
 
-    // Validar email
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!emailRegex.test(formData.agentEmail)) {
-      setSubmitError("El email del agente no es válido")
+    if (numeric(formData.price) <= 0) {
+      setSubmitError("❌ El precio debe ser mayor a 0")
       return false
     }
 
+    // Validar imagen
+    if (imageFiles.length === 0) {
+      setSubmitError("❌ Debe seleccionar al menos una imagen")
+      return false
+    }
+
+    console.log("✅ Formulario válido")
     return true
   }
 
-  // Función optimizada para envío al backend
+  // ✅ 4. Función de envío optimizada con múltiples imágenes
   const handleSubmit = async (e) => {
     e.preventDefault()
+    console.log("🚀 Iniciando envío de propiedad...")
 
-    // Resetear estados
     setSubmitError("")
     setSubmitSuccess(false)
 
-    // Validar formulario
     if (!validateForm()) {
       return
     }
@@ -214,113 +238,106 @@ export default function CrearPropiedad() {
     setIsSubmitting(true)
 
     try {
-      // Crear FormData para enviar archivos e información
-      const formDataToSend = new FormData()
+      // Crear FormData con todos los campos requeridos
+      const fd = new FormData()
 
-      // ✅ AGREGAR ARCHIVOS CON METADATOS DE 360°
+      // Campos de texto
+      fd.append("property_title", formData.title.trim())
+      fd.append("address", formData.address.trim())
+      fd.append("description", formData.description.trim())
+      fd.append("city", formData.city.trim())
+      fd.append("neighborhood", formData.neighborhood.trim())
+      fd.append("status", "Disponible")
+
+      // Campos numéricos
+      fd.append("price", numeric(formData.price).toString())
+      fd.append("property_type_id", getPropertyTypeId(formData.type).toString())
+      fd.append("socioeconomic_stratum", (numeric(formData.socioeconomic_stratum) || 3).toString())
+      fd.append("operation_type", mapOperationType(formData.propertyType))
+      fd.append("bedrooms", numeric(formData.rooms).toString())
+      fd.append("bathrooms", numeric(formData.bathrooms).toString())
+      fd.append("parking_spaces", numeric(formData.parking_spaces).toString())
+      fd.append("built_area", numeric(formData.area).toString())
+      fd.append("total_area", (numeric(formData.total_area) || numeric(formData.area)).toString())
+
+      // Coordenadas GPS (opcionales)
+      fd.append("latitude", formData.latitude || "0")
+      fd.append("longitude", formData.longitude || "0")
+
+      // ✅ CAMBIO PRINCIPAL: Enviar todas las imágenes
       imageFiles.forEach((file, index) => {
-        // Renombrar archivos 360° para mejor detección en backend
-        const imgObj = selectedImages[index]
-        if (imgObj?.is360 && !file.name.toLowerCase().includes("360")) {
-          const newFile = new File([file], `360_${file.name}`, { type: file.type })
-          formDataToSend.append("images", newFile)
-        } else {
-          formDataToSend.append("images", file)
-        }
+        fd.append("images", file)
+        console.log(`📸 Imagen ${index + 1} agregada:`, file.name)
       })
 
-      // Preparar datos de la propiedad para el backend
-      const propertyData = {
-        // Información básica
-        title: formData.title.trim(),
-        address: formData.address.trim(),
+      // Log de datos que se envían
+      console.log("📤 Datos a enviar:", {
+        agentId,
+        title: formData.title,
         type: formData.type,
-        description: formData.description.trim(),
-        propertyType: formData.propertyType,
+        price: numeric(formData.price),
+        area: numeric(formData.area),
+        imageCount: imageFiles.length,
+      })
 
-        // Características numéricas
-        rooms: Number.parseInt(formData.rooms),
-        bathrooms: Number.parseInt(formData.bathrooms),
-        area: Number.parseInt(formData.area),
-        price: formData.price.replace(/[^\d]/g, ""),
+      // ✅ Envío al endpoint correcto
+      const url = `https://imagen-domuhouse-express.onrender.com/api/agents/${agentId}/properties`
+      console.log("🌐 Enviando a:", url)
 
-        // Información del agente
-        agent: {
-          name: formData.agentName.trim(),
-          phone: formData.agentPhone.trim(),
-          email: formData.agentEmail.trim().toLowerCase(),
-          whatsapp: formData.agentWhatsapp.trim() || formData.agentPhone.trim(),
-        },
+      const response = await fetch(url, {
+        method: "POST",
+        body: fd,
+        credentials: "omit", // ← Explícitamente sin cookies
+      })
 
-        // Información adicional
-        additionalRoomInfo: formData.additionalRoomInfo.trim(),
+      console.log("📡 Respuesta del servidor:", response.status, response.statusText)
 
-        // ✅ METADATOS DE IMÁGENES 360°
-        imageMetadata: selectedImages.map((img, index) => ({
-          index,
-          is360: img.is360,
-          name: img.name,
-          size: img.size,
-        })),
-
-        // Metadatos
-        createdAt: new Date().toISOString(),
-        status: "active",
-        highQualityImages: true,
+      if (!response.ok) {
+        const errorData = await response.json()
+        console.error("❌ Error del servidor:", errorData)
+        throw new Error(errorData.error || `Error ${response.status}: ${response.statusText}`)
       }
 
-      // Agregar datos JSON al FormData
-      formDataToSend.append("propertyData", JSON.stringify(propertyData))
+      const result = await response.json()
+      console.log("✅ Propiedad creada exitosamente:", result)
 
-      // SIMULACIÓN TEMPORAL (remover cuando se conecte al backend real)
-      await new Promise((resolve) => setTimeout(resolve, 1500))
-
-      console.log("✅ Datos preparados para backend:", {
-        propertyData,
-        imageCount: imageFiles.length,
-        images360Count: selectedImages.filter((img) => img.is360).length,
-        formDataKeys: Array.from(formDataToSend.keys()),
-      })
-
-      // Éxito
       setSubmitSuccess(true)
 
-      // Opcional: limpiar formulario después del éxito
+      // ✅ 6. Limpiar formulario después del éxito
       setTimeout(() => {
         resetForm()
-      }, 2000)
+      }, 3000)
     } catch (error) {
-      console.error("Error al enviar propiedad:", error)
+      console.error("❌ Error al enviar propiedad:", error)
       setSubmitError(error.message || "Error al registrar la propiedad. Intenta de nuevo.")
     } finally {
       setIsSubmitting(false)
     }
   }
 
-  // Función para resetear el formulario
   const resetForm = () => {
-    // Limpiar URLs de objetos para evitar memory leaks
-    selectedImages.forEach((img) => {
-      if (img.preview) {
-        URL.revokeObjectURL(img.preview)
-      }
-    })
+    console.log("🔄 Limpiando formulario...")
+    // Liberar URLs de imágenes
+    selectedImages.forEach((url) => URL.revokeObjectURL(url))
 
     setFormData({
       title: "",
       address: "",
       type: "",
       description: "",
+      city: "",
+      neighborhood: "",
       rooms: "",
       bathrooms: "",
       area: "",
       price: "",
-      agentName: "",
-      agentPhone: "",
-      agentEmail: "",
-      agentWhatsapp: "",
-      propertyType: "venta",
+      propertyType: "Venta",
       additionalRoomInfo: "",
+      socioeconomic_stratum: "",
+      parking_spaces: "",
+      total_area: "",
+      latitude: "",
+      longitude: "",
     })
 
     setSelectedImages([])
@@ -338,14 +355,15 @@ export default function CrearPropiedad() {
     }
 
     try {
-      const basePrice = Math.random() * 500000 + 200000
-      const formattedPrice = new Intl.NumberFormat("es-CO").format(basePrice)
-      setPrecioEstimado(formattedPrice)
-
+      // Simulación de valoración automática
+      const basePrice = Math.random() * 500000000 + 200000000
+      const formattedPrice = Math.floor(basePrice).toString()
+      setPrecioEstimado(new Intl.NumberFormat("es-CO").format(basePrice))
       setFormData((prev) => ({
         ...prev,
         price: formattedPrice,
       }))
+      console.log("💰 Precio estimado:", formattedPrice)
     } catch (error) {
       console.error("Error en valoración:", error)
       setSubmitError("Error al solicitar valoración. Intenta de nuevo.")
@@ -353,7 +371,24 @@ export default function CrearPropiedad() {
   }
 
   const handleCancel = () => {
-    resetForm()
+    if (window.confirm("¿Estás seguro de que quieres cancelar? Se perderán todos los datos.")) {
+      resetForm()
+    }
+  }
+
+  // Loading state
+  if (loadingUser) {
+    return (
+      <>
+        <Header toggleAgentSidebar={toggleAgentSidebar} />
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#2F8EAC] mx-auto mb-4"></div>
+            <p className="text-gray-600">Cargando información del usuario...</p>
+          </div>
+        </div>
+      </>
+    )
   }
 
   return (
@@ -380,42 +415,69 @@ export default function CrearPropiedad() {
           setActiveSection={setActiveSection}
         />
 
-        {/* Overlay para móvil cuando el sidebar está abierto */}
+        {/* Overlay para móvil */}
         {sidebarOpen && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden" onClick={() => setSidebarOpen(false)} />
+          <div className="fixed inset-0 bg-black/50 bg-opacity-50 z-40 lg:hidden" onClick={() => setSidebarOpen(false)} />
         )}
 
-        {/* Contenido principal con margen izquierdo para el sidebar */}
+        {/* Contenido principal */}
         <main className="lg:ml-72 pt-16">
           <div className="p-4 sm:p-6 lg:p-8">
             {/* Header Section */}
             <div className="mb-6">
               <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Crear Propiedades</h1>
               <p className="text-gray-600 text-sm mt-1">Registra una nueva propiedad en el sistema</p>
+
+              {/* Información del agente */}
+              {currentUser && (
+                <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-xl">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-[#2F8EAC] rounded-full flex items-center justify-center text-white font-semibold">
+                      {currentUser.first_name?.[0]}
+                      {currentUser.last_name?.[0]}
+                    </div>
+                    <div>
+                      <p className="text-gray-800 font-medium">
+                        Agente Responsable: {currentUser.first_name} {currentUser.last_name}
+                      </p>
+                      {currentUser.email && <p className="text-gray-600 text-sm">{currentUser.email}</p>}
+                      {currentUser.phone && <p className="text-gray-600 text-sm">{currentUser.phone}</p>}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Debug info */}
+              {process.env.NODE_ENV === "development" && agentId && (
+                <p className="text-gray-500 text-xs mt-2">Debug - ID del Agente: {agentId}</p>
+              )}
             </div>
 
             {/* Mensajes de estado */}
             {submitError && (
-              <div className="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl">
-                {submitError}
+              <div className="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl flex items-start gap-2">
+                <AlertCircle className="w-5 h-5 mt-0.5 flex-shrink-0" />
+                <span>{submitError}</span>
               </div>
             )}
 
             {submitSuccess && (
-              <div className="mb-6 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-xl">
-                ¡Propiedad registrada exitosamente!
+              <div className="mb-6 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-xl flex items-start gap-2">
+                <CheckCircle className="w-5 h-5 mt-0.5 flex-shrink-0" />
+                <span>¡Propiedad registrada exitosamente! El formulario se limpiará automáticamente.</span>
               </div>
             )}
 
-            {/* Form */}
+            {/* Formulario */}
             <form onSubmit={handleSubmit} className="space-y-6 sm:space-y-8">
-              {/* Property Details Section */}
               <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 lg:gap-8">
-                {/* Left Column - Property Details */}
+                {/* Columna izquierda - Detalles de la propiedad */}
                 <div className="space-y-6">
                   {/* Información básica */}
                   <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-gray-100">
-                    <h3 className="text-lg font-semibold text-gray-700 border-b pb-2 mb-4">Información Básica</h3>
+                    <h3 className="text-lg font-semibold text-gray-700 border-b pb-2 mb-4">
+                      Información Básica <span className="text-red-500">*</span>
+                    </h3>
                     <div className="space-y-4">
                       <input
                         type="text"
@@ -436,6 +498,26 @@ export default function CrearPropiedad() {
                         className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
                       />
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <input
+                          type="text"
+                          name="city"
+                          placeholder="Ciudad *"
+                          value={formData.city}
+                          onChange={handleInputChange}
+                          required
+                          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
+                        />
+                        <input
+                          type="text"
+                          name="neighborhood"
+                          placeholder="Barrio *"
+                          value={formData.neighborhood}
+                          onChange={handleInputChange}
+                          required
+                          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
+                        />
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <select
                           name="type"
                           value={formData.type}
@@ -446,9 +528,7 @@ export default function CrearPropiedad() {
                           <option value="">Tipo de Propiedad *</option>
                           <option value="casa">Casa</option>
                           <option value="apartamento">Apartamento</option>
-                          <option value="local">Local Comercial</option>
-                          <option value="oficina">Oficina</option>
-                          <option value="terreno">Terreno</option>
+                          <option value="finca">Finca</option>
                         </select>
                         <select
                           name="propertyType"
@@ -456,16 +536,33 @@ export default function CrearPropiedad() {
                           onChange={handleInputChange}
                           className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
                         >
-                          <option value="venta">En Venta</option>
-                          <option value="alquiler">En Alquiler</option>
+                          <option value="Venta">En Venta</option>
+                          <option value="Arriendo">En Arriendo</option>
+                          <option value="Arriendo con opción de compra">Arriendo con opción de compra</option>
                         </select>
                       </div>
+                      <select
+                        name="socioeconomic_stratum"
+                        value={formData.socioeconomic_stratum}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
+                      >
+                        <option value="">Estrato Socioeconómico (Opcional)</option>
+                        <option value="1">Estrato 1</option>
+                        <option value="2">Estrato 2</option>
+                        <option value="3">Estrato 3</option>
+                        <option value="4">Estrato 4</option>
+                        <option value="5">Estrato 5</option>
+                        <option value="6">Estrato 6</option>
+                      </select>
                     </div>
                   </div>
 
-                  {/* Características de la propiedad */}
+                  {/* Características */}
                   <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-gray-100">
-                    <h3 className="text-lg font-semibold text-gray-700 border-b pb-2 mb-4">Características</h3>
+                    <h3 className="text-lg font-semibold text-gray-700 border-b pb-2 mb-4">
+                      Características <span className="text-red-500">*</span>
+                    </h3>
                     <div className="space-y-4">
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                         <input
@@ -490,27 +587,40 @@ export default function CrearPropiedad() {
                         />
                         <input
                           type="number"
+                          name="parking_spaces"
+                          placeholder="Parqueaderos"
+                          value={formData.parking_spaces}
+                          onChange={handleInputChange}
+                          min="0"
+                          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
+                        />
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <input
+                          type="number"
                           name="area"
-                          placeholder="Área (m²) *"
+                          placeholder="Área Construida (m²) *"
                           value={formData.area}
                           onChange={handleInputChange}
                           required
                           min="1"
                           className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
                         />
+                        <input
+                          type="number"
+                          name="total_area"
+                          placeholder="Área Total (m²)"
+                          value={formData.total_area}
+                          onChange={handleInputChange}
+                          min="1"
+                          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
+                        />
                       </div>
-                      <input
-                        type="text"
-                        name="additionalRoomInfo"
-                        placeholder="Información Adicional de Habitaciones"
-                        value={formData.additionalRoomInfo}
-                        onChange={handleInputChange}
-                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
-                      />
+                
                       <input
                         type="text"
                         name="price"
-                        placeholder="Precio (sin símbolo $) *"
+                        placeholder="Precio (solo números) *"
                         value={formData.price}
                         onChange={handleInputChange}
                         required
@@ -519,45 +629,26 @@ export default function CrearPropiedad() {
                     </div>
                   </div>
 
-                  {/* Información del agente */}
+                  {/* Ubicación GPS */}
                   <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-gray-100">
-                    <h3 className="text-lg font-semibold text-gray-700 border-b pb-2 mb-4">Información del Agente</h3>
-                    <div className="space-y-4">
+                    <h3 className="text-lg font-semibold text-gray-700 border-b pb-2 mb-4">Ubicación GPS (Opcional)</h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <input
-                        type="text"
-                        name="agentName"
-                        placeholder="Nombre del Agente *"
-                        value={formData.agentName}
+                        type="number"
+                        name="latitude"
+                        placeholder="Latitud"
+                        value={formData.latitude}
                         onChange={handleInputChange}
-                        required
+                        step="any"
                         className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
                       />
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <input
-                          type="tel"
-                          name="agentPhone"
-                          placeholder="Teléfono *"
-                          value={formData.agentPhone}
-                          onChange={handleInputChange}
-                          required
-                          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
-                        />
-                        <input
-                          type="tel"
-                          name="agentWhatsapp"
-                          placeholder="WhatsApp (opcional)"
-                          value={formData.agentWhatsapp}
-                          onChange={handleInputChange}
-                          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
-                        />
-                      </div>
                       <input
-                        type="email"
-                        name="agentEmail"
-                        placeholder="Email del Agente *"
-                        value={formData.agentEmail}
+                        type="number"
+                        name="longitude"
+                        placeholder="Longitud"
+                        value={formData.longitude}
                         onChange={handleInputChange}
-                        required
+                        step="any"
                         className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
                       />
                     </div>
@@ -565,10 +656,12 @@ export default function CrearPropiedad() {
 
                   {/* Descripción */}
                   <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-gray-100">
-                    <h3 className="text-lg font-semibold text-gray-700 border-b pb-2 mb-4">Descripción</h3>
+                    <h3 className="text-lg font-semibold text-gray-700 border-b pb-2 mb-4">
+                      Descripción <span className="text-red-500">*</span>
+                    </h3>
                     <textarea
                       name="description"
-                      placeholder="Descripción de la Propiedad *"
+                      placeholder="Descripción detallada de la propiedad *"
                       value={formData.description}
                       onChange={handleInputChange}
                       required
@@ -578,16 +671,14 @@ export default function CrearPropiedad() {
                   </div>
                 </div>
 
-                {/* Right Column - Multimedia and Map */}
+                {/* Columna derecha - Multimedia y mapa */}
                 <div className="space-y-6">
-                  {/* Multimedia Section */}
+                  {/* Multimedia */}
                   <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-gray-100">
-                    <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                      <Camera className="w-5 h-5" />
-                      Multimedia
+                    <h2 className="text-lg font-semibold text-gray-800 mb-4">
+                      Multimedia <span className="text-red-500">*</span>
                     </h2>
 
-                    {/* Image Upload Area */}
                     <div className="mb-4">
                       <label
                         htmlFor="image-upload"
@@ -595,9 +686,8 @@ export default function CrearPropiedad() {
                       >
                         <div className="flex flex-col items-center justify-center pt-5 pb-6">
                           <Upload className="w-8 h-8 text-[#2F8EAC] mb-2" />
-                          <p className="text-sm text-gray-600">Subir imágenes</p>
-                          <p className="text-xs text-gray-500">PNG, JPG hasta 10MB (máx. 10 imágenes)</p>
-                          <p className="text-xs text-blue-600 mt-1">✨ Detección automática de imágenes 360°</p>
+                          <p className="text-sm text-gray-600">Subir imágenes *</p>
+                          <p className="text-xs text-gray-500">PNG, JPG hasta 10MB</p>
                         </div>
                         <input
                           id="image-upload"
@@ -610,107 +700,37 @@ export default function CrearPropiedad() {
                       </label>
                     </div>
 
-                    {/* ✅ VISTA PREVIA MEJORADA DE IMÁGENES */}
                     {selectedImages.length > 0 && (
-                      <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                          <h4 className="text-sm font-medium text-gray-700">
-                            Imágenes seleccionadas ({selectedImages.length})
-                          </h4>
-                          <div className="flex items-center gap-4 text-xs text-gray-500">
-                            <span className="flex items-center gap-1">
-                              <div className="w-3 h-3 bg-blue-100 border border-blue-300 rounded"></div>
-                              360° ({selectedImages.filter((img) => img.is360).length})
-                            </span>
-                            <span className="flex items-center gap-1">
-                              <div className="w-3 h-3 bg-gray-100 border border-gray-300 rounded"></div>
-                              Normal ({selectedImages.filter((img) => !img.is360).length})
-                            </span>
-                          </div>
-                        </div>
-
-                        <div className="grid grid-cols-1 gap-6">
-                          {selectedImages.map((imgObj, index) => (
-                            <div
-                              key={index}
-                              className={`relative group border-2 rounded-lg p-3 transition-all ${
-                                imgObj.is360 ? "border-blue-200 bg-blue-50" : "border-gray-200 bg-gray-50"
-                              }`}
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                        {selectedImages.map((img, index) => (
+                          <div key={index} className="relative group">
+                            <img
+                              src={img || "/placeholder.svg"}
+                              alt={`Propiedad ${index + 1}`}
+                              className="w-full h-24 object-cover rounded-lg border border-gray-200"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => removeImage(index)}
+                              className="absolute top-1 right-1 bg-white rounded-full p-1 shadow-sm opacity-0 group-hover:opacity-100 transition-opacity"
                             >
-                              {/* Header con información de la imagen */}
-                              <div className="flex items-center justify-between mb-3">
-                                <div className="flex items-center gap-2">
-                                  <p className="text-sm font-medium text-gray-700 truncate flex-1">
-                                    {imgObj.file?.name || `Imagen ${index + 1}`}
-                                  </p>
-                                  {imgObj.is360 && (
-                                    <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full font-medium">
-                                      360°
-                                    </span>
-                                  )}
-                                </div>
-                                <button
-                                  type="button"
-                                  onClick={() => removeImage(index)}
-                                  className="ml-2 bg-red-50 text-red-500 rounded-full p-1.5 hover:bg-red-100 transition-colors"
-                                  title="Eliminar imagen"
-                                >
-                                  <X className="w-4 h-4" />
-                                </button>
+                              <X className="w-4 h-4 text-red-500" />
+                            </button>
+                            {index === 0 && (
+                              <div className="absolute bottom-1 left-1 bg-green-500 text-white text-xs px-2 py-1 rounded">
+                                Principal
                               </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
 
-                              {/* Control para alternar 360° */}
-                              <div className="mb-3">
-                                <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
-                                  <input
-                                    type="checkbox"
-                                    checked={imgObj.is360}
-                                    onChange={() => toggleIs360(index)}
-                                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                                  />
-                                  <span>Esta es una imagen 360°</span>
-                                  <Eye className="w-4 h-4 text-gray-400" />
-                                </label>
-                              </div>
-
-                              {/* Vista previa de la imagen */}
-                              <div className="w-full">
-                                {imgObj.is360 ? (
-                                  <div className="w-full h-[300px] sm:h-[350px] md:h-[400px] relative overflow-hidden rounded-lg border border-gray-200">
-                                    <PhotoSphereViewerContainer
-                                      imageUrl={imgObj.preview}
-                                      width="100%"
-                                      height="100%"
-                                      className="rounded-lg shadow-sm"
-                                      options={{
-                                        minFov: 30,
-                                        maxFov: 90,
-                                        defaultZoomLvl: 50,
-                                        moveSpeed: 1.2,
-                                        resolution: 32, // Resolución media para preview
-                                        loadingTxt: "Cargando vista previa 360°...",
-                                      }}
-                                    />
-                                  </div>
-                                ) : (
-                                  <div className="w-full">
-                                    <img
-                                      src={imgObj.preview || "/placeholder.svg"}
-                                      alt={`Propiedad ${index + 1}`}
-                                      className="w-full h-[300px] sm:h-[350px] md:h-[400px] object-cover rounded-lg border border-gray-200"
-                                    />
-                                  </div>
-                                )}
-                              </div>
-
-                              {/* Información adicional */}
-                              <div className="mt-2 text-xs text-gray-500 flex justify-between">
-                                <span>Tamaño: {(imgObj.size / 1024 / 1024).toFixed(2)} MB</span>
-                                <span>{imgObj.is360 ? "Imagen esférica" : "Imagen plana"}</span>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
+                    {selectedImages.length > 0 && (
+                      <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
+                        <p className="text-sm text-green-700">
+                          <strong>✅ Todas las imágenes ({imageFiles.length}) se enviarán al backend.</strong>
+                        </p>
                       </div>
                     )}
                   </div>
@@ -723,7 +743,6 @@ export default function CrearPropiedad() {
                         <p className="text-xl sm:text-2xl font-bold text-green-600">${precioEstimado}</p>
                       )}
                     </div>
-
                     <button
                       type="button"
                       onClick={handleSolicitarValoracion}
@@ -732,7 +751,6 @@ export default function CrearPropiedad() {
                       <span>📊</span>
                       Solicitar Valoración Automática
                     </button>
-
                     {precioEstimado && (
                       <p className="text-xs text-gray-500 text-center mt-2">
                         * El precio se ha actualizado automáticamente en el formulario
@@ -740,7 +758,7 @@ export default function CrearPropiedad() {
                     )}
                   </div>
 
-                  {/* Map Section */}
+                  {/* Mapa */}
                   <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-gray-100">
                     <h2 className="text-lg font-semibold text-gray-800 mb-2">Ubicación en el Mapa</h2>
                     <div className="w-16 h-0.5 bg-gray-200 mb-4"></div>
@@ -757,7 +775,7 @@ export default function CrearPropiedad() {
                 </div>
               </div>
 
-              {/* Action Buttons */}
+              {/* Botones de acción */}
               <div className="flex flex-col sm:flex-row justify-between gap-4 pt-4">
                 <button
                   type="button"
@@ -769,9 +787,9 @@ export default function CrearPropiedad() {
 
                 <button
                   type="submit"
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || !agentId}
                   className={`w-full sm:w-auto px-6 py-3 rounded-xl font-medium transition-colors ${
-                    isSubmitting
+                    isSubmitting || !agentId
                       ? "bg-gray-400 text-gray-600 cursor-not-allowed"
                       : "bg-[#2F8EAC] text-white hover:bg-[#256b82]"
                   }`}

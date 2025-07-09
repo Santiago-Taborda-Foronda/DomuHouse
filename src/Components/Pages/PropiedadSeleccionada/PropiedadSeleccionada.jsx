@@ -23,25 +23,25 @@ export const PropiedadSeleccionada = () => {
   const fetchRelatedProperties = async (propertyId) => {
     try {
       console.log('🔗 Fetching related properties for:', propertyId);
-      
-      const response = await fetch(`http://localhost:10101/api/properties/approved`)
-      
+
+      const response = await fetch(`https://imagen-domuhouse-express.onrender.com/api/properties/approved`)
+
       if (!response.ok) {
         console.warn('❌ Could not fetch related properties');
         return;
       }
 
       const data = await response.json()
-      
+
       if (data.success && Array.isArray(data.properties)) {
         // Filtrar propiedades similares (excluyendo la actual)
         const related = data.properties
-          .filter(prop => 
-            prop.property_id !== parseInt(propertyId) && 
+          .filter(prop =>
+            prop.property_id !== parseInt(propertyId) &&
             prop.approved === true
           )
           .slice(0, 3); // Limitar a 3 propiedades relacionadas
-        
+
         console.log(`✅ Found ${related.length} related properties`);
         setRelatedProperties(related);
       }
@@ -60,7 +60,7 @@ export const PropiedadSeleccionada = () => {
       console.log('🔍 Fetching property with ID:', propertyId);
 
       // ✅ NUEVA RUTA
-      const response = await fetch(`http://localhost:10101/api/properties/details/${propertyId}`)
+      const response = await fetch(`https://imagen-domuhouse-express.onrender.com/api/properties/details/${propertyId}`)
 
       if (!response.ok) {
         throw new Error(`Error ${response.status}: Propiedad no encontrada`)
@@ -71,7 +71,7 @@ export const PropiedadSeleccionada = () => {
 
       if (data.success && data.property) {
         setProperty(data.property)
-        
+
         // ✅ CARGAR IMÁGENES SEPARADAMENTE
         await fetchPropertyImages(propertyId)
         fetchRelatedProperties(propertyId)
@@ -90,9 +90,9 @@ export const PropiedadSeleccionada = () => {
   const fetchPropertyImages = async (propertyId) => {
     try {
       console.log('🖼️ Fetching images for property:', propertyId);
-      
+
       // ✅ NUEVA RUTA PARA IMÁGENES
-      const response = await fetch(`http://localhost:10101/api/properties/details/${propertyId}/images`)
+      const response = await fetch(`https://imagen-domuhouse-express.onrender.com/api/properties/details/${propertyId}/images`)
 
       if (!response.ok) {
         console.warn(`❌ Images not available for property ${propertyId}: ${response.status}`)
@@ -131,7 +131,7 @@ export const PropiedadSeleccionada = () => {
     console.log('🖼️ getDisplayImages called');
     console.log('📊 Current images state:', images);
     console.log('📊 Current property state:', property);
-    
+
     // ✅ PRIORIDAD 1: Imágenes del endpoint específico
     if (images && images.length > 0) {
       const imageUrls = images
@@ -144,7 +144,7 @@ export const PropiedadSeleccionada = () => {
             console.warn('❌ Empty URL found');
             return false;
           }
-          
+
           try {
             new URL(url);
             console.log('✅ Valid URL:', url);
@@ -200,17 +200,17 @@ export const PropiedadSeleccionada = () => {
   // ✅ Función mejorada para manejar errores de carga de imágenes
   const handleImageError = (e, imageUrl, index) => {
     console.error(`❌ Error loading image: ${imageUrl}`);
-    
+
     // Prevenir loops infinitos
     if (e.target.dataset.fallbackAttempt) {
       console.log('🔄 Using final placeholder');
       e.target.src = "data:image/svg+xml,%3csvg width='800' height='600' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='%23f3f4f6'/%3e%3ctext x='50%25' y='50%25' font-size='24' text-anchor='middle' dy='.3em' fill='%239ca3af'%3eImagen no disponible%3c/text%3e%3c/svg%3e";
       return;
     }
-    
+
     // Marcar que ya intentamos el fallback
     e.target.dataset.fallbackAttempt = "true";
-    
+
     // Intentar con diferentes fallbacks
     const fallbackImages = [
       "https://images.unsplash.com/photo-1560518883-ce09059eeffa?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
@@ -272,21 +272,24 @@ export const PropiedadSeleccionada = () => {
       </div>
     )
   }
+  console.log(property)
 
-  // Crear información del agente con valores por defecto
+
+  // 🔹 Construir SOLO la info del agente
   const agentInfo = {
-    name: property.agent_name || "Agente Inmobiliario",
-    phone: property.agent_phone || "+57 300 000 0000",
-    email: property.agent_email || "agente@inmobiliaria.com",
-    initials: property.agent_name
-      ? property.agent_name
-          .split(" ")
-          .map((n) => n[0])
-          .join("")
-          .substring(0, 2)
-          .toUpperCase()
-      : "AG",
-  }
+    name: property.agent_name,
+    phone: property.agent_phone,
+    email: property.agent_email,
+    person_id: property.person_id,          // 👈 Éste es el ID que necesita el backend
+    initials: (property.agent_name || "")
+      .split(" ")
+      .map(w => w[0])
+      .join("")
+      .substring(0, 2)
+      .toUpperCase()
+  };
+  console.log("agentInfo:", agentInfo)
+
 
 
   return (
@@ -349,9 +352,8 @@ export const PropiedadSeleccionada = () => {
                 )}
                 {property.status && (
                   <span
-                    className={`px-3 py-1 rounded-full text-sm ${
-                      property.status === "Disponible" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
-                    }`}
+                    className={`px-3 py-1 rounded-full text-sm ${property.status === "Disponible" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
+                      }`}
                   >
                     {property.status}
                   </span>
@@ -385,48 +387,48 @@ export const PropiedadSeleccionada = () => {
               {/* Generar slides agrupando imágenes de 3 en 3 */}
               {Array.from({ length: totalSlides }, (_, slideIndex) => (
                 <div key={slideIndex} className="min-w-full h-full flex gap-2 p-2">
-                {displayImages
-                  .slice(slideIndex * 3, slideIndex * 3 + 3)
-                  .map((imageUrl, imageIndex) => {
-                    const globalIndex = slideIndex * 3 + imageIndex;
-                    return (
-                      <div key={globalIndex} className="flex-1 h-full relative">
-                        {imageUrl.includes("360") ? (
-                          // VISOR 360
-                          <div className="w-full h-full rounded-lg overflow-hidden">
-                            <PhotoSphereViewerContainer imageUrl={imageUrl}  style={{ width: '100%', height: '100%', borderRadius: '0.5rem' }}/>
-                          </div>
-                        ) : (
-                          // IMAGEN normal
-                          <img
-                            src={imageUrl || "/placeholder.svg"}
-                            alt={`Imagen ${globalIndex + 1} de la propiedad`}
-                            className="w-full h-full object-cover rounded-lg"
-                            onError={(e) => handleImageError(e, imageUrl, globalIndex)}
-                            onLoad={(e) => {
-                              console.log(`✅ Image loaded successfully: ${imageUrl}`);
-                              // @ts-ignore
-                              e.currentTarget.style.opacity = '1';
-                            }}
-                            loading={globalIndex < 3 ? "eager" : "lazy"}
-                            style={{
-                              opacity: 1, // ahora siempre visible
-                              transition: 'opacity 0.3s ease-in-out'
-                            }}
-                          />
-                        )}
+                  {displayImages
+                    .slice(slideIndex * 3, slideIndex * 3 + 3)
+                    .map((imageUrl, imageIndex) => {
+                      const globalIndex = slideIndex * 3 + imageIndex;
+                      return (
+                        <div key={globalIndex} className="flex-1 h-full relative">
+                          {imageUrl.includes("360") ? (
+                            // VISOR 360
+                            <div className="w-full h-full rounded-lg overflow-hidden">
+                              <PhotoSphereViewerContainer imageUrl={imageUrl} style={{ width: '100%', height: '100%', borderRadius: '0.5rem' }} />
+                            </div>
+                          ) : (
+                            // IMAGEN normal
+                            <img
+                              src={imageUrl || "/placeholder.svg"}
+                              alt={`Imagen ${globalIndex + 1} de la propiedad`}
+                              className="w-full h-full object-cover rounded-lg"
+                              onError={(e) => handleImageError(e, imageUrl, globalIndex)}
+                              onLoad={(e) => {
+                                console.log(`✅ Image loaded successfully: ${imageUrl}`);
+                                // @ts-ignore
+                                e.currentTarget.style.opacity = '1';
+                              }}
+                              loading={globalIndex < 3 ? "eager" : "lazy"}
+                              style={{
+                                opacity: 1, // ahora siempre visible
+                                transition: 'opacity 0.3s ease-in-out'
+                              }}
+                            />
+                          )}
 
-                        {/* Overlay con información de la imagen */}
-                        {images[globalIndex] && (
-                          <div className="absolute bottom-2 left-2 bg-black bg-opacity-50 text-white px-2 py-1 rounded text-xs">
-                            {images[globalIndex].is_main
-                              ? "⭐ Principal"
-                              : `📸 ${globalIndex + 1}`}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
+                          {/* Overlay con información de la imagen */}
+                          {images[globalIndex] && (
+                            <div className="absolute bottom-2 left-2 bg-black bg-opacity-50 text-white px-2 py-1 rounded text-xs">
+                              {images[globalIndex].is_main
+                                ? "⭐ Principal"
+                                : `📸 ${globalIndex + 1}`}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
 
 
                   {/* Rellenar espacios vacíos si no hay suficientes imágenes */}
@@ -476,9 +478,8 @@ export const PropiedadSeleccionada = () => {
                     <button
                       key={index}
                       onClick={() => goToSlide(index)}
-                      className={`w-3 h-3 rounded-full transition-all duration-200 ${
-                        index === currentSlide ? "bg-white shadow-lg" : "bg-white bg-opacity-50 hover:bg-opacity-75"
-                      }`}
+                      className={`w-3 h-3 rounded-full transition-all duration-200 ${index === currentSlide ? "bg-white shadow-lg" : "bg-white bg-opacity-50 hover:bg-opacity-75"
+                        }`}
                       aria-label={`Ir al slide ${index + 1}`}
                     />
                   ))}
@@ -561,8 +562,8 @@ export const PropiedadSeleccionada = () => {
                   className="w-full h-full"
                   src={`https://maps.google.com/maps?q=${encodeURIComponent(
                     property.address ||
-                      [property.city, property.neighborhood].filter(Boolean).join(" ") ||
-                      "Bogotá, Colombia",
+                    [property.city, property.neighborhood].filter(Boolean).join(" ") ||
+                    "Bogotá, Colombia",
                   )}&t=&z=15&ie=UTF8&iwloc=&output=embed`}
                   loading="lazy"
                   title="Ubicación de la propiedad"
@@ -604,14 +605,14 @@ export const PropiedadSeleccionada = () => {
                 onClick={() =>
                   navigate("/contact-agent", {
                     state: {
-                      agent: agentInfo,
-                      property: property,
-                    },
+                      agent: agentInfo,  // ✅  ya NO mandes todo el property
+                      property: property
+                    }
                   })
                 }
-                className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-3 px-4 rounded-lg transition-colors duration-200 shadow-lg hover:shadow-xl"
+                className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-3 px-4 rounded-lg transition-colors"
               >
-                Contactar Agente →
+                Contactar Agente →
               </button>
             </div>
 

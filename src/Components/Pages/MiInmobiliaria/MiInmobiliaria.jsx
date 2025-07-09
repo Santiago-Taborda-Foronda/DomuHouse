@@ -68,6 +68,7 @@ const propiedadesIniciales = [
   }
 ];
 
+
 export default function MiInmobiliaria() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -90,21 +91,52 @@ export default function MiInmobiliaria() {
   const [isAuthenticated, setIsAuthenticated] = useState(true)
 
   // Función para cargar propiedades (preparada para backend)
-  const cargarPropiedades = async () => {
-    try {
-      // AQUÍ SE CONECTARÁ CON EL BACKEND
-      /*
-      const response = await fetch('/api/properties');
-      const data = await response.json();
-      setPropiedades(data);
-      */
-      
-      // Por ahora mantenemos las propiedades iniciales
-      // En el futuro, aquí se cargarán desde el backend
-    } catch (error) {
-      console.error('Error al cargar propiedades:', error);
+const cargarPropiedades = async () => {
+  const adminId = localStorage.getItem('adminId');
+
+  if (!adminId) {
+    console.error("adminId no encontrado en localStorage");
+    return;
+  }
+  
+  try {
+    const response = await fetch(`https://imagen-domuhouse-express.onrender.com/api/properties/admin/${adminId}`);
+
+    if (!response.ok) {
+      throw new Error('Error al obtener propiedades');
     }
-  };
+
+    const data = await response.json();
+
+    const propiedadesAdaptadas = data.map(prop => ({
+      id: prop.property_id,
+      title: prop.property_title,
+      price: prop.price,
+      status: prop.status,
+      address: `${prop.neighborhood}, ${prop.city}`,
+      type: prop.property_type.toLowerCase(),
+      rooms: prop.bedrooms,
+      bathrooms: prop.bathrooms,
+      area: parseFloat(prop.built_area),
+      propertyType: prop.operation_type.toLowerCase(),
+      description: '',
+      images: [],
+      agent: {
+        name: `${prop.agent_name} ${prop.agent_lastname}`,
+        phone: prop.agent_phone,
+        email: prop.agent_email,
+      },
+      createdAt: '',
+    }));
+
+    setPropiedades(propiedadesAdaptadas);
+  } catch (error) {
+    console.error('Error al cargar propiedades:', error);
+    alert('Error al obtener propiedades');
+  }
+};
+
+
 
   // Cargar propiedades al montar el componente
   useEffect(() => {
@@ -281,7 +313,7 @@ export default function MiInmobiliaria() {
               </div>
               
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-                <div>
+                {/* <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Estado</label>
                   <select 
                     className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#2F8EAC] focus:border-[#2F8EAC] transition-colors text-sm"
@@ -294,7 +326,7 @@ export default function MiInmobiliaria() {
                     <option value="arrendada">Arrendada</option>
                     <option value="vendida">Vendida</option>
                   </select>
-                </div>
+                </div> */}
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Tipo</label>
@@ -384,9 +416,9 @@ export default function MiInmobiliaria() {
                           <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                             Precio
                           </th>
-                          <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                          {/* <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                             Estado
-                          </th>
+                          </th> */}
                           <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                             Agente
                           </th>
@@ -430,11 +462,11 @@ export default function MiInmobiliaria() {
                                 {formatearPrecio(propiedad.price)}
                               </div>
                             </td>
-                            <td className="px-6 py-4">
+                            {/* <td className="px-6 py-4">
                               <span className={`inline-flex px-3 py-1 text-xs font-medium rounded-full ${getEstadoColor(propiedad.status)}`}>
                                 {propiedad.status}
                               </span>
-                            </td>
+                            </td> */}
                             <td className="px-6 py-4">
                               <div className="text-sm text-gray-900">{propiedad.agent.name}</div>
                               <div className="text-xs text-gray-500">{propiedad.agent.phone}</div>

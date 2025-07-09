@@ -186,9 +186,10 @@ export const AgendaAdmin = () => {
                     weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
                   })}
                 </h2>
+                <p className="text-xs sm:text-sm text-slate-500">Gestiona y edita la información de las visitas</p>
               </div>
 
-              <div className="divide-y divide-gray-100">
+              <div className="divide-y divide-slate-100">
                 {visitasFiltradas.length === 0 ? (
                   <div className="p-12 text-center text-gray-500">
                     <Calendar className="mx-auto w-12 h-12 text-gray-300" />
@@ -315,7 +316,30 @@ export const AgendaAdmin = () => {
           </div>
         </main>
       </div>
+
+      {/* Modales */}
+      <VisitDetailsModal
+        visita={selectedVisita}
+        agente={selectedVisita ? obtenerAgente(selectedVisita.agenteId) : null}
+        isOpen={isDetailsModalOpen}
+        onClose={() => {
+          setIsDetailsModalOpen(false)
+          setSelectedVisita(null)
+        }}
+      />
+
+      <VisitEditModal
+        visita={selectedVisita}
+        agente={selectedVisita ? obtenerAgente(selectedVisita.agenteId) : null}
+        isOpen={isEditModalOpen}
+        onClose={() => {
+          setIsEditModalOpen(false)
+          setSelectedVisita(null)
+        }}
+        onSave={handleSaveVisita}
+      />
     </div>
   )
   
 }
+

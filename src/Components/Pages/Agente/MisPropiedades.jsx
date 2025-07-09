@@ -114,7 +114,14 @@ export default function MisPropiedades() {
         status: p.status || "Disponible",
         date: p.publish_date ? p.publish_date.split("T")[0] : new Date().toISOString().split("T")[0],
         type: p.property_type_id || p.propertyType || "N/A", // Mapear property_type_id
-        image: p.image?.[0] || "/placeholder.svg?height=80&width=120",
+        image: (() => {
+          try {
+            const imgs = JSON.parse(p.image)
+            return imgs?.[0] || "/placeholder.svg?height=80&width=120"
+          } catch {
+            return "/placeholder.svg?height=80&width=120"
+          }
+        })(),
         price: `$${Number(p.price || 0).toLocaleString("es-CO")}`,
         location: p.address || "Sin dirección",
         description: p.description || "Sin descripción",
@@ -188,6 +195,14 @@ export default function MisPropiedades() {
         parking_spaces: property.parking_spaces || 0,
         operation_type: property.operation_type || "",
         socioeconomic_stratum: property.socioeconomic_stratum || "",
+        image: (() => {
+          try {
+            const imgs = JSON.parse(p.image)
+            return imgs?.[0] || "/placeholder.svg?height=80&width=120"
+          } catch {
+            return "/placeholder.svg?height=80&width=120"
+          }
+        })(),
       })
       setShowViewModal(true)
     } catch (err) {
@@ -196,7 +211,7 @@ export default function MisPropiedades() {
     }
   }
 
-  /* EDITAR (abrir modal) */
+ /* EDITAR (abrir modal) */
   const handleEditProperty = (p) => {
     setSelectedProperty(p)
     setEditForm({
@@ -239,6 +254,7 @@ export default function MisPropiedades() {
           bedrooms: Number(editForm.rooms) || 0, // Usar bedrooms
           bathrooms: Number(editForm.bathrooms) || 0, // Usar bathrooms
           built_area: editForm.area, // Usar built_area
+
         }),
       })
 
@@ -252,17 +268,18 @@ export default function MisPropiedades() {
         prev.map((p) =>
           p.id === selectedProperty.id
             ? {
-                ...p,
-                name: editForm.name,
-                location: editForm.location,
-                description: editForm.description,
-                status: editForm.status,
-                type: editForm.type,
-                area: editForm.area,
-                price: `$${Number(editForm.price).toLocaleString("es-CO")}`,
-                rooms: Number(editForm.rooms),
-                bathrooms: Number(editForm.bathrooms),
-              }
+              ...p,
+              name: editForm.name,
+              location: editForm.location,
+              description: editForm.description,
+              status: editForm.status,
+              type: editForm.type,
+              area: editForm.area,
+              price: `$${Number(editForm.price).toLocaleString("es-CO")}`,
+              rooms: Number(editForm.rooms),
+              bathrooms: Number(editForm.bathrooms),
+
+            }
             : p,
         ),
       )
@@ -387,8 +404,8 @@ export default function MisPropiedades() {
             activeSection={activeSection}
             setActiveSection={setActiveSection}
             sidebarOpen={true}
-            setSidebarOpen={() => {}}
-            toggleSidebar={() => {}}
+            setSidebarOpen={() => { }}
+            toggleSidebar={() => { }}
           />
         </div>
 
@@ -760,10 +777,7 @@ export default function MisPropiedades() {
                       <label className="block text-sm font-medium text-gray-700 mb-1">Agente:</label>
                       <p className="text-gray-900 font-semibold">{selectedProperty.agent}</p>
                     </div>
-                    <div className="bg-gray-50 p-4 rounded-xl">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Teléfono:</label>
-                      <p className="text-gray-900 font-semibold">{selectedProperty.phone}</p>
-                    </div>
+                 
                   </div>
                 </div>
               </div>
@@ -917,11 +931,10 @@ export default function MisPropiedades() {
                     <button
                       onClick={handleSaveEdit}
                       disabled={isSubmitting}
-                      className={`w-full sm:flex-1 py-3 px-4 rounded-xl font-medium transition-colors flex items-center justify-center gap-2 ${
-                        isSubmitting
+                      className={`w-full sm:flex-1 py-3 px-4 rounded-xl font-medium transition-colors flex items-center justify-center gap-2 ${isSubmitting
                           ? "bg-gray-400 text-gray-600 cursor-not-allowed"
                           : "bg-[#2F8EAC] text-white hover:bg-[#267a95]"
-                      }`}
+                        }`}
                     >
                       <Check className="w-4 h-4" />
                       {isSubmitting ? "Guardando..." : "Guardar Cambios"}
@@ -976,11 +989,10 @@ export default function MisPropiedades() {
                   <button
                     onClick={confirmDelete}
                     disabled={isSubmitting}
-                    className={`w-full sm:flex-1 py-3 px-4 rounded-xl font-medium transition-colors flex items-center justify-center gap-2 ${
-                      isSubmitting
+                    className={`w-full sm:flex-1 py-3 px-4 rounded-xl font-medium transition-colors flex items-center justify-center gap-2 ${isSubmitting
                         ? "bg-gray-400 text-gray-600 cursor-not-allowed"
                         : "bg-red-600 text-white hover:bg-red-700"
-                    }`}
+                      }`}
                   >
                     <Trash2 className="w-4 h-4" />
                     {isSubmitting ? "Eliminando..." : "Eliminar"}

@@ -56,15 +56,15 @@ export const EditarInmobiliaria = () => {
 
       const fetchData = async () => {
         try {
-          const response = await fetch(`https://imagen-domuhouse-express.onrender.com/api/inmobiliarias/${id}`);
+          const response = await fetch(`http://localhost:10101/api/inmobiliarias/${id}`);
           const data = await response.json();
-          setInitialData(data);
+          setInitialData(data); 
 
           // Rellenar el formulario con la data real
           setName(data.name_realestate);
           setNit(data.nit);
           setResponsible(data.encargado_nombre);
-          setAddress(data.adress);
+          setAddress(data.address);
           setCity(data.city);
           setPhone(data.phone);
           setEmail(data.email);
@@ -92,7 +92,7 @@ export const EditarInmobiliaria = () => {
             name: initialData.name,
             nit: initialData.nit,
             responsible: initialData.responsible,
-            adress: initialData.adress,
+            address: initialData.address,
             city: initialData.city,
             phone: initialData.phone,
             email: initialData.email,
@@ -130,37 +130,40 @@ export const EditarInmobiliaria = () => {
       }
 
      const handleSave = async () => {
-  setIsLoading(true)
-  try {
-    console.log("🧪 Datos que se van a enviar al backend:", {
-      name_realestate: name,
-      nit,
-      responsible,
-      address,
-      city,
-      department,
-      phone,
-      email,
-      description,
+      setIsLoading(true)
+      try {
+        console.log("🧪 Datos que se van a enviar al backend:", {
+          name_realestate: name,
+          nit,
+          responsible,
+          address,
+          city,
+          department,
+          phone,
+          email,
+          description,
     })
 
-    const response = await fetch(`http://localhost:10101/api/inmobiliarias/realestate/${id}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        name_realestate: name,
-        nit,
-        responsible,
-        address: address,
-        city,
-        department,
-        phone,
-        email,
-        description,
-      }),
-    })
+const response = await fetch(`http://localhost:10101/api/inmobiliarias/realestate/${id}`, {
+  method: 'PUT',
+  headers: {
+    'Content-Type': 'application/json',
+  },
+body: JSON.stringify({
+  name_realestate: name,
+  nit,
+  phone,
+  email,
+  department,
+  city,
+  address,      
+  description,
+  responsible
+})
+
+
+});
+
 
     if (!response.ok) {
       throw new Error("Error al actualizar la inmobiliaria")

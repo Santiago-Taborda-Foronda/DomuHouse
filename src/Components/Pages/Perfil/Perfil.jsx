@@ -1,24 +1,6 @@
 "use client"
-
 import { useState, useEffect } from "react"
-import {
-  User,
-  Edit2,
-  Save,
-  X,
-  Eye,
-  Edit,
-  Trash2,
-  MapPin,
-  Calendar,
-  Phone,
-  Mail,
-  Lock,
-  Camera,
-  Loader2,
-  AlertCircle,
-  Shield,
-} from "lucide-react"
+import { User, Edit2, Save, X, Eye, Edit, Trash2, Mail, Lock, Camera, Loader2, AlertCircle, Shield } from "lucide-react"
 
 export const Perfil = () => {
   const [isEditing, setIsEditing] = useState(false)
@@ -27,6 +9,8 @@ export const Perfil = () => {
   const [error, setError] = useState(null)
   const [saving, setSaving] = useState(false)
   const [isClient, setIsClient] = useState(false)
+  const [misPropiedades, setMisPropiedades] = useState([])
+  const [totalMisPropiedades, setTotalMisPropiedades] = useState(0)
 
   const [userData, setUserData] = useState({
     nombre: "",
@@ -43,50 +27,46 @@ export const Perfil = () => {
 
   const [tempUserData, setTempUserData] = useState({ ...userData })
 
-  // Datos de ejemplo para las propiedades
-  const propiedadesPublicadas = [
-    {
-      id: 1,
-      address: "Ur La Portada Americana 23 #56",
-      title: "Casa Lomas Del Norte",
-      rooms: 3,
-      bathrooms: 3,
-      area: 120,
-      price: "7250000",
-      type: "casa",
-      propertyType: "venta",
-      status: "Disponible",
-      image: "/placeholder.svg?height=80&width=120",
-    },
-  ]
+  // Función para actualizar localStorage y notificar cambios
+  const updateUserDataInStorage = (newUserData) => {
+    try {
+      // Obtener datos actuales del localStorage
+      const currentUserData = JSON.parse(localStorage.getItem("userData") || "{}")
 
-  const propiedadesAdquiridas = [
-    {
-      id: 101,
-      address: "Calle 15 #45-67, Zona Rosa",
-      title: "Apartamento Moderno Centro",
-      rooms: 2,
-      bathrooms: 2,
-      area: 85,
-      price: "4500000",
-      type: "apartamento",
-      propertyType: "compra",
-      status: "Comprada",
-      fechaAdquisicion: "2024-03-15",
-      vendedor: "Juan Pérez",
-      image: "/placeholder.svg?height=80&width=120",
-    },
-  ]
+      // Actualizar con los nuevos datos
+      const updatedUserData = {
+        ...currentUserData,
+        name_person: newUserData.nombre,
+        name: newUserData.nombre,
+        email: newUserData.correo,
+        telefono: newUserData.telefono,
+      }
+
+      // Guardar en localStorage
+      localStorage.setItem("userData", JSON.stringify(updatedUserData))
+
+      // Disparar evento personalizado para notificar al Header
+      window.dispatchEvent(
+        new CustomEvent("userDataUpdated", {
+          detail: updatedUserData,
+        }),
+      )
+
+      console.log("✅ Datos actualizados en localStorage:", updatedUserData)
+    } catch (error) {
+      console.error("❌ Error actualizando localStorage:", error)
+    }
+  }
 
   // Función mejorada para obtener y decodificar el token
   const getTokenAndUserInfo = () => {
     if (typeof window === "undefined") return null
 
-    // Intenta obtener el token de diferentes lugares
-    const token = localStorage.getItem("token") || 
-                  sessionStorage.getItem("token") || 
-                  localStorage.getItem("authToken") || 
-                  sessionStorage.getItem("authToken")
+    const token =
+      localStorage.getItem("token") ||
+      sessionStorage.getItem("token") ||
+      localStorage.getItem("authToken") ||
+      sessionStorage.getItem("authToken")
 
     console.log("🔑 Token obtenido del storage:", token)
 
@@ -98,7 +78,7 @@ export const Perfil = () => {
     try {
       const payload = JSON.parse(atob(token.split(".")[1]))
       console.log("🔍 Payload decodificado:", payload)
-      
+
       return {
         token,
         userId: payload.id,
@@ -116,7 +96,11 @@ export const Perfil = () => {
   // Función mejorada para hacer peticiones autenticadas
   const fetchWithAuth = async (url, options = {}) => {
     const authInfo = getTokenAndUserInfo()
-    
+
+    console.log("🔍 DEBUG - authInfo completo:", authInfo)
+    console.log("🔍 DEBUG - token existe:", !!authInfo?.token)
+    console.log("🔍 DEBUG - token length:", authInfo?.token?.length)
+
     if (!authInfo?.token) {
       console.error("❌ No hay token disponible para la petición")
       throw new Error("No se encontró token de autenticación")
@@ -131,13 +115,14 @@ export const Perfil = () => {
       ...options.headers,
     }
 
+    console.log("🔍 DEBUG - Headers que se envían:", headers)
+
     try {
-      const response = await fetch(url, { 
-        ...options, 
+      const response = await fetch(url, {
+        ...options,
         headers,
-        credentials: 'include' // Importante para cookies de sesión
       })
-      
+
       console.log("📡 Respuesta recibida. Status:", response.status)
 
       if (!response.ok) {
@@ -155,15 +140,24 @@ export const Perfil = () => {
     }
   }
 
+  const cargarPropiedadesDelUsuario = async (userId) => {
+    try {
+      const data = await fetchWithAuth(`http://localhost:10101/api/properties/mis-propiedades/${userId}`)
+      setMisPropiedades(data.properties || [])
+      setTotalMisPropiedades(data.total || 0)
+    } catch (err) {
+      console.error("❌ Error al cargar propiedades del usuario:", err)
+      setError("Error de conexión. Verifica tu conexión a Internet o la disponibilidad del servidor.")
+    }
+  }
+
   // Cargar datos del perfil
   useEffect(() => {
     setIsClient(true)
-
     const cargarPerfil = async () => {
       try {
         setLoading(true)
         setError(null)
-
         const authInfo = getTokenAndUserInfo()
         console.log("🔍 Información de autenticación:", authInfo)
 
@@ -177,16 +171,16 @@ export const Perfil = () => {
         // Primero intenta cargar desde el backend
         try {
           const baseUrl = "http://localhost:10101"
-          const url = `${baseUrl}/api/perfil`
-          
+          const url = `${baseUrl}/api/getUser/perfil`
+
           console.log("🔍 Intentando cargar perfil desde:", url)
           const response = await fetchWithAuth(url)
-          
+
           if (response.success) {
             console.log("✅ Perfil cargado desde backend:", response.data)
             const datosUsuario = {
               nombre: response.data.nombre || authInfo.name,
-              telefono: response.data.telefono || "",
+              telefono: response.data.telefono,
               correo: response.data.correo || authInfo.email,
               contraseña: "••••••••••••••••",
               fechaRegistro: response.data.fechaRegistro || new Date().toISOString(),
@@ -196,7 +190,6 @@ export const Perfil = () => {
               verified: response.data.verified || false,
               active: response.data.active || true,
             }
-
             setUserData(datosUsuario)
             setTempUserData(datosUsuario)
           } else {
@@ -205,11 +198,11 @@ export const Perfil = () => {
           }
         } catch (backendError) {
           console.warn("⚠️ No se pudo cargar desde el backend. Usando datos del token:", backendError)
-          
+
           // Fallback: usa los datos del token si el backend falla
           const datosUsuario = {
             nombre: authInfo.name,
-            telefono: "",
+            telefono: authInfo.telefono,
             correo: authInfo.email,
             contraseña: "••••••••••••••••",
             fechaRegistro: new Date().toISOString(),
@@ -219,7 +212,6 @@ export const Perfil = () => {
             verified: false,
             active: true,
           }
-
           setUserData(datosUsuario)
           setTempUserData(datosUsuario)
         }
@@ -234,6 +226,11 @@ export const Perfil = () => {
     if (typeof window !== "undefined") {
       cargarPerfil()
     }
+
+    const authInfo = getTokenAndUserInfo()
+    if (authInfo?.userId) {
+      cargarPropiedadesDelUsuario(authInfo.userId)
+    }
   }, [])
 
   // Función para actualizar el perfil
@@ -241,10 +238,9 @@ export const Perfil = () => {
     try {
       setSaving(true)
       const baseUrl = "http://localhost:10101"
-
       console.log("🔄 Intentando actualizar perfil con datos:", datosActualizados)
-      
-      const response = await fetchWithAuth(`${baseUrl}/api/perfil`, {
+
+      const response = await fetchWithAuth(`${baseUrl}/api/update/perfil`, {
         method: "PUT",
         body: JSON.stringify({
           nombre: datosActualizados.nombre,
@@ -265,6 +261,10 @@ export const Perfil = () => {
 
         setUserData(datosActualizadosCompletos)
         setTempUserData(datosActualizadosCompletos)
+
+        // ✅ AQUÍ ESTÁ LA SOLUCIÓN: Actualizar localStorage y notificar al Header
+        updateUserDataInStorage(datosActualizadosCompletos)
+
         return { success: true }
       } else {
         throw new Error(response.message || "Error al actualizar el perfil")
@@ -349,26 +349,25 @@ export const Perfil = () => {
 
   // Funciones auxiliares
   const formatearPrecio = (precio) => {
-    const numero = typeof precio === "string" ? Number.parseInt(precio.replace(/[^\d]/g, "")) : precio
+    const amount = typeof precio === "string" ? Number.parseInt(precio.replace(/\D/g, "")) : precio
     return new Intl.NumberFormat("es-CO", {
       style: "currency",
       currency: "COP",
       minimumFractionDigits: 0,
-    }).format(numero)
+    }).format(amount)
   }
 
   const getEstadoColor = (estado) => {
     switch (estado.toLowerCase()) {
       case "disponible":
-        return "bg-emerald-100 text-emerald-700 border border-emerald-200"
-      case "alquilada":
+        return "bg-green-100 text-green-800 border border-green-200"
       case "arrendada":
-        return "bg-blue-100 text-blue-700 border border-blue-200"
+      case "alquilada":
+        return "bg-blue-100 text-blue-800 border border-blue-200"
       case "vendida":
-      case "comprada":
-        return "bg-purple-100 text-purple-700 border border-purple-200"
+        return "bg-purple-100 text-purple-800 border border-purple-200"
       default:
-        return "bg-gray-100 text-gray-700 border border-gray-200"
+        return "bg-gray-100 text-gray-800 border border-gray-200"
     }
   }
 
@@ -385,9 +384,7 @@ export const Perfil = () => {
   const obtenerDatos = () => {
     switch (activeTab) {
       case "publicadas":
-        return propiedadesPublicadas
-      case "adquiridas":
-        return propiedadesAdquiridas
+        return misPropiedades
       default:
         return []
     }
@@ -469,23 +466,16 @@ export const Perfil = () => {
                   {getNombreRol(userData.role)}
                 </span>
               </div>
-
-              
             </div>
 
             {/* Estadísticas */}
             <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="bg-gradient-to-r from-blue-50 to-blue-100 p-6 rounded-xl border border-blue-200">
-                <div className="text-3xl font-bold text-blue-700">{userData.propiedadesPublicadas}</div>
+              <div
+                className="bg-gradient-to-r from-blue-50 to-blue-100 p-4 rounded-xl border border-blue-200 cursor-pointer hover:shadow-md transition-shadow"
+                onClick={() => setActiveTab("publicadas")}
+              >
+                <div className="text-3xl font-bold text-blue-700">{totalMisPropiedades}</div>
                 <div className="text-blue-600 font-medium">Propiedades Publicadas</div>
-              </div>
-              <div className="bg-gradient-to-r from-green-50 to-green-100 p-6 rounded-xl border border-green-200">
-                <div className="text-3xl font-bold text-green-700">{userData.propiedadesVendidas}</div>
-                <div className="text-green-600 font-medium">Propiedades Vendidas</div>
-              </div>
-              <div className="bg-gradient-to-r from-purple-50 to-purple-100 p-6 rounded-xl border border-purple-200">
-                <div className="text-3xl font-bold text-purple-700">{propiedadesAdquiridas.length}</div>
-                <div className="text-purple-600 font-medium">Propiedades Adquiridas</div>
               </div>
             </div>
           </div>
@@ -546,22 +536,6 @@ export const Perfil = () => {
 
                 <div>
                   <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-3">
-                    <Phone className="w-4 h-4" />
-                    Teléfono
-                  </label>
-                  <input
-                    type="text"
-                    value={isEditing ? tempUserData.telefono : userData.telefono}
-                    onChange={(e) => handleInputChange("telefono", e.target.value)}
-                    className={`w-full px-4 py-3 border border-gray-300 rounded-lg focus:border-[#2F8EAC] focus:outline-none focus:ring-2 focus:ring-[#2F8EAC]/20 transition-all ${
-                      isEditing ? "text-gray-900 bg-white" : "text-gray-600 bg-gray-50"
-                    }`}
-                    readOnly={!isEditing}
-                  />
-                </div>
-
-                <div>
-                  <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-3">
                     <Mail className="w-4 h-4" />
                     Correo
                   </label>
@@ -607,98 +581,79 @@ export const Perfil = () => {
                       : "text-gray-600 bg-gray-50 hover:bg-gray-100"
                   }`}
                 >
-                  Mis Propiedades ({propiedadesPublicadas.length})
-                </button>
-                <button
-                  onClick={() => setActiveTab("adquiridas")}
-                  className={`flex-1 px-6 py-4 text-sm font-medium transition-all ${
-                    activeTab === "adquiridas"
-                      ? "text-white bg-[#2F8EAC] shadow-lg"
-                      : "text-gray-600 bg-gray-50 hover:bg-gray-100"
-                  }`}
-                >
-                  Adquiridas ({propiedadesAdquiridas.length})
+                  Mis Propiedades ({misPropiedades.length})
                 </button>
               </div>
             </div>
 
             {/* Lista de propiedades */}
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
-              <div className="px-6 py-4 border-b border-gray-100">
-                <h3 className="font-semibold text-gray-800">{obtenerTitulo()}</h3>
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+              <div className="px-4 py-3 border-b border-gray-100">
+                <h3 className="text-lg font-semibold text-gray-800">Mis Propiedades Publicadas</h3>
                 <p className="text-sm text-gray-500">Administra tus propiedades ({datosActuales.length} propiedades)</p>
               </div>
 
-              <div className="divide-y divide-gray-100">
-                {datosActuales.map((propiedad) => (
-                  <div key={propiedad.id} className="p-6 hover:bg-gray-50 transition-colors">
-                    <div className="flex gap-4">
-                      <img
-                        src={propiedad.image || "/placeholder.svg"}
-                        alt={propiedad.title}
-                        className="w-24 h-20 object-cover rounded-lg border border-gray-200"
-                      />
-                      <div className="flex-1">
-                        <div className="flex items-start justify-between mb-2">
-                          <div>
-                            <h4 className="font-semibold text-gray-900">{propiedad.title}</h4>
-                            <p className="text-sm text-gray-600 flex items-center gap-1">
-                              <MapPin className="w-3 h-3" />
-                              {propiedad.address}
-                            </p>
+              <div className="divide-y divide-gray-200">
+                {datosActuales.map((propiedad) => {
+                  // Manejo seguro de imágenes
+                  let mainImage = "/placeholder.svg"
+                  try {
+                    if (propiedad.image) {
+                      if (propiedad.image.startsWith("[")) {
+                        const images = JSON.parse(propiedad.image)
+                        mainImage = images[0] || mainImage
+                      } else if (propiedad.image.startsWith("http")) {
+                        mainImage = propiedad.image
+                      }
+                    }
+                  } catch (e) {
+                    console.error("Error procesando imagen:", e)
+                  }
+
+                  return (
+                    <div key={propiedad.property_id} className="p-4">
+                      <div className="flex gap-4">
+                        {/* Imagen principal */}
+                        <div className="w-24 h-20 flex-shrink-0">
+                          <img
+                            src={mainImage || "/placeholder.svg"}
+                            alt={propiedad.property_title}
+                            className="w-full h-full object-cover rounded border border-gray-200"
+                            onError={(e) => {
+                              e.target.src = "/placeholder.svg"
+                            }}
+                          />
+                        </div>
+
+                        {/* Detalles de la propiedad */}
+                        <div className="flex-1">
+                          <h4 className="font-bold text-gray-900 mb-1">{propiedad.property_title}</h4>
+                          <p className="text-sm text-gray-600 mb-1">{propiedad.address}</p>
+                          <div className="flex flex-wrap gap-2 text-sm text-gray-600 mb-2">
+                            <span>{propiedad.bedrooms || 0} hab</span>
+                            <span>{propiedad.bathrooms || 0} baños</span>
+                            <span>{propiedad.built_area || 0} m²</span>
+                            <span className="capitalize text-blue-600">{propiedad.operation_type}</span>
                           </div>
-                          <span
-                            className={`inline-flex px-3 py-1 text-xs font-medium rounded-full ${getEstadoColor(propiedad.status)}`}
-                          >
-                            {propiedad.status}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-4 text-sm text-gray-600 mb-3">
-                          <span>{propiedad.rooms} hab</span>
-                          <span>{propiedad.bathrooms} baños</span>
-                          <span>{propiedad.area} m²</span>
-                          <span className="capitalize text-blue-600">{propiedad.propertyType}</span>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <div className="text-lg font-bold text-gray-900">{formatearPrecio(propiedad.price)}</div>
-                          <div className="flex items-center gap-2">
-                            <button
-                              className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                              title="Ver detalles"
-                            >
-                              <Eye className="w-4 h-4" />
-                            </button>
-                            {activeTab !== "adquiridas" && (
-                              <button
-                                className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
-                                title="Editar propiedad"
-                              >
+                          <div className="flex justify-between items-center">
+                            <span className="font-bold text-lg text-gray-900">{formatearPrecio(propiedad.price)}</span>
+                            <div className="flex gap-2">
+                              <button className="text-blue-600 hover:text-blue-800">
+                                <Eye className="w-4 h-4" />
+                              </button>
+                              <button className="text-green-600 hover:text-green-800">
                                 <Edit className="w-4 h-4" />
                               </button>
-                            )}
-                            <button
-                              className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                              title="Eliminar propiedad"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </div>
-                        </div>
-                        {activeTab === "adquiridas" && propiedad.fechaAdquisicion && (
-                          <div className="mt-3 pt-3 border-t border-gray-100">
-                            <div className="flex items-center gap-4 text-xs text-gray-500">
-                              <span className="flex items-center gap-1">
-                                <Calendar className="w-3 h-3" />
-                                Adquirida: {formatearFecha(propiedad.fechaAdquisicion)}
-                              </span>
-                              <span>Vendedor: {propiedad.vendedor}</span>
+                              <button className="text-red-600 hover:text-red-800">
+                                <Trash2 className="w-4 h-4" />
+                              </button>
                             </div>
                           </div>
-                        )}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  )
+                })}
               </div>
             </div>
           </div>

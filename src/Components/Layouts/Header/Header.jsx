@@ -1,21 +1,6 @@
 "use client"
-
 import { useState, useEffect } from "react"
-import {
-  Menu,
-  UserCircle,
-  Settings,
-  LogOut,
-  User,
-  ChevronDown,
-  FileText,
-  CreditCard,
-  Home,
-  Building2,
-} from "lucide-react"
-import LogoDomuHouse from "../../../assets/images/Logo-DomuHouse.png"
-import "../../../index.css"
-import { Button } from "../../UI/Button/Button"
+import { Menu, UserCircle, LogOut, User, FileText, CreditCard, Home, Building2 } from "lucide-react"
 
 export const Header = ({ toggleSidebar, toggleAgentSidebar }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
@@ -34,7 +19,14 @@ export const Header = ({ toggleSidebar, toggleAgentSidebar }) => {
 
     if (token && userData) {
       setIsAuthenticated(true)
-      setUserInfo(JSON.parse(userData))
+      try {
+        const parsedUserData = JSON.parse(userData)
+        setUserInfo(parsedUserData)
+        console.log("✅ Header - Datos de usuario cargados:", parsedUserData)
+      } catch (error) {
+        console.error("❌ Error parsing userData:", error)
+        setUserInfo(null)
+      }
     } else {
       setIsAuthenticated(false)
       setUserInfo(null)
@@ -46,11 +38,22 @@ export const Header = ({ toggleSidebar, toggleAgentSidebar }) => {
     setCurrentPath(window.location.pathname)
   }
 
+  // ✅ AQUÍ ESTÁ LA SOLUCIÓN: Escuchar el evento personalizado
+  const handleUserDataUpdate = (event) => {
+    console.log("🔄 Header - Recibido evento de actualización de usuario:", event.detail)
+    setUserInfo(event.detail)
+    // También actualizar el estado de autenticación si es necesario
+    if (event.detail) {
+      setIsAuthenticated(true)
+    }
+  }
+
   useEffect(() => {
     checkAuthStatus()
     checkCurrentPath()
 
     const handleStorageChange = () => {
+      console.log("📦 Header - Detectado cambio en localStorage")
       checkAuthStatus()
     }
 
@@ -58,10 +61,14 @@ export const Header = ({ toggleSidebar, toggleAgentSidebar }) => {
       checkCurrentPath()
     }
 
+    // ✅ Agregar listener para el evento personalizado
+    window.addEventListener("userDataUpdated", handleUserDataUpdate)
     window.addEventListener("storage", handleStorageChange)
     window.addEventListener("popstate", handleLocationChange)
 
     return () => {
+      // ✅ Limpiar el listener del evento personalizado
+      window.removeEventListener("userDataUpdated", handleUserDataUpdate)
       window.removeEventListener("storage", handleStorageChange)
       window.removeEventListener("popstate", handleLocationChange)
     }
@@ -71,6 +78,7 @@ export const Header = ({ toggleSidebar, toggleAgentSidebar }) => {
   const handleLogout = () => {
     localStorage.removeItem("authToken")
     localStorage.removeItem("userData")
+    localStorage.removeItem("token") // Por si acaso también está guardado con este nombre
     setIsAuthenticated(false)
     setUserInfo(null)
     setShowUserMenu(false)
@@ -79,7 +87,6 @@ export const Header = ({ toggleSidebar, toggleAgentSidebar }) => {
 
   // Verificar si estamos en páginas especiales
   const isInInmobiliariaPage = currentPath.includes("/mi-inmobiliaria") || currentPath.includes("/MiInmobiliaria")
-
   const isInAgentPage =
     currentPath.includes("/AgentDashboard") ||
     currentPath.includes("/MisPropiedades") ||
@@ -98,7 +105,6 @@ export const Header = ({ toggleSidebar, toggleAgentSidebar }) => {
         </button>
       )
     }
-
     if (isInAgentPage && toggleAgentSidebar) {
       return (
         <button onClick={toggleAgentSidebar} className="focus:outline-none lg:hidden">
@@ -106,7 +112,6 @@ export const Header = ({ toggleSidebar, toggleAgentSidebar }) => {
         </button>
       )
     }
-
     return null
   }
 
@@ -126,8 +131,8 @@ export const Header = ({ toggleSidebar, toggleAgentSidebar }) => {
           {renderHamburgerButton()}
 
           {/* Logo */}
-          <img src={LogoDomuHouse || "/placeholder.svg"} alt="LogoDomuHouse" className="w-20 h-auto" />
-          <h1 className="text-base sm:text-lg title-montserrat">
+          <img src="/placeholder.svg?height=40&width=80" alt="LogoDomuHouse" className="w-20 h-auto" />
+          <h1 className="text-base sm:text-lg font-bold">
             DOMU<span className="text-[#2F8EAC]">HOUSE</span>
           </h1>
 
@@ -160,8 +165,6 @@ export const Header = ({ toggleSidebar, toggleAgentSidebar }) => {
         <div className="flex items-center space-x-2">
           {/* Menú de información (Términos y Métodos de pago) */}
           <div className="relative">
-            
-
             {showInfoMenu && (
               <div className="absolute right-0 mt-2 w-56 bg-white border border-gray-200 rounded-xl shadow-lg py-2 z-50">
                 <button
@@ -188,38 +191,25 @@ export const Header = ({ toggleSidebar, toggleAgentSidebar }) => {
             )}
           </div>
 
-          {/* Botones de dashboard
-          <Button
-            name="Mi Inmobiliaria"
-            Route="/mi-inmobiliaria/dashboard"
-            className="bg-[#2F8EAC] hover:bg-sky-600 active:bg-sky-700 transition duration-150 ease-in-out text-white px-3 py-2 rounded-xl text-sm"
-          />
-
-          <Button
-            name="Mi Agente"
-            Route="/AgentDashboard"
-            className="bg-[#2F8EAC] hover:bg-sky-600 active:bg-sky-700 transition duration-150 ease-in-out text-white px-3 py-2 rounded-xl text-sm"
-          /> */}
-
           {!isAuthenticated ? (
-            // Botones de autenticación con estilo original
+            // Botones de autenticación
             <>
-              <Button
-                name="Regístrate"
-                Route="/Registrarse"
+              <button
+                onClick={() => (window.location.href = "/Registrarse")}
                 className="bg-[#2F8EAC] hover:bg-sky-600 active:bg-sky-700 transition duration-150 ease-in-out text-white px-3 py-2 rounded-xl text-sm"
-              />
-              <Button
-                name="Iniciar"
-                Route="/Login"
+              >
+                Regístrate
+              </button>
+              <button
+                onClick={() => (window.location.href = "/Login")}
                 className="bg-[#2F8EAC] hover:bg-sky-600 active:bg-sky-700 transition duration-150 ease-in-out text-white px-3 py-2 rounded-xl text-sm"
-              />
+              >
+                Iniciar
+              </button>
             </>
           ) : (
-            // Perfil de usuario y botón de perfil
+            // Perfil de usuario
             <div className="flex items-center space-x-2">
-              {/* Botón directo al perfil */}
-            
               {/* Menú desplegable del usuario */}
               <div className="relative">
                 <button
@@ -253,28 +243,22 @@ export const Header = ({ toggleSidebar, toggleAgentSidebar }) => {
                       <User size={16} />
                       Mi Perfil
                     </button>
-                    {/* <button
-                      onClick={() => {
-                        setShowUserMenu(false)
-                        window.location.href = "/configuracion"
-                      }}
-                      className="flex items-center gap-2 w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 rounded-lg mx-1"
-                    >
-                      <Settings size={16} />
-                      Configuración
-                    </button> */}
-                  <button
-                      onClick={() => {
-                        setShowUserMenu(false)
-                        window.location.href = "/Usuario/CrearPropiedadUsuario"
-                      }}
-                      className="flex items-center gap-2 w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 rounded-lg mx-1"
-                    >
-                      <Home size={16} />
-                      Crear Propiedad
-                    </button>
+
+                    {userInfo?.role_id === 3 && (
+                      <button
+                        onClick={() => {
+                          setShowUserMenu(false)
+                          window.location.href = "/Usuario/CrearPropiedadUsuario"
+                        }}
+                        className="flex items-center gap-2 w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 rounded-lg mx-1"
+                      >
+                        <Home size={16} />
+                        Crear Propiedad
+                      </button>
+                    )}
 
                     <hr className="my-1" />
+
                     <button
                       onClick={handleLogout}
                       className="flex items-center gap-2 w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 rounded-lg mx-1"

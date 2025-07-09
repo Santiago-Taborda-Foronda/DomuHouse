@@ -313,7 +313,7 @@ const cargarPropiedades = async () => {
               </div>
               
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-                <div>
+                {/* <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Estado</label>
                   <select 
                     className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#2F8EAC] focus:border-[#2F8EAC] transition-colors text-sm"
@@ -326,7 +326,7 @@ const cargarPropiedades = async () => {
                     <option value="arrendada">Arrendada</option>
                     <option value="vendida">Vendida</option>
                   </select>
-                </div>
+                </div> */}
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Tipo</label>
@@ -416,9 +416,9 @@ const cargarPropiedades = async () => {
                           <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                             Precio
                           </th>
-                          <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                          {/* <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                             Estado
-                          </th>
+                          </th> */}
                           <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                             Agente
                           </th>
@@ -462,11 +462,11 @@ const cargarPropiedades = async () => {
                                 {formatearPrecio(propiedad.price)}
                               </div>
                             </td>
-                            <td className="px-6 py-4">
+                            {/* <td className="px-6 py-4">
                               <span className={`inline-flex px-3 py-1 text-xs font-medium rounded-full ${getEstadoColor(propiedad.status)}`}>
                                 {propiedad.status}
                               </span>
-                            </td>
+                            </td> */}
                             <td className="px-6 py-4">
                               <div className="text-sm text-gray-900">{propiedad.agent.name}</div>
                               <div className="text-xs text-gray-500">{propiedad.agent.phone}</div>

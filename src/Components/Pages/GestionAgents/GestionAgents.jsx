@@ -362,7 +362,7 @@ export const GestionAgents = () => {
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                <div>
+                {/* <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Estado</label>
                   <select
                     className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#2F8EAC] focus:border-[#2F8EAC] transition-colors text-sm sm:text-base"
@@ -373,9 +373,9 @@ export const GestionAgents = () => {
                     <option value="activo">Activo</option>
                     <option value="inactivo">Inactivo</option>
                   </select>
-                </div>
+                </div> */}
 
-                <div>
+                {/* <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Especialidad</label>
                   <select
                     className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#2F8EAC] focus:border-[#2F8EAC] transition-colors text-sm sm:text-base"
@@ -389,7 +389,7 @@ export const GestionAgents = () => {
                       </option>
                     ))}
                   </select>
-                </div>
+                </div> */}
 
                 <div className="sm:col-span-2 lg:col-span-1">
                   <label className="block text-sm font-medium text-gray-700 mb-2">Búsqueda</label>
@@ -451,7 +451,7 @@ export const GestionAgents = () => {
                           <th className="px-4 lg:px-6 py-3 lg:py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                             Propiedades
                           </th>
-                        e
+                        
                           <th className="px-4 lg:px-6 py-3 lg:py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                             Acciones
                           </th>
@@ -471,16 +471,16 @@ export const GestionAgents = () => {
                                 </div>
                                 <div>
                                   <div className="text-sm font-semibold text-gray-900">{agente.name}</div>
-                                  <div className="text-xs text-gray-500">
+                                  {/* <div className="text-xs text-gray-500">
                                     {Array.isArray(agente.specialties)
                                       ? agente.specialties.join(", ")
                                       : agente.specialties}
-                                  </div>
-                                  <span
+                                  </div> */}
+                                  {/* <span
                                     className={`inline-flex px-2 py-1 text-xs font-medium rounded-full mt-1 ${getEstadoColor(agente.status)}`}
                                   >
                                     {agente.status}
-                                  </span>
+                                  </span> */}
                                 </div>
                               </div>
                             </td>

@@ -55,15 +55,15 @@ export const AgentDetailsModal = ({ agent, isOpen, onClose }) => {
             </div>
             <div className="flex-1">
               <h3 className="text-xl font-semibold text-gray-900 mb-1">{agent.name}</h3>
-              <div className="flex items-center gap-2 mb-2">
+              {/* <div className="flex items-center gap-2 mb-2">
                 {renderStars(agent.rating)}
                 <span className="text-sm text-gray-600">({agent.rating}/5)</span>
-              </div>
-              <span
+              </div> */}
+              {/* <span
                 className={`inline-flex px-3 py-1 text-sm font-medium rounded-full ${getEstadoColor(agent.status)}`}
               >
                 {agent.status}
-              </span>
+              </span> */}
             </div>
           </div>
 
@@ -92,7 +92,7 @@ export const AgentDetailsModal = ({ agent, isOpen, onClose }) => {
               </div>
             </div>
 
-            <div>
+            {/* <div>
               <h4 className="text-sm font-semibold text-gray-700 mb-3">Estadísticas</h4>
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
@@ -108,7 +108,7 @@ export const AgentDetailsModal = ({ agent, isOpen, onClose }) => {
                   <div className="flex items-center gap-1">{renderStars(agent.rating)}</div>
                 </div>
               </div>
-            </div>
+            </div> */}
           </div>
 
           {/* Specialties */}

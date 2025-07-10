@@ -880,7 +880,7 @@ const AgregarPropiedad = () => {
               </div>
 
               {/* Valoración automática */}
-              <div className="bg-white rounded-2xl p-6 shadow-sm">
+              {/* <div className="bg-white rounded-2xl p-6 shadow-sm">
                 <div className="text-center mb-4">
                   <p className="text-lg font-semibold text-gray-800 mb-2">Valoración Automática</p>
                   {precioEstimado && <p className="text-2xl font-bold text-green-600">${precioEstimado}</p>}
@@ -900,7 +900,7 @@ const AgregarPropiedad = () => {
                     * El precio se ha actualizado automáticamente en el formulario
                   </p>
                 )}
-              </div>
+              </div> */}
             </div>
           </div>
         </form>

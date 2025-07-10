@@ -736,7 +736,7 @@ export default function CrearPropiedad() {
                   </div>
 
                   {/* Valoración automática */}
-                  <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-gray-100">
+                  {/* <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-gray-100">
                     <div className="text-center mb-4">
                       <p className="text-lg font-semibold text-gray-800 mb-2">Valoración Automática</p>
                       {precioEstimado && (
@@ -756,7 +756,7 @@ export default function CrearPropiedad() {
                         * El precio se ha actualizado automáticamente en el formulario
                       </p>
                     )}
-                  </div>
+                  </div> */}
 
                   {/* Mapa */}
                   <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-gray-100">

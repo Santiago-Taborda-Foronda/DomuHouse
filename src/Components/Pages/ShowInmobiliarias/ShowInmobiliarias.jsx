@@ -27,16 +27,16 @@ export const ShowInmobiliarias = () => {
         // Depuración: Verificar los datos devueltos
         data.forEach((re) => console.log('RealEstate Data:', re));
         // Generar logoUrl y propiedades simuladas
-      const updatedData = data.map((re) => ({
-  ...re,
-  adminName: re.admin_name,
-  adminLastName: re.admin_lastname,
-  logoUrl: re.logo_url || `/uploads/logo_${re.id}.jpg`,
-  properties: Array.from({ length: re.num_properties }, (_, index) => ({
-    id: `${re.id}_${index + 1}`,
-    photoUrl: `/uploads/property_${re.id}_${index + 1}.jpg`,
-  })),
-}));
+        const updatedData = data.map((re) => ({
+          ...re,
+          adminName: re.admin_name,
+          adminLastName: re.admin_lastname,
+          logoUrl: re.logo_url || `/uploads/logo_${re.id}.jpg`,
+          properties: Array.from({ length: re.num_properties }, (_, index) => ({
+            id: `${re.id}_${index + 1}`,
+            photoUrl: `/uploads/property_${re.id}_${index + 1}.jpg`,
+          })),
+        }));
         setRealEstates(updatedData);
         setFilteredRealEstates(updatedData);
       } catch (error) {

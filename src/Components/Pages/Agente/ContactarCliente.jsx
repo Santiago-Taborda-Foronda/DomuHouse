@@ -11,45 +11,26 @@ import AgentSideBar from "./Components/AgentSideBar"
 
 export default function ContactarCliente() {
   const [activeSection, setActiveSection] = useState("Contactar Clientes")
-
-
   const [sidebarOpen, setSidebarOpen] = useState(false)
-
-
   const [searchTerm, setSearchTerm] = useState("")
-
-
   const [selectedClient, setSelectedClient] = useState(null)
-
-
   const [message, setMessage] = useState("")
-
-
   const [isSubmitting, setIsSubmitting] = useState(false)
-
-
   const [submitSuccess, setSubmitSuccess] = useState(false)
-
   const [submitError, setSubmitError] = useState("")
 
   // Estados para la API
 
   const [clients, setClients] = useState([])
-
   const [clientsLoading, setClientsLoading] = useState(false)
-
   const [clientsError, setClientsError] = useState("")
-
   const [agentId, setAgentId] = useState(null)
 
   // Estados para visitas
 
   const [visits, setVisits] = useState([])
-
   const [visitsLoading, setVisitsLoading] = useState(false)
-
   const [visitsError, setVisitsError] = useState("")
-
   const [filterType, setFilterType] = useState("todos")
 
   // 🔧 Función para alternar el sidebar de agente

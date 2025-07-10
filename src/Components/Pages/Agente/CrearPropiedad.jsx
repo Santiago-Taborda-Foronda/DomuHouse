@@ -144,9 +144,7 @@ export default function CrearPropiedad() {
     const typeMap = {
       casa: 1,
       apartamento: 2,
-      local: 3,
-      oficina: 4,
-      terreno: 5,
+      Finca: 3,
     }
     const id = typeMap[type?.toLowerCase()]
     console.log(`🏠 Mapeando tipo "${type}" → ID: ${id}`)
@@ -538,7 +536,6 @@ export default function CrearPropiedad() {
                         >
                           <option value="Venta">En Venta</option>
                           <option value="Arriendo">En Arriendo</option>
-                          <option value="Arriendo con opción de compra">Arriendo con opción de compra</option>
                         </select>
                       </div>
                       <select

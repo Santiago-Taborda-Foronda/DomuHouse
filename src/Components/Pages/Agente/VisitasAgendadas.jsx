@@ -33,6 +33,7 @@ export default function VisitasAgendadas() {
     setSidebarOpen(!sidebarOpen)
   }
 
+
   const [editForm, setEditForm] = useState({
     cliente: "",
     propiedad: "",
@@ -40,7 +41,6 @@ export default function VisitasAgendadas() {
     hora: "",
     estado: "",
     telefono: "",
-    email: "",
     direccion: "",
     notas: "",
   })
@@ -72,7 +72,6 @@ export default function VisitasAgendadas() {
             hora: v.visitTime, // "14:00:00"
             estado: v.visitStatus,
             telefono: v.clientPhone || "",
-            email: v.clientEmail || "", // Agregar si está disponible en el backend
             direccion: v.propertyAddress || "",
             notas: v.notes || "", // Agregar si está disponible en el backend
           })) || []
@@ -190,7 +189,6 @@ export default function VisitasAgendadas() {
       hora: visit.hora,
       estado: visit.estado,
       telefono: visit.telefono,
-      email: visit.email,
       direccion: visit.direccion,
       notas: visit.notas || "",
     })
@@ -239,7 +237,6 @@ export default function VisitasAgendadas() {
         visitTime: editForm.hora,
         visitStatus: editForm.estado,
         clientPhone: editForm.telefono,
-        clientEmail: editForm.email,
         propertyAddress: editForm.direccion,
         notes: editForm.notas,
       }
@@ -258,7 +255,6 @@ export default function VisitasAgendadas() {
             hora: editForm.hora,
             estado: editForm.estado,
             telefono: editForm.telefono,
-            email: editForm.email,
             direccion: editForm.direccion,
             notas: editForm.notas,
           }
@@ -340,7 +336,6 @@ export default function VisitasAgendadas() {
           hora: v.visitTime,
           estado: v.visitStatus,
           telefono: v.clientPhone || "",
-          email: v.clientEmail || "",
           direccion: v.propertyAddress || "",
           notas: v.notes || "",
         })) || []
@@ -888,16 +883,6 @@ export default function VisitasAgendadas() {
                         type="text"
                         name="telefono"
                         value={editForm.telefono}
-                        onChange={handleEditFormChange}
-                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#2F8EAC] focus:border-[#2F8EAC] transition-colors"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Email:</label>
-                      <input
-                        type="email"
-                        name="email"
-                        value={editForm.email}
                         onChange={handleEditFormChange}
                         className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#2F8EAC] focus:border-[#2F8EAC] transition-colors"
                       />

@@ -283,7 +283,7 @@ export default function AgentDashboard() {
   const metricCards = [
     { title: "Propiedades", icon: Home, value: properties.length, subtitle: "Totales" },
     { title: "Visitas", icon: Calendar, value: visits.length, subtitle: "Programadas" },
-    { title: "Mensajes", icon: MessageSquare, value: messages.length, subtitle: "Sin leer" },
+    { title: "Mensajes", icon: MessageSquare, value: messages.length, subtitle: "Llegados" },
   ]
 
   /* ───────── vistas de carga / error ───────── */

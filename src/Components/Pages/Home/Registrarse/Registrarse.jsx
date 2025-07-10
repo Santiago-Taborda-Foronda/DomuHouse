@@ -314,107 +314,61 @@ export const Registrarse = () => {
   setIsLoading(true)
   setError("")
   setSuccess("")
-
-    try {
-      // Verificar que tenemos un person_id válido
-      if (!registeredPersonId) {
-        setError("No se ha registrado un usuario válido. Por favor, completa el paso 1.")
-        return
-      }
-
-      // Intentar con ambos endpoints
-      const endpoints = [
-        "https://imagen-domuhouse-express.onrender.com/api/inmobiliarias/registerRealEstate"
-      ]
-
-      let success = false
-      let lastError = null
-
-      for (const endpoint of endpoints) {
-        try {
-          let response
-
-          if (endpoint.includes("registerRealEstate")) {
-            // Preparar los datos según lo que espera el backend
-            const payload = {
-              name_realestate: inmobiliariaData.name_realestate || inmobiliariaData.nombre_inmobiliaria,
-              nit: inmobiliariaData.nit,
-              phone: inmobiliariaData.phone_inmobiliaria || userData.phone,
-              email: inmobiliariaData.email_inmobiliaria || userData.email,
-              num_properties: Number(inmobiliariaData.num_properties),
-              department: inmobiliariaData.department,
-              city: inmobiliariaData.city,
-              adress: inmobiliariaData.address, // Nota: tu backend usa "adress" no "address"
-              description: inmobiliariaData.descripcion_inmobiliaria,
-              person_id: Number(registeredPersonId),
-            }
-
-            console.log("Payload enviado a inmobiliaria:", payload)
-
-            response = await fetch(endpoint, {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify(payload),
-            })
-          } else {
-            // FormData para el otro endpoint
-            const formData = new FormData()
-            formData.append("name", inmobiliariaData.name_realestate || inmobiliariaData.nombre_inmobiliaria)
-            formData.append("nit", inmobiliariaData.nit)
-            formData.append("phone", inmobiliariaData.phone_inmobiliaria || userData.phone)
-            formData.append("email", inmobiliariaData.email_inmobiliaria || userData.email)
-            formData.append("num_properties", Number.parseInt(inmobiliariaData.num_properties, 10))
-            formData.append("department", inmobiliariaData.department)
-            formData.append("city", inmobiliariaData.city)
-            formData.append("adress", inmobiliariaData.address)
-            formData.append("description", inmobiliariaData.descripcion_inmobiliaria)
-            formData.append("person_id", registeredPersonId)
-
-            if (inmobiliariaData.logo) {
-              formData.append("logo", inmobiliariaData.logo)
-            }
-
-            console.log("Payload sent to /api/inmobiliarias/registerRealEstate", Object.fromEntries(formData))
-
-            response = await fetch(endpoint, {
-              method: "POST",
-              body: formData,
-            })
-          }
-
-          console.log("Response status:", response.status)
-          const data = await response.json()
-          console.log("Response data:", data)
-
-          if (response.ok) {
-            setSuccess("¡Inmobiliaria registrada exitosamente! Redirigiendo al login...")
-            setTimeout(() => {
-              redirectToLogin()
-            }, 2000)
-            success = true
-            break
-          } else {
-            lastError = data.message || "Error al registrar la inmobiliaria"
-          }
-        } catch (err) {
-          console.error(`Error with endpoint ${endpoint}:`, err)
-          lastError = err.message
-        }
-      }
-
-      if (!success) {
-        setError(lastError || "Error al registrar la inmobiliaria en todos los endpoints")
-      }
-    } catch (error) {
-      console.error("Error al registrar inmobiliaria:", error)
-      console.error("Error al registrar inmobiliaria:", error)
-      setError("Error de conexión. Por favor, intenta de nuevo. Detalles: " + error.message)
-    } finally {
-      setIsLoading(false)
+  
+  try {
+    // Verificar que tenemos un person_id válido
+    if (!registeredPersonId) {
+      setError("No se ha registrado un usuario válido. Por favor, completa el paso 1.")
+      return
     }
+
+    // ✅ USAR SOLO FORMDATA - eliminar el endpoint JSON
+    const formData = new FormData()
+    
+    // ✅ Usar los nombres correctos que espera tu backend
+    formData.append('name_realestate', inmobiliariaData.name_realestate || inmobiliariaData.nombre_inmobiliaria)
+    formData.append('nit', inmobiliariaData.nit)
+    formData.append('phone', inmobiliariaData.phone_inmobiliaria || userData.phone)
+    formData.append('email', inmobiliariaData.email_inmobiliaria || userData.email)
+    formData.append('num_properties', inmobiliariaData.num_properties)
+    formData.append('department', inmobiliariaData.department)
+    formData.append('city', inmobiliariaData.city)
+    formData.append('address', inmobiliariaData.address) 
+    formData.append('description', inmobiliariaData.descripcion_inmobiliaria)
+    formData.append('person_id', registeredPersonId)
+    
+    // ✅ IMPORTANTE: Agregar el logo
+    if (inmobiliariaData.logo) {
+      formData.append('logo', inmobiliariaData.logo)
+    }
+
+    console.log('📤 Enviando datos de inmobiliaria con logo...')
+    
+    // ✅ Usar el endpoint correcto que configuramos
+    const response = await fetch('http://localhost:10101/api/inmobiliarias/register', {
+      method: 'POST',
+      body: formData, // ✅ NO pongas Content-Type, el navegador lo maneja automáticamente
+    })
+
+    const data = await response.json()
+    console.log('✅ Respuesta del servidor:', data)
+
+    if (response.ok) {
+      setSuccess(`¡Inmobiliaria registrada exitosamente! ${data.logo_url ? 'Logo subido correctamente.' : ''} Redirigiendo al login...`)
+      setTimeout(() => {
+        redirectToLogin()
+      }, 2000)
+    } else {
+      setError(data.message || 'Error al registrar la inmobiliaria')
+    }
+    
+  } catch (error) {
+    console.error('❌ Error al registrar inmobiliaria:', error)
+    setError('Error de conexión. Por favor, intenta de nuevo.')
+  } finally {
+    setIsLoading(false)
   }
+}
   
   const renderStep1 = () => (
     <div className="space-y-6">

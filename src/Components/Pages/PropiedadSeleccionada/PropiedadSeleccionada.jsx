@@ -655,13 +655,13 @@ export const PropiedadSeleccionada = () => {
               </div>
             )}
 
-            {/* Información adicional si no hay propiedades relacionadas */}
+            {/* Información adicional si no hay propiedades relacionadas
             {relatedProperties.length === 0 && (
               <div className="bg-gray-50 p-6 rounded-xl border border-gray-100 text-center">
                 <div className="text-4xl mb-2">🏠</div>
                 <p className="text-sm text-gray-600">No hay propiedades similares disponibles en este momento.</p>
               </div>
-            )}
+            )} */}
           </div>
         </div>
       </div>

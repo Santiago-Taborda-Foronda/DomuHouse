@@ -235,7 +235,7 @@ export const Header = ({ toggleSidebar, toggleAgentSidebar }) => {
                   ) : (
                     <UserCircle className="w-8 h-8 text-gray-600" />
                   )}
-                  <span className="text-sm font-medium text-gray-700 hidden sm:block">
+                  <span className="text-sm font-medium text-gray-700 hidden sm:block max-w-[120px] truncate overflow-hidden text-ellipsis">
                     {userInfo?.name_person || userInfo?.name || "Usuario"}
                   </span>
                 </button>
@@ -263,7 +263,8 @@ export const Header = ({ toggleSidebar, toggleAgentSidebar }) => {
                       <Settings size={16} />
                       Configuración
                     </button> */}
-                  <button
+                  {userInfo?.role_id === 3 && (
+                    <button
                       onClick={() => {
                         setShowUserMenu(false)
                         window.location.href = "/Usuario/CrearPropiedadUsuario"
@@ -273,6 +274,8 @@ export const Header = ({ toggleSidebar, toggleAgentSidebar }) => {
                       <Home size={16} />
                       Crear Propiedad
                     </button>
+                  )}
+
 
                     <hr className="my-1" />
                     <button

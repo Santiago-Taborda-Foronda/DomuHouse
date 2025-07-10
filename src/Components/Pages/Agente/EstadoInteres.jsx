@@ -83,7 +83,7 @@ export default function EstadoInteres() {
       setLoading(true)
       setError("")
       try {
-        const response = await fetch("https://imagen-domuhouse-express.onrender.com/interests")
+        const response = await fetch("https://imagen-domuhouse-express.onrender.com/api/interests")
         if (!response.ok) {
           throw new Error("Error al cargar los intereses")
         }

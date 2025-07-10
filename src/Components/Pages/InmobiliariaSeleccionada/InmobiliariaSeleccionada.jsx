@@ -1,5 +1,4 @@
 "use client"
-
 import React from "react"
 import { Header } from "../../Layouts/Header/Header"
 import { PropertyCard } from "../../Layouts/PropertyCard/PropertyCard"
@@ -32,7 +31,6 @@ export const InmobiliariaSeleccionada = () => {
   // Función para obtener información del agente principal
   const getMainAgent = () => {
     if (properties.length === 0) return null
-
     // Tomar el primer agente disponible o el más frecuente
     const agentCounts = {}
     properties.forEach((property) => {
@@ -61,7 +59,7 @@ export const InmobiliariaSeleccionada = () => {
     const fetchProperties = async () => {
       try {
         const response = await fetch(
-          `http://localhost:10101/api/inmobiliarias/admin/${realEstate.person_id}/properties`,
+          `https://imagen-domuhouse-express.onrender.com/api/inmobiliarias/admin/${realEstate.person_id}/properties`,
         )
         if (!response.ok) throw new Error("No se encontraron propiedades para esta inmobiliaria.")
         const data = await response.json()
@@ -79,29 +77,29 @@ export const InmobiliariaSeleccionada = () => {
     }
   }, [realEstate])
 
+  // Función actualizada para manejar el click en propiedades
   const handlePropertyClick = (property) => {
-    // Transformar la propiedad al formato esperado por el componente de detalle
-    const transformedProperty = {
-      id: property.property_id,
-      address: `${property.city}, ${property.neighborhood}`,
-      title: property.property_title,
-      rooms: property.bedrooms,
-      bathrooms: property.bathrooms,
-      area: property.built_area,
-      price: Number.parseFloat(property.price).toLocaleString("es-CO"),
-      description: `${property.property_type} en ${property.operation_type} - ${property.status}`,
-      image:
-        property.image_url ||
-        `/placeholder.svg?height=200&width=300&text=${encodeURIComponent(property.property_title)}`,
-      agentInfo: {
-        name: `${property.agent_name} ${property.agent_lastname}`,
-        phone: property.agent_phone,
-        email: property.agent_email,
-        initials: `${property.agent_name.charAt(0)}${property.agent_lastname.charAt(0)}`,
-        whatsapp: property.agent_phone,
-      },
+    console.log("Propiedad seleccionada:", property)
+    if (!property) {
+      console.error("No se recibió ninguna propiedad")
+      return
     }
-    navigate("/propiedad-seleccionada", { state: { property: transformedProperty } })
+    const propId = property.property_id || property.id
+    if (!propId) {
+      console.error("La propiedad no tiene un ID válido:", property)
+      return
+    }
+    try {
+      navigate(`/propiedad/${propId}`, {
+        state: {
+          property: property,
+        },
+      })
+      console.log(`Navegando a /propiedad/${propId}`)
+    } catch (error) {
+      console.error("Error al navegar:", error)
+      setError(`Error al abrir la propiedad: ${error.message}`)
+    }
   }
 
   const handleBackClick = () => {
@@ -225,7 +223,6 @@ export const InmobiliariaSeleccionada = () => {
                     </div>
                   </div>
                 )}
-
                 <div className="flex items-center gap-3">
                   <MapPin className="text-sky-600" size={20} />
                   <div>
@@ -234,7 +231,6 @@ export const InmobiliariaSeleccionada = () => {
                     <p className="text-sm text-gray-500">Armenia, Quindío</p>
                   </div>
                 </div>
-
                 {/* Información general de la inmobiliaria */}
                 <div className="flex items-center gap-3">
                   <Phone className="text-sky-600" size={20} />
@@ -282,8 +278,7 @@ export const InmobiliariaSeleccionada = () => {
                   area={property.built_area}
                   price={Number.parseFloat(property.price).toLocaleString("es-CO")}
                   agentName={`${property.agent_name} ${property.agent_lastname}`}
-                  image={getAgentInitials(realEstate.administrator)}
-
+                  image={getAgentInitials(`${property.agent_name} ${property.agent_lastname}`)}
                   onClick={() => handlePropertyClick(property)}
                 />
               ))}

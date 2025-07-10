@@ -4,7 +4,7 @@ import { FileText, Calendar, Eye, Edit, Trash2, Plus, Search, Upload, X } from "
 import { Header } from "../../Layouts/Header/Header"
 import { SidebarInmobiliaria } from "../../Layouts/SidebarInmobiliaria/SidebarInmobiliaria"
 
-const API_BASE_URL = "http://localhost:10101/api/contracts"
+const API_BASE_URL = "https://imagen-domuhouse-express.onrender.com/api/contracts"
 
 export const Contract = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(true)

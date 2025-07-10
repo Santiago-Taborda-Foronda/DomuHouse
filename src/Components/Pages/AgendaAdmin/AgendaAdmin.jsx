@@ -15,7 +15,7 @@ export const AgendaAdmin = () => {
   useEffect(() => {
     const fetchVisitas = async () => {
       try {
-        const resp = await fetch("http://localhost:10101/api/visitas")
+        const resp = await fetch("https://imagen-domuhouse-express.onrender.com/api/visitas")
         const data = await resp.json()
         setVisitasData(data)
       } catch (err) {

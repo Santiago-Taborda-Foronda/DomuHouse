@@ -557,11 +557,10 @@ export const Main = () => {
                 }
               }}
               disabled={isLoading}
-              className={`rounded-2xl px-4 xs:px-6 sm:px-8 lg:px-10 py-1.5 xs:py-2 text-xs xs:text-sm sm:text-base transition-all duration-300 ${
-                filters.operation_type === "Venta"
+              className={`rounded-2xl px-4 xs:px-6 sm:px-8 lg:px-10 py-1.5 xs:py-2 text-xs xs:text-sm sm:text-base transition-all duration-300 ${filters.operation_type === "Venta"
                   ? "bg-[#2F8EAC] text-white border-2 border-[#2F8EAC] shadow-lg transform scale-105"
                   : "bg-transparent border-2 border-white text-white hover:bg-white hover:text-[#2F8EAC] hover:scale-105"
-              } ${isLoading ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:shadow-lg"}`}
+                } ${isLoading ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:shadow-lg"}`}
             >
               {isLoading && filters.operation_type === "Venta" ? "Buscando..." : "Venta"}
             </button>
@@ -577,11 +576,10 @@ export const Main = () => {
                 }
               }}
               disabled={isLoading}
-              className={`rounded-2xl px-4 xs:px-6 sm:px-8 lg:px-10 py-1.5 xs:py-2 text-xs xs:text-sm sm:text-base transition-all duration-300 ${
-                filters.operation_type === "Arriendo"
+              className={`rounded-2xl px-4 xs:px-6 sm:px-8 lg:px-10 py-1.5 xs:py-2 text-xs xs:text-sm sm:text-base transition-all duration-300 ${filters.operation_type === "Arriendo"
                   ? "bg-[#2F8EAC] text-white border-2 border-[#2F8EAC] shadow-lg transform scale-105"
                   : "bg-transparent border-2 border-white text-white hover:bg-white hover:text-[#2F8EAC] hover:scale-105"
-              } ${isLoading ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:shadow-lg"}`}
+                } ${isLoading ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:shadow-lg"}`}
             >
               {isLoading && filters.operation_type === "Arriendo" ? "Buscando..." : "Arriendo"}
             </button>
@@ -819,14 +817,13 @@ export const Main = () => {
                 return (
                   <PropertyCard
                     key={uniqueId}
-                    address={`${property.address || "Sin dirección"}, ${property.neighborhood || "Sin barrio"}, ${
-                      property.city || "Sin ciudad"
-                    }`}
+                    address={`${property.address || "Sin dirección"}, ${property.neighborhood || "Sin barrio"}, ${property.city || "Sin ciudad"
+                      }`}
                     title={property.property_title || property.title || "Sin título"}
                     rooms={property.bedrooms || property.habitaciones || 0}
                     bathrooms={property.bathrooms || property.banos || 0}
                     area={property.built_area || property.area || 0}
-                    price={property.price ? property.price.toLocaleString() : "0"}
+                    price={property.price ? Number.parseFloat(property.price).toLocaleString("es-CO") : "0"}
                     type={property.operation_type || property.tipo_operacion}
                     agentName={agentFullName} // ✅ Aquí se pasa el nombre correcto
                     imageUrl={propertyImage} // ✅ Aquí se pasa la imagen de la propiedad
@@ -861,7 +858,7 @@ export const Main = () => {
           </div>
         </div>
 
-              
+
       </section>
     </>
   )

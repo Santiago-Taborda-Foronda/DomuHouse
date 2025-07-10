@@ -151,10 +151,7 @@ export default function CrearPropiedadUsuario() {
     const typeMap = {
       casa: 1,
       apartamento: 2,
-      local: 3,
-      oficina: 4,
-      terreno: 5,
-      finca: 6, // Agregado finca
+      finca: 3, // Agregado finca
     }
     const id = typeMap[type?.toLowerCase()]
     console.log(`🏠 Mapeando tipo "${type}" → ID: ${id}`)
@@ -286,10 +283,10 @@ export default function CrearPropiedadUsuario() {
 
       // ✅ Envío al endpoint correcto
       // ✅ Cambiar esta línea:
-      //const url = `http://localhost:10101/api/properties/user/${userId}`
+      //const url = `/api/properties/user/${userId}`
 
       // ✅ Por esta:
-      const url = `http://localhost:10101/api/user/${userId}`
+      const url = `https://imagen-domuhouse-express.onrender.com/api/user/${userId}`
       console.log("🌐 Enviando a:", url)
 
       const response = await fetch(url, {
@@ -519,9 +516,6 @@ export default function CrearPropiedadUsuario() {
                               <option value="casa">Casa</option>
                               <option value="apartamento">Apartamento</option>
                               <option value="finca">Finca</option>
-                              <option value="local">Local</option>
-                              <option value="oficina">Oficina</option>
-                              <option value="terreno">Terreno</option>
                             </select>
                             <select
                               name="propertyType"
@@ -531,7 +525,6 @@ export default function CrearPropiedadUsuario() {
                             >
                               <option value="Venta">En Venta</option>
                               <option value="Arriendo">En Arriendo</option>
-                              <option value="Arriendo con opción de compra">Arriendo con opción de compra</option>
                             </select>
                           </div>
                           <select
@@ -727,7 +720,7 @@ export default function CrearPropiedadUsuario() {
                       </div>
 
                       {/* Valoración automática */}
-                      <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-gray-100">
+                      {/* <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-gray-100">
                         <div className="text-center mb-4">
                           <p className="text-lg font-semibold text-gray-800 mb-2">Valoración Automática</p>
                           {precioEstimado && (
@@ -747,7 +740,7 @@ export default function CrearPropiedadUsuario() {
                             * El precio se ha actualizado automáticamente en el formulario
                           </p>
                         )}
-                      </div>
+                      </div> */}
 
                       {/* Mapa */}
                       <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-gray-100">

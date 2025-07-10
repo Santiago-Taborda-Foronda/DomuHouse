@@ -47,7 +47,7 @@ export const GestionAgents = () => {
       return;
     }
 
-      const response = await fetch("http://localhost:10101/api/agentes-info", {
+      const response = await fetch("https://imagen-domuhouse-express.onrender.com/api/agentes-info", {
         method: "GET",
         headers: {
           Authorization: `Bearer ${token}`,

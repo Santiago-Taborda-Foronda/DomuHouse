@@ -121,7 +121,7 @@ export default function ReportesInmobiliaria() {
   // Funciones fetch para obtener datos del backend
   const fetchResumenGlobal = useCallback(async () => {
     try {
-      const res = await fetch("http://localhost:10101/api/admin/global-sales")
+      const res = await fetch("https://imagen-domuhouse-express.onrender.com/api/admin/global-sales")
       if (!res.ok) throw new Error(`Error ${res.status}: ${res.statusText}`)
       const data = await res.json()
 
@@ -138,7 +138,7 @@ export default function ReportesInmobiliaria() {
 
   const fetchClientes = useCallback(async () => {
     try {
-      const res = await fetch("http://localhost:10101/api/clients/count")
+      const res = await fetch("https://imagen-domuhouse-express.onrender.com/api/clients/count")
       if (!res.ok) throw new Error(`Error ${res.status}: ${res.statusText}`)
       const data = await res.json()
       setTotalClients(data.totalClients || 0)
@@ -150,7 +150,7 @@ export default function ReportesInmobiliaria() {
 
   const fetchTopAgentes = useCallback(async () => {
     try {
-      const res = await fetch("http://localhost:10101/api/admin/top-agents")
+      const res = await fetch("https://imagen-domuhouse-express.onrender.com/api/admin/top-agents")
       if (!res.ok) throw new Error(`Error ${res.status}: ${res.statusText}`)
       const data = await res.json()
       const rows = data.topAgentes || []
@@ -171,7 +171,7 @@ export default function ReportesInmobiliaria() {
 
   const fetchTiposPropiedades = useCallback(async () => {
     try {
-      const res = await fetch("http://localhost:10101/api/admin/property-type-sales")
+      const res = await fetch("https://imagen-domuhouse-express.onrender.com/api/admin/property-type-sales")
       if (!res.ok) throw new Error(`Error ${res.status}: ${res.statusText}`)
       const data = await res.json()
       const rows = data.tiposPropiedades || []

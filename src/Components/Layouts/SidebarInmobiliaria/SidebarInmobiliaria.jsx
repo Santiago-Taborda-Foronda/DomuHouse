@@ -145,7 +145,7 @@ useEffect(() => {
               <MenuItem icon={LayoutDashboard} label="Dashboard" route="/mi-inmobiliaria/dashboard" />
               <MenuItem icon={Building2} label="Propiedades" route="/mi-inmobiliaria/propiedades" />
               <MenuItem icon={UsersRound} label="Gestión de Agentes" route="/mi-inmobiliaria/gestion-agentes" />
-              <MenuItem icon={HandCoins} label="Ventas y Alquileres" route="/mi-inmobiliaria/ventas-alquileres" />
+              {/* <MenuItem icon={HandCoins} label="Ventas y Alquileres" route="/mi-inmobiliaria/ventas-alquileres" /> */}
             </ul>
           </section>
 
@@ -171,26 +171,7 @@ useEffect(() => {
             </ul>
           </section>
 
-          {/* Administración */}
-          <section>
-            <h3 className="font-semibold text-gray-700 mb-3 title-montserrat text-xs uppercase tracking-wide">
-              Administración
-            </h3>
-            <ul className="space-y-1">
-              <MenuItem
-                icon={UserCheck}
-                label="Agentes"
-                route="/mi-inmobiliaria/agentes-admin"
-                subtitle="Administradores"
-              />
-              <MenuItem
-                icon={Settings}
-                label="Configuración"
-                route="/mi-inmobiliaria/configuracion"
-                subtitle="Datos de la inmobiliaria"
-              />
-            </ul>
-          </section>
+          
         </div>
 
         {/* Cerrar sesión - solo mostrar si está autenticado */}

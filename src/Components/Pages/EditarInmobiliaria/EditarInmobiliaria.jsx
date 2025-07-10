@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { Header } from "../../Layouts/Header/Header"
-import { ArrowLeft, Save, Trash2, Upload, AlertTriangle } from "lucide-react"
+import { ArrowLeft, Save, Trash2, AlertTriangle, CheckCircle, X } from "lucide-react"
 import { useParams } from "react-router-dom"
 
 export const EditarInmobiliaria = () => {
@@ -32,6 +32,7 @@ export const EditarInmobiliaria = () => {
   const [isDeleting, setIsDeleting] = useState(false)
   const [hasChanges, setHasChanges] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [showSuccess, setShowSuccess] = useState(false)
 
   // Cargar datos
   useEffect(() => {
@@ -45,11 +46,9 @@ export const EditarInmobiliaria = () => {
       try {
         setLoading(true)
         setError(null)
-
         console.log("🔍 Cargando inmobiliaria ID:", id)
 
         const response = await fetch(`http://localhost:10101/api/inmobiliarias/${id}`)
-
         console.log("📊 Response status:", response.status)
 
         if (!response.ok) {
@@ -109,6 +108,17 @@ export const EditarInmobiliaria = () => {
     setHasChanges(hasFormChanges || hasImageChanges)
   }, [name, nit, address, city, phone, email, department, description, images, newImages, initialData])
 
+  // Auto-hide success message
+  useEffect(() => {
+    if (showSuccess) {
+      const timer = setTimeout(() => {
+        setShowSuccess(false)
+      }, 5000) // Se oculta después de 5 segundos
+
+      return () => clearTimeout(timer)
+    }
+  }, [showSuccess])
+
   const handleSave = async () => {
     if (!initialData) return
 
@@ -162,8 +172,8 @@ export const EditarInmobiliaria = () => {
       setHasChanges(false)
       setNewImages([])
 
-      // Mostrar mensaje de éxito
-      alert("¡Datos guardados correctamente!")
+      // Mostrar mensaje de éxito con estilos
+      setShowSuccess(true)
     } catch (err) {
       console.error("❌ Error al guardar:", err)
       setError(err.message)
@@ -174,7 +184,6 @@ export const EditarInmobiliaria = () => {
 
   const handleDelete = async () => {
     setIsDeleting(true)
-
     try {
       const response = await fetch(`http://localhost:10101/api/inmobiliarias/delete/realestate/${id}`, {
         method: "DELETE",
@@ -272,13 +281,34 @@ export const EditarInmobiliaria = () => {
     <>
       <Header />
       <div className="min-h-screen bg-white">
+        {/* Success banner */}
+        {showSuccess && (
+          <div className="bg-green-50 border-l-4 border-green-400 p-4 mx-6 mt-4 md:mx-20">
+            <div className="flex justify-between items-center">
+              <div className="flex items-center gap-2">
+                <CheckCircle className="w-5 h-5 text-green-600" />
+                <p className="text-sm text-green-700 font-medium">¡Datos guardados correctamente!</p>
+              </div>
+              <button
+                onClick={() => setShowSuccess(false)}
+                className="text-green-400 hover:text-green-600 transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Error banner */}
         {error && (
           <div className="bg-red-50 border-l-4 border-red-400 p-4 mx-6 mt-4 md:mx-20">
             <div className="flex justify-between items-center">
-              <p className="text-sm text-red-700">{error}</p>
-              <button onClick={() => setError(null)} className="text-red-400 hover:text-red-600">
-                ×
+              <div className="flex items-center gap-2">
+                <AlertTriangle className="w-5 h-5 text-red-600" />
+                <p className="text-sm text-red-700">{error}</p>
+              </div>
+              <button onClick={() => setError(null)} className="text-red-400 hover:text-red-600 transition-colors">
+                <X className="w-4 h-4" />
               </button>
             </div>
           </div>
@@ -458,68 +488,6 @@ export const EditarInmobiliaria = () => {
 
             {/* Multimedia y Mapa */}
             <div className="flex-1 flex flex-col gap-6">
-              {/* Multimedia */}
-              <div>
-                <h2 className="text-xl font-medium text-gray-700 mb-4">Multimedia</h2>
-
-                {/* Imágenes existentes */}
-                {images.length > 0 && (
-                  <div className="mb-4">
-                    <h4 className="text-sm font-medium text-gray-700 mb-2">Imágenes actuales</h4>
-                    <div className="grid grid-cols-2 gap-4">
-                      {images.map((image, index) => (
-                        <div key={index} className="relative group">
-                          <img
-                            src={image || "/placeholder.svg?height=128&width=200"}
-                            alt={`Imagen ${index + 1}`}
-                            className="w-full h-32 object-cover rounded-md"
-                          />
-                          <button
-                            onClick={() => removeImage(index, false)}
-                            className="absolute top-2 right-2 bg-red-600 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                          >
-                            <Trash2 size={14} />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Nuevas imágenes */}
-                {newImages.length > 0 && (
-                  <div className="mb-4">
-                    <h4 className="text-sm font-medium text-gray-700 mb-2">Nuevas imágenes</h4>
-                    <div className="grid grid-cols-2 gap-4">
-                      {newImages.map((image, index) => (
-                        <div key={index} className="relative group">
-                          <img
-                            src={image || "/placeholder.svg"}
-                            alt={`Nueva imagen ${index + 1}`}
-                            className="w-full h-32 object-cover rounded-md"
-                          />
-                          <button
-                            onClick={() => removeImage(index, true)}
-                            className="absolute top-2 right-2 bg-red-600 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                          >
-                            <Trash2 size={14} />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Upload */}
-                <label className="flex items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-md cursor-pointer hover:border-[#2F8EAC]">
-                  <div className="text-center">
-                    <Upload className="mx-auto h-8 w-8 text-gray-400" />
-                    <p className="mt-2 text-sm text-gray-600">Subir imágenes</p>
-                  </div>
-                  <input type="file" multiple accept="image/*" onChange={handleImageUpload} className="hidden" />
-                </label>
-              </div>
-
               {/* Mapa */}
               <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
                 <h2 className="text-xl font-semibold text-gray-800 mb-4">Ubicación</h2>

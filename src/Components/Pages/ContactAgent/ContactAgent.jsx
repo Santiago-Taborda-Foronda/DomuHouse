@@ -33,7 +33,13 @@ const [subject, setSubject] = useState(`Interés en la propiedad ${state?.proper
 
 const handleSend = async () => {
   const user = JSON.parse(localStorage.getItem("userData") || "{}")
-  const senderEmail = user.email || ""
+  
+  if (!user || !user.email) {
+    setMsg({ ok: false, text: "Por favor, inicia sesión para contactar al agente." })
+    return
+  }
+
+  const senderEmail = user.email
   const receiverEmail = currentAgent.email
 
   if (!senderEmail || !receiverEmail || !content.trim()) {
@@ -49,7 +55,7 @@ const handleSend = async () => {
       body: JSON.stringify({
         senderEmail,
         receiverEmail,
-        subject,      // ✅ ahora también enviamos el subject
+        subject,
         content: content.trim()
       }),
     })
@@ -58,7 +64,6 @@ const handleSend = async () => {
     setContent("")
     setMsg({ ok: true, text: "Mensaje enviado correctamente ✅" })
 
-    // Limpiar mensaje temporalmente
     setTimeout(() => setMsg({ ok: false, text: "" }), 3000)
   } catch {
     setMsg({ ok: false, text: "No se pudo enviar. Intenta de nuevo." })

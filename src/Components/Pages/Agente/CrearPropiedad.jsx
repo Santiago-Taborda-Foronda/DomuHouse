@@ -30,7 +30,6 @@ export default function CrearPropiedad() {
     price: "",
     // Campos opcionales
     propertyType: "Venta",
-    additionalRoomInfo: "",
     socioeconomic_stratum: "",
     parking_spaces: "",
     total_area: "",
@@ -145,9 +144,7 @@ export default function CrearPropiedad() {
     const typeMap = {
       casa: 1,
       apartamento: 2,
-      local: 3,
-      oficina: 4,
-      terreno: 5,
+      Finca: 3,
     }
     const id = typeMap[type?.toLowerCase()]
     console.log(`🏠 Mapeando tipo "${type}" → ID: ${id}`)
@@ -282,7 +279,7 @@ export default function CrearPropiedad() {
       })
 
       // ✅ Envío al endpoint correcto
-      const url = `https://domuhouse.onrender.com/api/agents/${agentId}/properties`
+      const url = `https://imagen-domuhouse-express.onrender.com/api/agents/${agentId}/properties`
       console.log("🌐 Enviando a:", url)
 
       const response = await fetch(url, {
@@ -539,7 +536,6 @@ export default function CrearPropiedad() {
                         >
                           <option value="Venta">En Venta</option>
                           <option value="Arriendo">En Arriendo</option>
-                          <option value="Arriendo con opción de compra">Arriendo con opción de compra</option>
                         </select>
                       </div>
                       <select
@@ -617,14 +613,7 @@ export default function CrearPropiedad() {
                           className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
                         />
                       </div>
-                      <input
-                        type="text"
-                        name="additionalRoomInfo"
-                        placeholder="Información Adicional de Habitaciones"
-                        value={formData.additionalRoomInfo}
-                        onChange={handleInputChange}
-                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
-                      />
+                
                       <input
                         type="text"
                         name="price"
@@ -737,14 +726,14 @@ export default function CrearPropiedad() {
                     {selectedImages.length > 0 && (
                       <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
                         <p className="text-sm text-green-700">
-                          <strong>✅ Todas las imágenes ({imageFiles.length}) se enviarán al backend.</strong>
+                          <strong>✅ Todas las imágenes ({imageFiles.length}) se guardaran en la base de datos.</strong>
                         </p>
                       </div>
                     )}
                   </div>
 
                   {/* Valoración automática */}
-                  <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-gray-100">
+                  {/* <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-gray-100">
                     <div className="text-center mb-4">
                       <p className="text-lg font-semibold text-gray-800 mb-2">Valoración Automática</p>
                       {precioEstimado && (
@@ -764,7 +753,7 @@ export default function CrearPropiedad() {
                         * El precio se ha actualizado automáticamente en el formulario
                       </p>
                     )}
-                  </div>
+                  </div> */}
 
                   {/* Mapa */}
                   <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-gray-100">

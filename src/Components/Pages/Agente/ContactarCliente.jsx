@@ -11,45 +11,26 @@ import AgentSideBar from "./Components/AgentSideBar"
 
 export default function ContactarCliente() {
   const [activeSection, setActiveSection] = useState("Contactar Clientes")
-
-
   const [sidebarOpen, setSidebarOpen] = useState(false)
-
-
   const [searchTerm, setSearchTerm] = useState("")
-
-
   const [selectedClient, setSelectedClient] = useState(null)
-
-
   const [message, setMessage] = useState("")
-
-
   const [isSubmitting, setIsSubmitting] = useState(false)
-
-
   const [submitSuccess, setSubmitSuccess] = useState(false)
-
   const [submitError, setSubmitError] = useState("")
 
   // Estados para la API
 
   const [clients, setClients] = useState([])
-
   const [clientsLoading, setClientsLoading] = useState(false)
-
   const [clientsError, setClientsError] = useState("")
-
   const [agentId, setAgentId] = useState(null)
 
   // Estados para visitas
 
   const [visits, setVisits] = useState([])
-
   const [visitsLoading, setVisitsLoading] = useState(false)
-
   const [visitsError, setVisitsError] = useState("")
-
   const [filterType, setFilterType] = useState("todos")
 
   // 🔧 Función para alternar el sidebar de agente
@@ -75,7 +56,7 @@ export default function ContactarCliente() {
       setClientsError("")
 
       try {
-        const response = await fetch("https://domuhouse.onrender.com/api/clients")
+        const response = await fetch("https://imagen-domuhouse-express.onrender.com/api/clients")
 
         if (!response.ok) {
           throw new Error(`Error ${response.status}: ${response.statusText}`)
@@ -113,7 +94,7 @@ export default function ContactarCliente() {
       setVisitsError("")
 
       try {
-        const response = await fetch(`https://domuhouse.onrender.com/api/agents/${agentId}/visits`)
+        const response = await fetch(`https://imagen-domuhouse-express.onrender.com/api/agents/${agentId}/visits`)
 
         if (!response.ok) {
           throw new Error(`Error ${response.status}: ${response.statusText}`)
@@ -240,7 +221,7 @@ export default function ContactarCliente() {
         content: message.trim(),
       })
 
-      const res = await fetch("https://domuhouse.onrender.com/api/messages/save", {
+      const res = await fetch("https://imagen-domuhouse-express.onrender.com/api/messages/save", {
         method: "POST",
 
         headers: { "Content-Type": "application/json" },
@@ -308,7 +289,7 @@ export default function ContactarCliente() {
     try {
       console.log("📝 Guardando mensaje antes de enviar...")
 
-      const saveRes = await fetch("https://domuhouse.onrender.com/api/messages/save", {
+      const saveRes = await fetch("https://imagen-domuhouse-express.onrender.com/api/messages/save", {
         method: "POST",
 
         headers: { "Content-Type": "application/json" },
@@ -334,7 +315,7 @@ export default function ContactarCliente() {
 
       console.log("📤 Enviando mensaje...")
 
-      const sendRes = await fetch("https://domuhouse.onrender.com/api/messages/send", {
+      const sendRes = await fetch("https://imagen-domuhouse-express.onrender.com/api/messages/send", {
         method: "POST",
 
         headers: { "Content-Type": "application/json" },

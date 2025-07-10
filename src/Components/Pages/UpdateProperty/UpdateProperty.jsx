@@ -1,331 +1,268 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { Menu, User, ArrowLeft } from 'lucide-react';
-import { Header } from '../../Layouts/Header/Header';
+"use client"
+
+import { useState, useEffect } from "react"
+import { useParams, useNavigate } from "react-router-dom"
+import { ArrowLeft } from "lucide-react"
+import { Header } from "../../Layouts/Header/Header"
 
 const UpdateProperty = () => {
-  const { id } = useParams();
-  const navigate = useNavigate();
-  
-  const [formData, setFormData] = useState({
-    // Campos básicos
-    title: '',
-    address: '',
-    type: '',
-    description: '',
-    
-    // Campos numéricos específicos
-    rooms: '',
-    bathrooms: '',
-    area: '',
-    price: '',
-    
-    // Información del agente
-    agentName: '',
-    agentPhone: '',
-    agentEmail: '',
-    agentWhatsapp: '',
-    
-    // Información adicional
-    propertyType: 'venta',
-    additionalRoomInfo: ''
-  });
+  const { id } = useParams()
+  const navigate = useNavigate()
 
-  const [selectedImages, setSelectedImages] = useState([]);
-  const [imageFiles, setImageFiles] = useState([]); // Para nuevas imágenes
-  const [existingImages, setExistingImages] = useState([]); // Imágenes existentes
-  const [imagesToDelete, setImagesToDelete] = useState([]); // IDs de imágenes a eliminar
-  const [precioEstimado, setPrecioEstimado] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [submitError, setSubmitError] = useState('');
-  const [submitSuccess, setSubmitSuccess] = useState(false);
-  const [propertyNotFound, setPropertyNotFound] = useState(false);
+const [formData, setFormData] = useState({
+  title: "",
+  address: "",
+  type: "",
+  description: "",
+  rooms: "",
+  bathrooms: "",
+  area: "",         // Área total
+  builtArea: "",    // Área construida
+  stratum: "",      // Estrato
+  city: "",
+  neighborhood: "",
+  parkingSpaces: "", // Parqueaderos
+  latitude: "",
+  longitude: "",
+  price: "",
+  agentName: "",
+  agentPhone: "",
+  agentEmail: "",
+  agentWhatsapp: "",
+  propertyType: "venta",
+  additionalRoomInfo: "",
+  status: "activo",
+})
 
-  // Cargar datos existentes de la propiedad
+
+
+  const [selectedImages, setSelectedImages] = useState([])
+  const [imageFiles, setImageFiles] = useState([])
+  const [existingImages, setExistingImages] = useState([])
+  const [imagesToDelete, setImagesToDelete] = useState([])
+  const [precioEstimado, setPrecioEstimado] = useState("")
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
+  const [submitError, setSubmitError] = useState("")
+  const [submitSuccess, setSubmitSuccess] = useState(false)
+  const [propertyNotFound, setPropertyNotFound] = useState(false)
+
+  // Cargar datos de la propiedad
   useEffect(() => {
     const loadPropertyData = async () => {
       if (!id) {
-        setPropertyNotFound(true);
-        setIsLoading(false);
-        return;
+        setPropertyNotFound(true)
+        setIsLoading(false)
+        return
       }
 
       try {
-        setIsLoading(true);
-        
-        // AQUÍ EL BACKEND DEBE IMPLEMENTAR EL ENDPOINT PARA OBTENER LA PROPIEDAD
-        /*
-        const response = await fetch(`/api/properties/${id}`);
-        
-        if (!response.ok) {
-          if (response.status === 404) {
-            setPropertyNotFound(true);
-            return;
-          }
-          throw new Error('Error al cargar la propiedad');
-        }
-        
-        const property = await response.json();
-        */
-        
-        // SIMULACIÓN TEMPORAL (remover cuando se conecte al backend real)
-        await new Promise(resolve => setTimeout(resolve, 1000)); // Simular delay de red
-        
-        // Datos simulados - reemplazar con datos reales del backend
-        const property = {
-          id: id,
-          title: 'Casa en venta ejemplo',
-          address: 'Calle 123 #45-67, Ciudad',
-          type: 'casa',
-          description: 'Hermosa casa con excelente ubicación...',
-          rooms: 3,
-          bathrooms: 2,
-          area: 120,
-          price: '250000000',
-          propertyType: 'venta',
-          additionalRoomInfo: 'Incluye estudio',
-          agent: {
-            name: 'Juan Pérez',
-            phone: '3001234567',
-            email: 'juan@ejemplo.com',
-            whatsapp: '3001234567'
-          },
-          images: [
-            { id: 1, url: 'https://via.placeholder.com/300x200?text=Imagen+1' },
-            { id: 2, url: 'https://via.placeholder.com/300x200?text=Imagen+2' }
-          ]
-        };
-        
-        // Llenar el formulario con los datos existentes
-        setFormData({
-          title: property.title || '',
-          address: property.address || '',
-          type: property.type || '',
-          description: property.description || '',
-          rooms: property.rooms?.toString() || '',
-          bathrooms: property.bathrooms?.toString() || '',
-          area: property.area?.toString() || '',
-          price: property.price || '',
-          agentName: property.agent?.name || '',
-          agentPhone: property.agent?.phone || '',
-          agentEmail: property.agent?.email || '',
-          agentWhatsapp: property.agent?.whatsapp || '',
-          propertyType: property.propertyType || 'venta',
-          additionalRoomInfo: property.additionalRoomInfo || ''
-        });
-        
-        // Cargar imágenes existentes
-        setExistingImages(property.images || []);
-        
-      } catch (error) {
-        console.error('Error al cargar propiedad:', error);
-        setSubmitError('Error al cargar los datos de la propiedad');
-      } finally {
-        setIsLoading(false);
-      }
-    };
+        setIsLoading(true)
+        setSubmitError("")
 
-    loadPropertyData();
-  }, [id]);
+        // Primero obtener los datos de la propiedad
+        const detailsResponse = await fetch(`https://imagen-domuhouse-express.onrender.com/api/properties/details/${id}`)
+        if (!detailsResponse.ok) {
+          throw new Error("No se pudo cargar la propiedad")
+        }
+        const responseJson = await detailsResponse.json()
+        const propertyData = responseJson.property // ✅ Este es el objeto con los datos
+
+
+          console.log("🔍 propertyData:", propertyData)
+
+        setFormData({
+          title: propertyData.title || "",
+          address: propertyData.address || "",
+          type: propertyData.type || "", // tipo de propiedad
+          description: propertyData.description || "",
+          rooms: propertyData.bedrooms?.toString() || "",
+          bathrooms: propertyData.bathrooms?.toString() || "",
+          area: propertyData.area?.toString() || "",          // ✅ área total
+          builtArea: propertyData.builtArea?.toString() || "",// ✅ área construida
+          stratum: propertyData.stratum?.toString() || "",    // ✅ estrato
+          city: propertyData.city || "",
+          neighborhood: propertyData.neighborhood || "",
+          parkingSpaces: propertyData.parkingSpaces?.toString() || "", // ✅ parqueaderos
+          latitude: propertyData.latitude?.toString() || "",
+          longitude: propertyData.longitude?.toString() || "",
+          price: propertyData.price?.toString() || "",
+          agentName: propertyData.agent_name || "",
+          agentPhone: propertyData.agent_phone || "",
+          agentEmail: propertyData.agent_email || "",
+          agentWhatsapp: propertyData.agent_phone || "",
+          propertyType: propertyData.operation_type || "venta",
+          additionalRoomInfo: "",
+          status: propertyData.status || "activo",
+        })
+
+        // Cargar imágenes existentes
+       if (propertyData.images && propertyData.images.length > 0) {
+          setExistingImages(
+            propertyData.images.map((url, index) => ({
+              id: index, // puedes usar index si no tienes ID real
+              url,
+            }))
+          )
+        }
+
+      } catch (error) {
+        console.error("Error al cargar propiedad:", error)
+        setSubmitError(`Error al cargar la propiedad: ${error.message}`)
+        if (error.message.includes("404")) {
+          setPropertyNotFound(true)
+        }
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    loadPropertyData()
+  }, [id])
 
   const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
+    const { name, value } = e.target
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
-    }));
-  };
+      [name]: value,
+    }))
+  }
 
   const handleImageUpload = (e) => {
-    const files = Array.from(e.target.files);
-    const imageUrls = files.map(file => URL.createObjectURL(file));
-    
-    // Para mostrar preview de nuevas imágenes
-    setSelectedImages(prev => [...prev, ...imageUrls]);
-    // Para enviar al backend
-    setImageFiles(prev => [...prev, ...files]);
-  };
+    const files = Array.from(e.target.files)
+    const imageUrls = files.map((file) => URL.createObjectURL(file))
+    setSelectedImages((prev) => [...prev, ...imageUrls])
+    setImageFiles((prev) => [...prev, ...files])
+  }
 
   const removeNewImage = (indexToRemove) => {
-    setSelectedImages(prev => prev.filter((_, index) => index !== indexToRemove));
-    setImageFiles(prev => prev.filter((_, index) => index !== indexToRemove));
-  };
+    setSelectedImages((prev) => prev.filter((_, index) => index !== indexToRemove))
+    setImageFiles((prev) => prev.filter((_, index) => index !== indexToRemove))
+  }
 
   const removeExistingImage = (imageId) => {
-    setExistingImages(prev => prev.filter(img => img.id !== imageId));
-    setImagesToDelete(prev => [...prev, imageId]);
-  };
+    setExistingImages((prev) => prev.filter((img) => img.id !== imageId))
+    setImagesToDelete((prev) => [...prev, imageId])
+  }
 
-  // Función para validar el formulario
   const validateForm = () => {
     const requiredFields = [
-      'title', 'address', 'type', 'description', 'rooms', 
-      'bathrooms', 'area', 'price', 'agentName', 'agentPhone', 'agentEmail'
-    ];
-    
-    for (let field of requiredFields) {
-      if (!formData[field]) {
-        setSubmitError(`El campo ${field} es requerido`);
-        return false;
-      }
-    }
-    
-    // Validar que rooms, bathrooms y area sean números válidos
-    if (isNaN(formData.rooms) || formData.rooms < 0) {
-      setSubmitError('El número de habitaciones debe ser válido');
-      return false;
-    }
-    
-    if (isNaN(formData.bathrooms) || formData.bathrooms < 0) {
-      setSubmitError('El número de baños debe ser válido');
-      return false;
-    }
-    
-    if (isNaN(formData.area) || formData.area <= 0) {
-      setSubmitError('El área debe ser un número válido mayor a 0');
-      return false;
-    }
-    
-    // Validar email
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(formData.agentEmail)) {
-      setSubmitError('El email del agente no es válido');
-      return false;
-    }
-    
-    return true;
-  };
+      { field: "title", name: "Título" },
+      { field: "address", name: "Dirección" },
+      { field: "type", name: "Tipo de propiedad" },
+      { field: "description", name: "Descripción" },
+      { field: "rooms", name: "Habitaciones" },
+      { field: "bathrooms", name: "Baños" },
+      { field: "area", name: "Área" },
+      { field: "price", name: "Precio" },
+      { field: "agentName", name: "Nombre del agente" },
+      { field: "agentPhone", name: "Teléfono del agente" },
+      { field: "agentEmail", name: "Email del agente" },
+    ]
 
-  // Función para actualizar la propiedad
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    
-    // Resetear estados
-    setSubmitError('');
-    setSubmitSuccess(false);
-    
-    // Validar formulario
-    if (!validateForm()) {
-      return;
-    }
-    
-    setIsSubmitting(true);
-    
-    try {
-      // Crear FormData para enviar archivos e información
-      const formDataToSend = new FormData();
-      
-      // Preparar datos actualizados de la propiedad
-      const propertyData = {
-        // Información básica
-        title: formData.title.trim(),
-        address: formData.address.trim(),
-        type: formData.type,
-        description: formData.description.trim(),
-        propertyType: formData.propertyType,
-        
-        // Características numéricas
-        rooms: parseInt(formData.rooms),
-        bathrooms: parseInt(formData.bathrooms),
-        area: parseInt(formData.area),
-        price: formData.price.replace(/[^\d]/g, ''),
-        
-        // Información del agente
-        agent: {
-          name: formData.agentName.trim(),
-          phone: formData.agentPhone.trim(),
-          email: formData.agentEmail.trim().toLowerCase(),
-          whatsapp: formData.agentWhatsapp.trim() || formData.agentPhone.trim()
-        },
-        
-        // Información adicional
-        additionalRoomInfo: formData.additionalRoomInfo.trim(),
-        
-        // Imágenes a eliminar
-        imagesToDelete: imagesToDelete,
-        
-        // Metadatos
-        updatedAt: new Date().toISOString()
-      };
-      
-      // Agregar datos JSON al FormData
-      formDataToSend.append('propertyData', JSON.stringify(propertyData));
-      
-      // Agregar nuevas imágenes al FormData
-      imageFiles.forEach((file, index) => {
-        formDataToSend.append(`newImages`, file);
-      });
-      
-      // AQUÍ ES DONDE EL DESARROLLADOR BACKEND DEBE IMPLEMENTAR LA LLAMADA
-      /*
-      const response = await fetch(`/api/properties/${id}`, {
-        method: 'PUT', // o PATCH según la implementación
-        body: formDataToSend,
-      });
-      
-      if (!response.ok) {
-        throw new Error('Error al actualizar la propiedad');
+    for (const { field, name } of requiredFields) {
+      if (!formData[field]?.toString().trim()) {
+        setSubmitError(`El campo "${name}" es requerido`)
+        return false
       }
-      
-      const result = await response.json();
-      */
-      
-      // SIMULACIÓN TEMPORAL
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      console.log('Datos preparados para actualización:', {
-        propertyId: id,
-        propertyData,
-        newImageCount: imageFiles.length,
-        imagesToDelete: imagesToDelete,
-        formDataKeys: Array.from(formDataToSend.keys())
-      });
-      
-      // Éxito
-      setSubmitSuccess(true);
-      
-      // Opcional: redirigir después del éxito
-      setTimeout(() => {
-        navigate('/mi-inmobiliaria/propiedades');
-      }, 2000);
-      
-    } catch (error) {
-      console.error('Error al actualizar propiedad:', error);
-      setSubmitError(error.message || 'Error al actualizar la propiedad. Intenta de nuevo.');
-    } finally {
-      setIsSubmitting(false);
     }
-  };
+
+    return true
+  }
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+
+    setSubmitError("")
+    setSubmitSuccess(false)
+
+    if (!validateForm()) {
+      return
+    }
+
+    setIsSubmitting(true)
+
+    try {
+     const cleanData = {
+        property_title: formData.title.trim(),
+        address: formData.address.trim(),
+        description: formData.description.trim(),
+        operation_type: formData.propertyType,
+        bedrooms: Number(formData.rooms),
+        bathrooms: Number(formData.bathrooms),
+        total_area: Number(formData.area),
+        built_area: Number(formData.builtArea || 0),
+        parkingSpaces: Number(formData.parkingSpaces || 0),
+        latitude: Number(formData.latitude || 0),
+        longitude: Number(formData.longitude || 0),
+        socioeconomic_stratum: Number(formData.stratum || 0),
+        city: formData.city,
+        neighborhood: formData.neighborhood,
+        price: formData.price.replace(/[^\d]/g, ""),
+        status: formData.status,
+        agent_name: formData.agentName.trim(),
+        agent_phone: formData.agentPhone.trim(),
+        agent_email: formData.agentEmail.trim().toLowerCase(),
+        agent_whatsapp: formData.agentWhatsapp.trim() || formData.agentPhone.trim(),
+        additional_info: formData.additionalRoomInfo.trim(),
+        imagesToDelete: imagesToDelete,
+      }
+
+
+      const formDataToSend = new FormData()
+      formDataToSend.append("data", JSON.stringify(cleanData))
+
+      imageFiles.forEach((file) => {
+        formDataToSend.append("images", file)
+      })
+
+      const response = await fetch(`https://imagen-domuhouse-express.onrender.com/api/properties/editar/${id}`, {
+        method: "PUT",
+        body: formDataToSend,
+      })
+
+      if (!response.ok) {
+        const errorText = await response.text()
+        throw new Error(`Error ${response.status}: ${errorText}`)
+      }
+
+      setSubmitSuccess(true)
+      setTimeout(() => {
+        navigate("/mi-inmobiliaria/propiedades")
+      }, 2000)
+    } catch (error) {
+      console.error("Error al actualizar:", error)
+      setSubmitError(`Error al actualizar la propiedad: ${error.message}`)
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
 
   const handleSolicitarValoracion = async () => {
     if (!formData.area || !formData.type || !formData.address) {
-      alert('Por favor completa el área, tipo de propiedad y dirección para solicitar valoración');
-      return;
+      alert("Por favor completa el área, tipo de propiedad y dirección para solicitar valoración")
+      return
     }
-    
+
     try {
-      // Simulación temporal de valoración
-      const basePrice = Math.random() * 500000 + 200000;
-      const formattedPrice = new Intl.NumberFormat('es-CO').format(basePrice);
-      setPrecioEstimado(formattedPrice);
-      
-      setFormData(prev => ({
+      const basePrice = Math.random() * 500000 + 200000
+      const formattedPrice = new Intl.NumberFormat("es-CO").format(basePrice)
+      setPrecioEstimado(formattedPrice)
+
+      setFormData((prev) => ({
         ...prev,
-        price: formattedPrice
-      }));
-      
+        price: formattedPrice,
+      }))
     } catch (error) {
-      console.error('Error en valoración:', error);
-      alert('Error al solicitar valoración. Intenta de nuevo.');
+      console.error("Error en valoración:", error)
+      alert("Error al solicitar valoración. Intenta de nuevo.")
     }
-  };
+  }
 
   const handleGoBack = () => {
-    navigate('/MiInmobiliaria');
-  };
+    navigate("/MiInmobiliaria")
+  }
 
-  // Estado de carga
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -339,10 +276,9 @@ const UpdateProperty = () => {
           </div>
         </div>
       </div>
-    );
+    )
   }
 
-  // Propiedad no encontrada
   if (propertyNotFound) {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -360,13 +296,12 @@ const UpdateProperty = () => {
           </div>
         </div>
       </div>
-    );
+    )
   }
 
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
-
       <div className="max-w-7xl mx-auto p-6">
         <div className="mb-6">
           <button
@@ -378,35 +313,29 @@ const UpdateProperty = () => {
           </button>
         </div>
 
-        {/* Mensajes de estado */}
         {submitError && (
           <div className="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl">
-            {submitError}
+            <strong>Error:</strong> {submitError}
           </div>
         )}
-        
+
         {submitSuccess && (
           <div className="mb-6 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-xl">
-            ¡Propiedad actualizada exitosamente!
+            ¡Propiedad actualizada exitosamente! Redirigiendo...
           </div>
         )}
 
         <form onSubmit={handleSubmit}>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            
-            {/* Formulario */}
+            {/* Formulario principal */}
             <div className="bg-white rounded-2xl p-8 shadow-sm">
-              <h1 className="text-2xl font-bold text-gray-800 mb-8 text-center">
-                Editar Propiedad
-              </h1>
-              
+              <h1 className="text-2xl font-bold text-gray-800 mb-8 text-center">Editar Propiedad</h1>
+
               <div className="space-y-6">
                 {/* Información básica */}
                 <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-gray-700 border-b pb-2">
-                    Información Básica
-                  </h3>
-                  
+                  <h3 className="text-lg font-semibold text-gray-700 border-b pb-2">Información Básica</h3>
+
                   <input
                     type="text"
                     name="title"
@@ -427,6 +356,27 @@ const UpdateProperty = () => {
                     className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
 
+                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <input
+                              type="text"
+                              name="city"
+                              placeholder="Ciudad *"
+                              value={formData.city}
+                              onChange={handleInputChange}
+                              required
+                              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
+                            />
+                            <input
+                              type="text"
+                              name="neighborhood"
+                              placeholder="Barrio *"
+                              value={formData.neighborhood}
+                              onChange={handleInputChange}
+                              required
+                              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
+                            />
+                          </div>
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <select
                       name="type"
@@ -438,9 +388,7 @@ const UpdateProperty = () => {
                       <option value="">Tipo de Propiedad *</option>
                       <option value="casa">Casa</option>
                       <option value="apartamento">Apartamento</option>
-                      <option value="local">Local Comercial</option>
-                      <option value="oficina">Oficina</option>
-                      <option value="terreno">Terreno</option>
+                      <option value="local">Finca</option>
                     </select>
 
                     <select
@@ -449,18 +397,33 @@ const UpdateProperty = () => {
                       onChange={handleInputChange}
                       className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     >
-                      <option value="venta">En Venta</option>
-                      <option value="alquiler">En Alquiler</option>
+                      <option value="Venta">Venta</option>
+                      <option value="arriendo">Arriendo</option>
                     </select>
+
+                    
                   </div>
+                 <select
+                  name="stratum"
+                  value={formData.stratum}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
+                >
+                  <option value="">Estrato Socioeconómico (Opcional)</option>
+                  <option value="1">Estrato 1</option>
+                  <option value="2">Estrato 2</option>
+                  <option value="3">Estrato 3</option>
+                  <option value="4">Estrato 4</option>
+                  <option value="5">Estrato 5</option>
+                  <option value="6">Estrato 6</option>
+                </select>
+
                 </div>
 
-                {/* Características de la propiedad */}
+                {/* Características */}
                 <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-gray-700 border-b pb-2">
-                    Características
-                  </h3>
-                  
+                  <h3 className="text-lg font-semibold text-gray-700 border-b pb-2">Características</h3>
+
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <input
                       type="number"
@@ -472,7 +435,6 @@ const UpdateProperty = () => {
                       min="0"
                       className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
-
                     <input
                       type="number"
                       name="bathrooms"
@@ -483,29 +445,43 @@ const UpdateProperty = () => {
                       min="0"
                       className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
-
-                    <input
-                      type="number"
-                      name="area"
-                      placeholder="Área (m²) *"
-                      value={formData.area}
-                      onChange={handleInputChange}
-                      required
-                      min="1"
-                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                  </div>
-
                   <input
-                    type="text"
-                    name="additionalRoomInfo"
-                    placeholder="Información Adicional de Habitaciones"
-                    value={formData.additionalRoomInfo}
+                    type="number"
+                    name="parkingSpaces"
+                    placeholder="Parqueaderos"
+                    value={formData.parkingSpaces}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    min="0"
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
                   />
 
+
+                    
+                  </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <input
+                    type="number"
+                    name="builtArea"
+                    placeholder="Área Construida (m²) *"
+                    value={formData.builtArea}
+                    onChange={handleInputChange}
+                    required
+                    min="1"
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
+                  />
+                  <input
+                    type="number"
+                    name="area"
+                    placeholder="Área Total (m²)"
+                    value={formData.area}
+                    onChange={handleInputChange}
+                    min="1"
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F8EAC] focus:border-transparent"
+                  />
+                </div>
+
+
+                                <input
                     type="text"
                     name="price"
                     placeholder="Precio (sin símbolo $) *"
@@ -515,13 +491,13 @@ const UpdateProperty = () => {
                     className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
+                
+                
 
                 {/* Información del agente */}
                 <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-gray-700 border-b pb-2">
-                    Información del Agente
-                  </h3>
-                  
+                  <h3 className="text-lg font-semibold text-gray-700 border-b pb-2">Información del Agente</h3>
+
                   <input
                     type="text"
                     name="agentName"
@@ -542,7 +518,6 @@ const UpdateProperty = () => {
                       required
                       className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
-
                     <input
                       type="tel"
                       name="agentWhatsapp"
@@ -581,31 +556,28 @@ const UpdateProperty = () => {
                   type="submit"
                   disabled={isSubmitting}
                   className={`w-full py-3 rounded-xl font-medium transition-colors ${
-                    isSubmitting 
-                      ? 'bg-gray-400 text-gray-600 cursor-not-allowed' 
-                      : 'bg-[#2F8EAC] text-white hover:bg-[#267a95]'
+                    isSubmitting
+                      ? "bg-gray-400 text-gray-600 cursor-not-allowed"
+                      : "bg-[#2F8EAC] text-white hover:bg-[#267a95]"
                   }`}
                 >
-                  {isSubmitting ? 'Actualizando...' : 'Actualizar Propiedad'}
+                  {isSubmitting ? "Actualizando..." : "Actualizar Propiedad"}
                 </button>
               </div>
             </div>
 
-            {/* Panel derecho */}
+            {/* Panel derecho - Imágenes */}
             <div className="space-y-6">
-              {/* Sección de imágenes existentes */}
+              {/* Imágenes existentes */}
               {existingImages.length > 0 && (
                 <div className="bg-white rounded-2xl p-6 shadow-sm">
-                  <h2 className="text-lg font-semibold text-gray-800 mb-4">
-                    Imágenes Actuales
-                  </h2>
-                  
-                  <div className="grid grid-cols-2 gap-4 mb-4">
+                  <h2 className="text-lg font-semibold text-gray-800 mb-4">Imágenes Actuales</h2>
+                  <div className="grid grid-cols-2 gap-4">
                     {existingImages.map((image) => (
                       <div key={image.id} className="relative group">
                         <img
-                          src={image.url}
-                          alt={`Propiedad ${image.id}`}
+                          src={image.url || "/placeholder.svg"}
+                          alt={`Imagen ${image.id}`}
                           className="w-full h-24 object-cover rounded-lg"
                         />
                         <button
@@ -621,12 +593,12 @@ const UpdateProperty = () => {
                 </div>
               )}
 
-              {/* Sección de nuevas imágenes */}
+              {/* Nuevas imágenes */}
               <div className="bg-white rounded-2xl p-6 shadow-sm">
                 <h2 className="text-lg font-semibold text-gray-800 mb-4">
-                  {existingImages.length > 0 ? 'Agregar Nuevas Imágenes' : 'Imágenes de la Propiedad'}
+                  {existingImages.length > 0 ? "Agregar Nuevas Imágenes" : "Imágenes de la Propiedad"}
                 </h2>
-                
+
                 <div className="border-2 border-dashed border-gray-300 rounded-xl p-6">
                   {selectedImages.length > 0 ? (
                     <div className="space-y-4">
@@ -655,14 +627,12 @@ const UpdateProperty = () => {
                   ) : (
                     <div className="text-center">
                       <div className="w-full h-32 bg-gray-100 rounded-lg flex items-center justify-center mb-4">
-                        <div className="w-16 h-12 bg-gray-300 rounded flex items-center justify-center">
-                          📷
-                        </div>
+                        <div className="w-16 h-12 bg-gray-300 rounded flex items-center justify-center">📷</div>
                       </div>
                       <p className="text-gray-500 mb-4">No hay nuevas imágenes seleccionadas</p>
                     </div>
                   )}
-                  
+
                   <input
                     type="file"
                     multiple
@@ -680,19 +650,13 @@ const UpdateProperty = () => {
                 </div>
               </div>
 
-              {/* Valoración automática */}
+              {/* Valoración */}
               <div className="bg-white rounded-2xl p-6 shadow-sm">
                 <div className="text-center mb-4">
-                  <p className="text-lg font-semibold text-gray-800 mb-2">
-                    Valoración Automática
-                  </p>
-                  {precioEstimado && (
-                    <p className="text-2xl font-bold text-green-600">
-                      ${precioEstimado}
-                    </p>
-                  )}
+                  <p className="text-lg font-semibold text-gray-800 mb-2">Valoración Automática</p>
+                  {precioEstimado && <p className="text-2xl font-bold text-green-600">${precioEstimado}</p>}
                 </div>
-                
+
                 <button
                   type="button"
                   onClick={handleSolicitarValoracion}
@@ -701,7 +665,7 @@ const UpdateProperty = () => {
                   <span>📊</span>
                   Solicitar Nueva Valoración
                 </button>
-                
+
                 {precioEstimado && (
                   <p className="text-xs text-gray-500 text-center mt-2">
                     * El precio se ha actualizado automáticamente en el formulario
@@ -713,7 +677,7 @@ const UpdateProperty = () => {
         </form>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default UpdateProperty;
+export default UpdateProperty

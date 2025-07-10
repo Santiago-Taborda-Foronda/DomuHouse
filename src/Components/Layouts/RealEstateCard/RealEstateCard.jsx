@@ -24,7 +24,7 @@ import { Phone, Mail } from 'lucide-react';
   logoUrl,
   onClick,
 }) => {
-  // Funcion para obtener iniciales del administrador
+  // Funci贸n para obtener iniciales del administrador
   const getInitials = (name, lastName) => {
     return `${name?.charAt(0) || ''}${lastName?.charAt(0) || ''}`.toUpperCase() || 'AD';
   };
@@ -35,7 +35,7 @@ import { Phone, Mail } from 'lucide-react';
       onClick={onClick}
       style={{ cursor: onClick ? 'pointer' : 'default' }}
     >
-      {/* Sección del logo */}
+      {/* Secci贸n del logo */}
       <div className="relative w-full h-48 bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center">
         <img
           src={logoUrl || DefaultLogo}
@@ -51,7 +51,7 @@ import { Phone, Mail } from 'lucide-react';
         </div>
       </div>
 
-      {/* Información */}
+      {/* Informaci贸n */}
       <div className="p-5">
         <h2 className="text-xl font-bold text-gray-900 mb-3 line-clamp-2">{name}</h2>
 

@@ -1,5 +1,3 @@
-"use client"
-
 import React from "react"
 import { Header } from "../../Layouts/Header/Header"
 import { PropertyCard } from "../../Layouts/PropertyCard/PropertyCard"

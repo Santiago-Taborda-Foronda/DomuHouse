@@ -56,7 +56,7 @@ export default function ContactarCliente() {
       setClientsError("")
 
       try {
-        const response = await fetch("https://imagen-domuhouse-express.onrender.com/api/clients")
+        const response = await fetch("http://localhost:10101/api/clients")
 
         if (!response.ok) {
           throw new Error(`Error ${response.status}: ${response.statusText}`)
@@ -94,7 +94,7 @@ export default function ContactarCliente() {
       setVisitsError("")
 
       try {
-        const response = await fetch(`https://imagen-domuhouse-express.onrender.com/api/agents/${agentId}/visits`)
+        const response = await fetch(`http://localhost:10101/api/agents/${agentId}/visits`)
 
         if (!response.ok) {
           throw new Error(`Error ${response.status}: ${response.statusText}`)
@@ -221,7 +221,7 @@ export default function ContactarCliente() {
         content: message.trim(),
       })
 
-      const res = await fetch("https://imagen-domuhouse-express.onrender.com/api/messages/save", {
+      const res = await fetch("http://localhost:10101/api/messages/save", {
         method: "POST",
 
         headers: { "Content-Type": "application/json" },
@@ -289,7 +289,7 @@ export default function ContactarCliente() {
     try {
       console.log("📝 Guardando mensaje antes de enviar...")
 
-      const saveRes = await fetch("https://imagen-domuhouse-express.onrender.com/api/messages/save", {
+      const saveRes = await fetch("http://localhost:10101/api/messages/save", {
         method: "POST",
 
         headers: { "Content-Type": "application/json" },
@@ -315,7 +315,7 @@ export default function ContactarCliente() {
 
       console.log("📤 Enviando mensaje...")
 
-      const sendRes = await fetch("https://imagen-domuhouse-express.onrender.com/api/messages/send", {
+      const sendRes = await fetch("http://localhost:10101/api/messages/send", {
         method: "POST",
 
         headers: { "Content-Type": "application/json" },

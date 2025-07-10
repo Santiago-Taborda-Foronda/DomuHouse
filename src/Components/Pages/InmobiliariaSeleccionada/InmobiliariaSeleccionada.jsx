@@ -1,3 +1,5 @@
+"use client"
+
 import React from "react"
 import { Header } from "../../Layouts/Header/Header"
 import { PropertyCard } from "../../Layouts/PropertyCard/PropertyCard"
@@ -14,7 +16,7 @@ export const InmobiliariaSeleccionada = () => {
   const [loading, setLoading] = React.useState(true)
   const [error, setError] = React.useState("")
 
-  // Función para obtener las iniciales del administrador
+  // Función para obtener las iniciales del agente
   const getAgentInitials = (name) => {
     if (!name || name.trim() === "" || name === "Agente") return "AD"
     return name
@@ -27,6 +29,33 @@ export const InmobiliariaSeleccionada = () => {
       .toUpperCase()
   }
 
+  // Función para obtener información del agente principal
+  const getMainAgent = () => {
+    if (properties.length === 0) return null
+
+    // Tomar el primer agente disponible o el más frecuente
+    const agentCounts = {}
+    properties.forEach((property) => {
+      const agentKey = `${property.agent_name} ${property.agent_lastname}`
+      agentCounts[agentKey] = (agentCounts[agentKey] || 0) + 1
+    })
+
+    // Encontrar el agente con más propiedades
+    const mainAgentName = Object.keys(agentCounts).reduce((a, b) => (agentCounts[a] > agentCounts[b] ? a : b))
+
+    // Encontrar la información completa del agente principal
+    const mainAgentProperty = properties.find(
+      (property) => `${property.agent_name} ${property.agent_lastname}` === mainAgentName,
+    )
+
+    return {
+      name: mainAgentName,
+      phone: mainAgentProperty.agent_phone,
+      email: mainAgentProperty.agent_email,
+      initials: getAgentInitials(mainAgentName),
+    }
+  }
+
   // useEffect para cargar propiedades desde el backend
   React.useEffect(() => {
     const fetchProperties = async () => {
@@ -35,7 +64,6 @@ export const InmobiliariaSeleccionada = () => {
           `http://localhost:10101/api/inmobiliarias/admin/${realEstate.person_id}/properties`,
         )
         if (!response.ok) throw new Error("No se encontraron propiedades para esta inmobiliaria.")
-
         const data = await response.json()
         setProperties(data)
       } catch (err) {
@@ -62,6 +90,9 @@ export const InmobiliariaSeleccionada = () => {
       area: property.built_area,
       price: Number.parseFloat(property.price).toLocaleString("es-CO"),
       description: `${property.property_type} en ${property.operation_type} - ${property.status}`,
+      image:
+        property.image_url ||
+        `/placeholder.svg?height=200&width=300&text=${encodeURIComponent(property.property_title)}`,
       agentInfo: {
         name: `${property.agent_name} ${property.agent_lastname}`,
         phone: property.agent_phone,
@@ -76,6 +107,9 @@ export const InmobiliariaSeleccionada = () => {
   const handleBackClick = () => {
     navigate("/inmobiliarias")
   }
+
+  // Obtener información del agente principal
+  const mainAgent = getMainAgent()
 
   // Manejo de estados de loading y error
   if (loading)
@@ -145,24 +179,52 @@ export const InmobiliariaSeleccionada = () => {
                   <p className="text-sky-600 font-medium">{properties.length} propiedades disponibles</p>
                 </div>
               </div>
-
               <p className="text-gray-600 text-lg leading-relaxed mb-6">{realEstate.description}</p>
             </div>
 
             {/* Columna derecha - Información de contacto */}
             <div className="bg-sky-50 rounded-xl p-6">
               <h3 className="text-xl font-semibold text-gray-800 mb-4">Información de Contacto</h3>
-
               <div className="space-y-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-[#2F8EAC] to-[#1e6b7a] flex items-center justify-center text-white text-xs sm:text-sm font-bold shadow-md">
-                    {getAgentInitials(realEstate.administrator)}
+                {/* Mostrar información del agente si está disponible */}
+                {mainAgent ? (
+                  <>
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-[#2F8EAC] to-[#1e6b7a] flex items-center justify-center text-white text-xs sm:text-sm font-bold shadow-md">
+                        {mainAgent.initials}
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500">Agente Principal</p>
+                        <p className="font-medium text-gray-800">{mainAgent.name}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Phone className="text-sky-600" size={20} />
+                      <div>
+                        <p className="text-sm text-gray-500">Teléfono del Agente</p>
+                        <p className="font-medium text-gray-800">{mainAgent.phone}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Mail className="text-sky-600" size={20} />
+                      <div>
+                        <p className="text-sm text-gray-500">Correo del Agente</p>
+                        <p className="font-medium text-gray-800">{mainAgent.email}</p>
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  /* Mostrar información del administrador si no hay agentes */
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-[#2F8EAC] to-[#1e6b7a] flex items-center justify-center text-white text-xs sm:text-sm font-bold shadow-md">
+                      {getAgentInitials(realEstate.administrator)}
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Persona Encargada</p>
+                      <p className="font-medium text-gray-800">{realEstate.administrator}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-sm text-gray-500">Persona Encargada</p>
-                    <p className="font-medium text-gray-800">{realEstate.administrator}</p>
-                  </div>
-                </div>
+                )}
 
                 <div className="flex items-center gap-3">
                   <MapPin className="text-sky-600" size={20} />
@@ -173,18 +235,18 @@ export const InmobiliariaSeleccionada = () => {
                   </div>
                 </div>
 
+                {/* Información general de la inmobiliaria */}
                 <div className="flex items-center gap-3">
                   <Phone className="text-sky-600" size={20} />
                   <div>
-                    <p className="text-sm text-gray-500">Teléfono</p>
+                    <p className="text-sm text-gray-500">Teléfono Inmobiliaria</p>
                     <p className="font-medium text-gray-800">{realEstate.phone}</p>
                   </div>
                 </div>
-
                 <div className="flex items-center gap-3">
                   <Mail className="text-sky-600" size={20} />
                   <div>
-                    <p className="text-sm text-gray-500">Correo Electrónico</p>
+                    <p className="text-sm text-gray-500">Correo Inmobiliaria</p>
                     <p className="font-medium text-gray-800">{realEstate.email}</p>
                   </div>
                 </div>
@@ -220,6 +282,8 @@ export const InmobiliariaSeleccionada = () => {
                   area={property.built_area}
                   price={Number.parseFloat(property.price).toLocaleString("es-CO")}
                   agentName={`${property.agent_name} ${property.agent_lastname}`}
+                  image={getAgentInitials(realEstate.administrator)}
+
                   onClick={() => handlePropertyClick(property)}
                 />
               ))}

@@ -47,6 +47,9 @@ export const ClientesAdmin = () => {
   const [totalClientes, setTotalClientes] = useState(0)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [selectedClient, setSelectedClient] = useState(null)
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false)
+
 
   // Función para manejar el toggle del sidebar
   const toggleSidebar = () => {
@@ -275,7 +278,7 @@ export const ClientesAdmin = () => {
             <div className="bg-white rounded-xl md:rounded-2xl shadow-sm border border-gray-100">
               <div className="p-4 md:p-6 border-b border-gray-100">
                 <h3 className="text-base md:text-lg font-semibold text-gray-800">
-                  Lista de Clientes ({clientesFiltrados.length})
+                  Lista de Clientes ({clientes.length})
                 </h3>
               </div>
 

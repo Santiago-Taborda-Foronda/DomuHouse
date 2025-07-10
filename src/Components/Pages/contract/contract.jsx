@@ -1,197 +1,263 @@
 "use client"
-
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { FileText, Calendar, Eye, Edit, Trash2, Plus, Search, Upload, X } from "lucide-react"
 import { Header } from "../../Layouts/Header/Header"
 import { SidebarInmobiliaria } from "../../Layouts/SidebarInmobiliaria/SidebarInmobiliaria"
 
-// Datos simulados de contratos
-const contratosData = [
-  {
-    id: 1,
-    contrato: "Luis Torres",
-    estado: "Activo",
-    fechaVencimiento: "25 abril 2025",
-    tipo: "Arrendamiento",
-    descripcion: "Contrato de arrendamiento para propiedad en Calle Principal #123",
-    archivos: ["contrato_luis.pdf"],
-  },
-  {
-    id: 2,
-    contrato: "Juan Ruiz",
-    estado: "Finalizado",
-    fechaVencimiento: "25 abril 2025",
-    tipo: "Venta",
-    descripcion: "Contrato de venta para propiedad en Avenida Central #456",
-    archivos: ["contrato_juan.pdf", "anexo_juan.pdf"],
-  },
-  {
-    id: 3,
-    contrato: "Andres Rios",
-    estado: "Activo",
-    fechaVencimiento: "25 abril 2025",
-    tipo: "Arrendamiento",
-    descripcion: "Contrato de arrendamiento para propiedad en Calle Secundaria #789",
-    archivos: ["contrato_andres.pdf"],
-  },
-]
+const API_BASE_URL = "http://localhost:10101/api/contracts"
 
 export const Contract = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(true)
   const [filtroActivo, setFiltroActivo] = useState("Activos")
-  const [contratos, setContratos] = useState(contratosData)
+  const [contratos, setContratos] = useState([])
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const [searchTerm, setSearchTerm] = useState("")
 
-  // Estados para modales
+  // Modales y selección
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false)
   const [isViewModalOpen, setIsViewModalOpen] = useState(false)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [selectedContrato, setSelectedContrato] = useState(null)
 
-  // Estado para formulario de nuevo contrato
-  const [newContrato, setNewContrato] = useState({
-    contrato: "",
-    estado: "Activo",
-    fechaVencimiento: "",
-    tipo: "Arrendamiento",
-    descripcion: "",
-    archivos: [],
-  })
+  // Estado inicial del formulario
+  const initialFormState = {
+    contract_name: "",
+    contract_type: "Arrendamiento",
+    status: "Activo",
+    expiry_date: "",
+    description: "",
+  }
 
-  // Estado para archivos
+  // Formulario (nuevo o editar)
+  const [newContrato, setNewContrato] = useState(initialFormState)
   const [selectedFiles, setSelectedFiles] = useState([])
 
-  const toggleSidebar = () => {
-    setIsSidebarOpen(!isSidebarOpen)
-  }
+  const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen)
+  const handleLogout = () => setIsAuthenticated(false)
 
-  // Función para manejar logout
-  const handleLogout = () => {
-    console.log("Cerrando sesión...")
-    setIsAuthenticated(false)
-  }
+  // Carga inicial de contratos
+  useEffect(() => {
+    fetchContratos()
+  }, [])
 
-  // Filtrar contratos según el tab activo y término de búsqueda
-  const contratosFiltrados = contratos.filter((contrato) => {
-    const matchesFilter =
-      filtroActivo === "Todos" ||
-      (filtroActivo === "Activos" && contrato.estado === "Activo") ||
-      (filtroActivo === "Finalizados" && contrato.estado === "Finalizado")
+  const fetchContratos = async () => {
+    try {
+      console.log("Cargando contratos...")
+      const response = await fetch(API_BASE_URL)
 
-    const matchesSearch =
-      searchTerm === "" ||
-      contrato.contrato.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      contrato.tipo.toLowerCase().includes(searchTerm.toLowerCase())
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
 
-    return matchesFilter && matchesSearch
-  })
+      const rows = await response.json()
+      console.log("Datos recibidos del servidor:", rows)
 
-  // Función para obtener el badge del estado
-  const getBadgeEstado = (estado) => {
-    if (estado === "Activo") {
-      return (
-        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-          Activo
-        </span>
-      )
-    } else if (estado === "Finalizado") {
-      return (
-        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-          Finalizado
-        </span>
-      )
+      // Agrupar archivos bajo cada contrato
+      const grouped = []
+      rows.forEach((r) => {
+        const exist = grouped.find((c) => c.contract_id === r.contract_id)
+        if (exist) {
+          if (r.file_id) {
+            exist.archivos.push({
+              file_id: r.file_id,
+              file_name: r.file_name,
+              file_url: r.file_url,
+            })
+          }
+        } else {
+          grouped.push({
+            contract_id: r.contract_id,
+            person_id: r.person_id,
+            property_id: r.property_id,
+            contract_name: r.contract_name,
+            contract_type: r.contract_type,
+            status: r.status,
+            expiry_date: r.expiry_date,
+            description: r.description,
+            archivos: r.file_id
+              ? [
+                  {
+                    file_id: r.file_id,
+                    file_name: r.file_name,
+                    file_url: r.file_url,
+                  },
+                ]
+              : [],
+          })
+        }
+      })
+
+      console.log("Contratos procesados:", grouped)
+      // Debug: Ver qué URLs tenemos
+      grouped.forEach((contrato) => {
+        if (contrato.archivos && contrato.archivos.length > 0) {
+          console.log(`Contrato ${contrato.contract_name} - Archivos:`, contrato.archivos)
+          contrato.archivos.forEach((archivo) => {
+            console.log(`- Archivo: ${archivo.file_name}, URL: ${archivo.file_url}`)
+          })
+        }
+      })
+      setContratos(grouped)
+    } catch (error) {
+      console.error("Error al cargar contratos:", error)
     }
   }
 
-  // Función para manejar la vista de un contrato
-  const handleView = (contrato) => {
-    setSelectedContrato(contrato)
+  const contratosFiltrados = contratos.filter((c) => {
+    const okEstado =
+      filtroActivo === "Todos" ||
+      (filtroActivo === "Activos" && c.status === "Activo") ||
+      (filtroActivo === "Finalizados" && c.status === "Finalizado")
+
+    const okSearch =
+      !searchTerm ||
+      c.contract_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      c.contract_type.toLowerCase().includes(searchTerm.toLowerCase())
+
+    return okEstado && okSearch
+  })
+
+  // Badge
+  const getBadgeEstado = (estado) =>
+    estado === "Activo" ? (
+      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+        Activo
+      </span>
+    ) : (
+      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+        Finalizado
+      </span>
+    )
+
+  // Handlers
+  const handleView = (c) => {
+    setSelectedContrato(c)
     setIsViewModalOpen(true)
   }
 
-  // Función para manejar la edición de un contrato
-  const handleEdit = (contrato) => {
-    setSelectedContrato({ ...contrato })
-    setNewContrato({ ...contrato })
+  const handleEdit = (c) => {
+    setSelectedContrato(c)
+    setNewContrato({
+      contract_name: c.contract_name || "",
+      contract_type: c.contract_type || "Arrendamiento",
+      status: c.status || "Activo",
+      expiry_date: c.expiry_date || "",
+      description: c.description || "",
+    })
     setIsEditModalOpen(true)
   }
 
-  // Función para manejar la eliminación de un contrato
-  const handleDelete = (contrato) => {
-    setSelectedContrato(contrato)
+  const handleDelete = (c) => {
+    setSelectedContrato(c)
     setIsDeleteDialogOpen(true)
   }
 
-  // Función para confirmar la eliminación
-  const confirmDelete = () => {
-    if (selectedContrato) {
-      setContratos(contratos.filter((c) => c.id !== selectedContrato.id))
-      setIsDeleteDialogOpen(false)
-      setSelectedContrato(null)
+  const confirmDelete = async () => {
+    if (!selectedContrato) return
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/${selectedContrato.contract_id}`, {
+        method: "DELETE",
+      })
+
+      if (response.ok) {
+        await fetchContratos()
+        setIsDeleteDialogOpen(false)
+        setSelectedContrato(null)
+      }
+    } catch (error) {
+      console.error("Error:", error)
     }
   }
 
-  // Función para manejar cambios en el formulario
+  // Form
   const handleFormChange = (e) => {
     const { name, value } = e.target
-    setNewContrato((prev) => ({
-      ...prev,
-      [name]: value,
-    }))
+    setNewContrato((prev) => ({ ...prev, [name]: value }))
   }
 
-  // Función para manejar la selección de archivos
   const handleFileChange = (e) => {
-    const files = Array.from(e.target.files)
-    setSelectedFiles((prev) => [...prev, ...files])
+    if (e.target.files) {
+      setSelectedFiles([...selectedFiles, ...Array.from(e.target.files)])
+    }
   }
 
-  // Función para eliminar un archivo seleccionado
   const removeSelectedFile = (index) => {
     setSelectedFiles(selectedFiles.filter((_, i) => i !== index))
   }
 
-  // Función para guardar un nuevo contrato
-  const handleSaveNewContrato = () => {
-    const fileNames = selectedFiles.map((file) => file.name)
-    const newContratoWithFiles = {
-      ...newContrato,
-      id: contratos.length + 1,
-      archivos: fileNames,
-    }
-
-    setContratos([...contratos, newContratoWithFiles])
-    setIsUploadModalOpen(false)
-    setSelectedFiles([])
-    setNewContrato({
-      contrato: "",
-      estado: "Activo",
-      fechaVencimiento: "",
-      tipo: "Arrendamiento",
-      descripcion: "",
-      archivos: [],
-    })
-  }
-
-  // Función para actualizar un contrato existente
-  const handleUpdateContrato = () => {
-    if (selectedContrato) {
-      const fileNames = [...selectedContrato.archivos, ...selectedFiles.map((file) => file.name)]
-      const updatedContrato = {
-        ...newContrato,
-        archivos: fileNames,
+  const handleSaveNewContrato = async () => {
+    try {
+      if (!newContrato.contract_name.trim()) {
+        alert("Por favor ingresa el nombre del contrato")
+        return
       }
 
-      setContratos(contratos.map((c) => (c.id === selectedContrato.id ? updatedContrato : c)))
-      setIsEditModalOpen(false)
-      setSelectedFiles([])
-      setSelectedContrato(null)
+      if (!newContrato.expiry_date) {
+        alert("Por favor selecciona la fecha de vencimiento")
+        return
+      }
+
+      console.log("Guardando contrato:", newContrato)
+      const form = new FormData()
+
+      // Agregar person_id por defecto (usar un ID que existe en tu base de datos)
+      form.append("person_id", "2") // Usar el ID 2 que veo en tu base de datos
+
+      // Agregar los campos del formulario
+      Object.entries(newContrato).forEach(([k, v]) => form.append(k, v))
+      selectedFiles.forEach((f) => form.append("files", f))
+
+      const response = await fetch(API_BASE_URL, {
+        method: "POST",
+        body: form,
+      })
+
+      if (response.ok) {
+        await fetchContratos()
+        setNewContrato(initialFormState)
+        setSelectedFiles([])
+        setIsUploadModalOpen(false)
+        alert("Contrato guardado exitosamente")
+      } else {
+        const errorText = await response.text()
+        alert(`Error al guardar: ${errorText}`)
+      }
+    } catch (error) {
+      console.error("Error:", error)
+      alert(`Error: ${error.message}`)
     }
   }
 
-  // Función para cerrar modales
+  const handleUpdateContrato = async () => {
+    if (!selectedContrato) return
+
+    try {
+      const form = new FormData()
+
+      // Agregar person_id por defecto
+      form.append("person_id", "2")
+
+      Object.entries(newContrato).forEach(([k, v]) => form.append(k, v))
+      selectedFiles.forEach((f) => form.append("files", f))
+
+      const response = await fetch(`${API_BASE_URL}/${selectedContrato.contract_id}`, {
+        method: "PUT",
+        body: form,
+      })
+
+      if (response.ok) {
+        await fetchContratos()
+        setNewContrato(initialFormState)
+        setSelectedFiles([])
+        setIsEditModalOpen(false)
+      }
+    } catch (error) {
+      console.error("Error:", error)
+    }
+  }
+
   const closeAllModals = () => {
     setIsUploadModalOpen(false)
     setIsViewModalOpen(false)
@@ -199,7 +265,19 @@ export const Contract = () => {
     setIsDeleteDialogOpen(false)
     setSelectedContrato(null)
     setSelectedFiles([])
+    setNewContrato(initialFormState)
   }
+
+  // Agregar este useEffect después del useEffect existente
+  useEffect(() => {
+    // Actualizar selectedContrato si existe y los contratos han cambiado
+    if (selectedContrato && contratos.length > 0) {
+      const updatedContrato = contratos.find((c) => c.contract_id === selectedContrato.contract_id)
+      if (updatedContrato) {
+        setSelectedContrato(updatedContrato)
+      }
+    }
+  }, [contratos])
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -219,7 +297,7 @@ export const Contract = () => {
           />
         </div>
 
-        {/* AQUÍ ESTÁ LA CORRECCIÓN: Sidebar overlay para móviles */}
+        {/* Sidebar overlay para móviles */}
         <SidebarInmobiliaria
           isOpen={isSidebarOpen}
           toggleMenu={toggleSidebar}
@@ -237,14 +315,13 @@ export const Contract = () => {
                 <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Contratos y Reservas</h1>
                 <p className="text-gray-600 text-sm mt-1">Gestiona todos tus contratos y reservas</p>
               </div>
-
               {/* Botón Subir Archivos */}
               <button
                 className="flex items-center justify-center gap-2 bg-[#2F8EAC] text-white px-4 sm:px-6 py-3 rounded-xl hover:bg-[#267a96] transition-colors font-medium w-full sm:w-auto"
                 onClick={() => setIsUploadModalOpen(true)}
               >
                 <Plus className="w-5 h-5" />
-                <span className="sm:inline">Subir Archivos</span>
+                <span className="sm:inline">Nuevo Contrato</span>
               </button>
             </div>
 
@@ -316,21 +393,21 @@ export const Contract = () => {
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
                     {contratosFiltrados.map((contrato) => (
-                      <tr key={contrato.id} className="hover:bg-gray-50 transition-colors">
+                      <tr key={contrato.contract_id} className="hover:bg-gray-50 transition-colors">
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center">
                             <FileText className="w-5 h-5 text-gray-400 mr-3" />
                             <div>
-                              <div className="text-sm font-medium text-gray-900">{contrato.contrato}</div>
-                              <div className="text-sm text-gray-500">{contrato.tipo}</div>
+                              <div className="text-sm font-medium text-gray-900">{contrato.contract_name}</div>
+                              <div className="text-sm text-gray-500">{contrato.contract_type}</div>
                             </div>
                           </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">{getBadgeEstado(contrato.estado)}</td>
+                        <td className="px-6 py-4 whitespace-nowrap">{getBadgeEstado(contrato.status)}</td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center text-sm text-gray-900">
                             <Calendar className="w-4 h-4 text-gray-400 mr-2" />
-                            {contrato.fechaVencimiento}
+                            {contrato.expiry_date}
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
@@ -367,24 +444,25 @@ export const Contract = () => {
               {/* Vista de tarjetas para móviles */}
               <div className="sm:hidden">
                 {contratosFiltrados.map((contrato) => (
-                  <div key={contrato.id} className="border-b border-gray-200 p-4 hover:bg-gray-50 transition-colors">
+                  <div
+                    key={contrato.contract_id}
+                    className="border-b border-gray-200 p-4 hover:bg-gray-50 transition-colors"
+                  >
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex items-center flex-1">
                         <FileText className="w-5 h-5 text-gray-400 mr-3 flex-shrink-0" />
                         <div className="min-w-0 flex-1">
-                          <div className="text-sm font-medium text-gray-900 truncate">{contrato.contrato}</div>
-                          <div className="text-sm text-gray-500">{contrato.tipo}</div>
+                          <div className="text-sm font-medium text-gray-900 truncate">{contrato.contract_name}</div>
+                          <div className="text-sm text-gray-500">{contrato.contract_type}</div>
                         </div>
                       </div>
-                      <div className="flex-shrink-0 ml-3">{getBadgeEstado(contrato.estado)}</div>
+                      <div className="flex-shrink-0 ml-3">{getBadgeEstado(contrato.status)}</div>
                     </div>
-
                     <div className="flex items-center justify-between">
                       <div className="flex items-center text-sm text-gray-900">
                         <Calendar className="w-4 h-4 text-gray-400 mr-2" />
-                        <span className="text-xs sm:text-sm">{contrato.fechaVencimiento}</span>
+                        <span className="text-xs sm:text-sm">{contrato.expiry_date}</span>
                       </div>
-
                       <div className="flex items-center space-x-3">
                         <button
                           className="text-[#2F8EAC] hover:text-[#267a96] transition-colors p-1"
@@ -434,7 +512,6 @@ export const Contract = () => {
         </main>
       </div>
 
-      {/* Todos los modales permanecen igual... */}
       {/* Modal para subir archivos */}
       {isUploadModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -448,36 +525,37 @@ export const Contract = () => {
               </div>
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Nombre del Contrato</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Nombre del Contrato <span className="text-red-500">*</span>
+                  </label>
                   <input
                     type="text"
-                    name="contrato"
-                    value={newContrato.contrato}
+                    name="contract_name"
+                    value={newContrato.contract_name}
                     onChange={handleFormChange}
                     placeholder="Nombre del cliente o contrato"
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-[#2F8EAC] focus:ring-2 focus:ring-[#2F8EAC] focus:ring-opacity-20 outline-none transition-all"
+                    required
                   />
                 </div>
-
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Tipo</label>
                     <select
-                      name="tipo"
-                      value={newContrato.tipo}
+                      name="contract_type"
+                      value={newContrato.contract_type}
                       onChange={handleFormChange}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-[#2F8EAC] focus:ring-2 focus:ring-[#2F8EAC] focus:ring-opacity-20 outline-none transition-all"
                     >
                       <option value="Arrendamiento">Arrendamiento</option>
                       <option value="Venta">Venta</option>
-                      <option value="Reserva">Reserva</option>
                     </select>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Estado</label>
                     <select
-                      name="estado"
-                      value={newContrato.estado}
+                      name="status"
+                      value={newContrato.status}
                       onChange={handleFormChange}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-[#2F8EAC] focus:ring-2 focus:ring-[#2F8EAC] focus:ring-opacity-20 outline-none transition-all"
                     >
@@ -486,31 +564,30 @@ export const Contract = () => {
                     </select>
                   </div>
                 </div>
-
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Fecha de Vencimiento</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Fecha de Vencimiento <span className="text-red-500">*</span>
+                  </label>
                   <input
-                    type="text"
-                    name="fechaVencimiento"
-                    value={newContrato.fechaVencimiento}
+                    type="date"
+                    name="expiry_date"
+                    value={newContrato.expiry_date}
                     onChange={handleFormChange}
-                    placeholder="ej. 25 abril 2025"
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-[#2F8EAC] focus:ring-2 focus:ring-[#2F8EAC] focus:ring-opacity-20 outline-none transition-all"
+                    required
                   />
                 </div>
-
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
                   <textarea
-                    name="descripcion"
-                    value={newContrato.descripcion}
+                    name="description"
+                    value={newContrato.description}
                     onChange={handleFormChange}
                     placeholder="Detalles del contrato"
                     rows={3}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-[#2F8EAC] focus:ring-2 focus:ring-[#2F8EAC] focus:ring-opacity-20 outline-none transition-all resize-none"
                   />
                 </div>
-
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Archivos</label>
                   <label className="flex items-center justify-center w-full border-2 border-dashed border-gray-300 rounded-lg py-4 px-4 cursor-pointer hover:bg-gray-50 transition-colors">
@@ -540,7 +617,6 @@ export const Contract = () => {
                   )}
                 </div>
               </div>
-
               <div className="flex gap-3 mt-6">
                 <button
                   onClick={closeAllModals}
@@ -571,34 +647,29 @@ export const Contract = () => {
                   <X className="w-6 h-6" />
                 </button>
               </div>
-
               <div className="space-y-4">
                 <div>
                   <h3 className="text-sm font-medium text-gray-500">Nombre</h3>
-                  <p className="mt-1 text-sm text-gray-900">{selectedContrato.contrato}</p>
+                  <p className="mt-1 text-sm text-gray-900">{selectedContrato.contract_name}</p>
                 </div>
-
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <h3 className="text-sm font-medium text-gray-500">Tipo</h3>
-                    <p className="mt-1 text-sm text-gray-900">{selectedContrato.tipo}</p>
+                    <p className="mt-1 text-sm text-gray-900">{selectedContrato.contract_type}</p>
                   </div>
                   <div>
                     <h3 className="text-sm font-medium text-gray-500">Estado</h3>
-                    <div className="mt-1">{getBadgeEstado(selectedContrato.estado)}</div>
+                    <div className="mt-1">{getBadgeEstado(selectedContrato.status)}</div>
                   </div>
                 </div>
-
                 <div>
                   <h3 className="text-sm font-medium text-gray-500">Fecha de Vencimiento</h3>
-                  <p className="mt-1 text-sm text-gray-900">{selectedContrato.fechaVencimiento}</p>
+                  <p className="mt-1 text-sm text-gray-900">{selectedContrato.expiry_date}</p>
                 </div>
-
                 <div>
                   <h3 className="text-sm font-medium text-gray-500">Descripción</h3>
-                  <p className="mt-1 text-sm text-gray-900">{selectedContrato.descripcion || "Sin descripción"}</p>
+                  <p className="mt-1 text-sm text-gray-900">{selectedContrato.description || "Sin descripción"}</p>
                 </div>
-
                 <div>
                   <h3 className="text-sm font-medium text-gray-500">Archivos</h3>
                   {selectedContrato.archivos && selectedContrato.archivos.length > 0 ? (
@@ -607,14 +678,9 @@ export const Contract = () => {
                         <div key={index} className="flex items-center justify-between bg-gray-50 rounded-lg p-2">
                           <div className="flex items-center">
                             <FileText className="w-4 h-4 text-gray-400 mr-2" />
-                            <span className="text-sm text-gray-900">{archivo}</span>
+                            <span className="text-sm text-gray-900">{archivo.file_name}</span>
                           </div>
-                          <button
-                            className="text-[#2F8EAC] hover:text-[#267a96] text-sm font-medium transition-colors"
-                            onClick={() => console.log(`Descargando ${archivo}`)}
-                          >
-                            Descargar
-                          </button>
+                          {/* Removed the "Ver" button */}
                         </div>
                       ))}
                     </div>
@@ -623,7 +689,6 @@ export const Contract = () => {
                   )}
                 </div>
               </div>
-
               <div className="mt-6">
                 <button
                   onClick={closeAllModals}
@@ -648,38 +713,35 @@ export const Contract = () => {
                   <X className="w-6 h-6" />
                 </button>
               </div>
-
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Nombre del Contrato</label>
                   <input
                     type="text"
-                    name="contrato"
-                    value={newContrato.contrato}
+                    name="contract_name"
+                    value={newContrato.contract_name}
                     onChange={handleFormChange}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-[#2F8EAC] focus:ring-2 focus:ring-[#2F8EAC] focus:ring-opacity-20 outline-none transition-all"
                   />
                 </div>
-
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Tipo</label>
                     <select
-                      name="tipo"
-                      value={newContrato.tipo}
+                      name="contract_type"
+                      value={newContrato.contract_type}
                       onChange={handleFormChange}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-[#2F8EAC] focus:ring-2 focus:ring-[#2F8EAC] focus:ring-opacity-20 outline-none transition-all"
                     >
                       <option value="Arrendamiento">Arrendamiento</option>
                       <option value="Venta">Venta</option>
-                      <option value="Reserva">Reserva</option>
                     </select>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Estado</label>
                     <select
-                      name="estado"
-                      value={newContrato.estado}
+                      name="status"
+                      value={newContrato.status}
                       onChange={handleFormChange}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-[#2F8EAC] focus:ring-2 focus:ring-[#2F8EAC] focus:ring-opacity-20 outline-none transition-all"
                     >
@@ -688,29 +750,26 @@ export const Contract = () => {
                     </select>
                   </div>
                 </div>
-
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Fecha de Vencimiento</label>
                   <input
-                    type="text"
-                    name="fechaVencimiento"
-                    value={newContrato.fechaVencimiento}
+                    type="date"
+                    name="expiry_date"
+                    value={newContrato.expiry_date}
                     onChange={handleFormChange}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-[#2F8EAC] focus:ring-2 focus:ring-[#2F8EAC] focus:ring-opacity-20 outline-none transition-all"
                   />
                 </div>
-
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
                   <textarea
-                    name="descripcion"
-                    value={newContrato.descripcion}
+                    name="description"
+                    value={newContrato.description}
                     onChange={handleFormChange}
                     rows={3}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-[#2F8EAC] focus:ring-2 focus:ring-[#2F8EAC] focus:ring-opacity-20 outline-none transition-all resize-none"
                   />
                 </div>
-
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Archivos Actuales</label>
                   {selectedContrato.archivos && selectedContrato.archivos.length > 0 ? (
@@ -718,7 +777,7 @@ export const Contract = () => {
                       {selectedContrato.archivos.map((archivo, index) => (
                         <div key={index} className="flex items-center bg-gray-50 rounded-lg p-2">
                           <FileText className="w-4 h-4 text-gray-400 mr-2" />
-                          <span className="text-sm text-gray-900">{archivo}</span>
+                          <span className="text-sm text-gray-900">{archivo.file_name}</span>
                         </div>
                       ))}
                     </div>
@@ -726,7 +785,6 @@ export const Contract = () => {
                     <p className="text-sm text-gray-500">No hay archivos adjuntos</p>
                   )}
                 </div>
-
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Añadir Archivos</label>
                   <label className="flex items-center justify-center w-full border-2 border-dashed border-gray-300 rounded-lg py-4 px-4 cursor-pointer hover:bg-gray-50 transition-colors">
@@ -756,7 +814,6 @@ export const Contract = () => {
                   )}
                 </div>
               </div>
-
               <div className="flex gap-3 mt-6">
                 <button
                   onClick={closeAllModals}
@@ -787,10 +844,9 @@ export const Contract = () => {
               <h2 className="text-lg font-bold text-gray-900 text-center mb-2">¿Estás seguro?</h2>
               <p className="text-sm text-gray-500 text-center mb-6">
                 Esta acción no se puede deshacer. Esto eliminará permanentemente el contrato
-                <span className="font-medium text-gray-900"> "{selectedContrato.contrato}"</span> y todos sus datos
+                <span className="font-medium text-gray-900"> "{selectedContrato.contract_name}"</span> y todos sus datos
                 asociados.
               </p>
-
               <div className="flex gap-3">
                 <button
                   onClick={closeAllModals}

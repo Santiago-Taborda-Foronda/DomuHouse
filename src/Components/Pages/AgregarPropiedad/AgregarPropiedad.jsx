@@ -109,7 +109,7 @@ const AgregarPropiedad = () => {
 
       console.log("🚀 Intentando fetch a /api/agentes")
 
-      const response = await fetch("https://domuhouse.onrender.com/api/agentes", {
+      const response = await fetch("http://localhost:10101/api/agentes", {
         method: "GET",
         headers: headers,
         // NO usar credentials: "include" para evitar problemas de CORS
@@ -317,7 +317,6 @@ const AgregarPropiedad = () => {
     const operationMap = {
       Venta: "Venta",
       Arriendo: "Arriendo",
-      "Arriendo con opción de compra": "Arriendo con opción de compra",
     }
     return operationMap[frontendType] || "Venta"
   }
@@ -372,7 +371,7 @@ const AgregarPropiedad = () => {
       }
 
       // Llamada al API del backend
-      const response = await fetch("https://domuhouse-express.onrender.com/api/properties/create", {
+      const response = await fetch("http://localhost:10101/api/properties/create", {
         method: "POST",
         headers,
         body: formDataToSend,
@@ -603,9 +602,7 @@ const AgregarPropiedad = () => {
                       <option value="">Tipo de Propiedad *</option>
                       <option value="casa">Casa</option>
                       <option value="apartamento">Apartamento</option>
-                      <option value="local">Local Comercial</option>
-                      <option value="oficina">Oficina</option>
-                      <option value="terreno">Terreno</option>
+                      <option value="local">Finca</option>
                     </select>
 
                     <select
@@ -616,7 +613,6 @@ const AgregarPropiedad = () => {
                     >
                       <option value="Venta">En Venta</option>
                       <option value="Arriendo">En Arriendo</option>
-                      <option value="Arriendo con opción de compra">Arriendo con opción de compra</option>
                     </select>
                   </div>
 

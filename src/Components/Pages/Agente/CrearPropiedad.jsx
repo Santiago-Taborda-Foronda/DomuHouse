@@ -729,7 +729,7 @@ export default function CrearPropiedad() {
                     {selectedImages.length > 0 && (
                       <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
                         <p className="text-sm text-green-700">
-                          <strong>✅ Todas las imágenes ({imageFiles.length}) se enviarán al backend.</strong>
+                          <strong>✅ Todas las imágenes ({imageFiles.length}) se guardaran en la base de datos.</strong>
                         </p>
                       </div>
                     )}

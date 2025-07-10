@@ -116,9 +116,8 @@ export const Login = () => {
             navigate('/');
             break;
           default:
-            console.log('🔄 Redirigiendo a página principal');
-            navigate('/');
-            break;
+          setError('Rol de usuario no reconocido');
+          break;
         }
 
       } else {

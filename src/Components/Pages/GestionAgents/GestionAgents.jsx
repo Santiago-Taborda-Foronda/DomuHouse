@@ -34,15 +34,18 @@ export const GestionAgents = () => {
   // Función para cargar agentes desde el backend
   const cargarAgentes = async () => {
     try {
-      setLoading(true)
-      setError(null)
+    setLoading(true);
+    setError(null);
 
-    const token = localStorage.getItem("authToken")
-      if (!token) {
-        setError("Token no disponible. Por favor, inicia sesión nuevamente.")
-        setLoading(false)
-        return
-      }
+    // Buscar token en ambos lugares con orden de prioridad
+    const token = localStorage.getItem("token") || localStorage.getItem("authToken");
+    console.log("🔑 Token usado para la petición:", token);  // Verifica en consola
+
+    if (!token) {
+      setError("Token no disponible. Por favor, inicia sesión nuevamente.");
+      setLoading(false);
+      return;
+    }
 
       const response = await fetch("https://imagen-domuhouse-express.onrender.com/api/agentes-info", {
         method: "GET",
@@ -71,7 +74,7 @@ export const GestionAgents = () => {
         name: `${agente.name_person} ${agente.last_name}`.trim(),
         email: agente.email,
         phone: agente.phone,
-        propertyCount: Math.floor(Math.random() * 10 + 1), // Reemplazar si tienes este dato
+        propertyCount: agente.total_properties ?? 0,
         rating: Math.floor(Math.random() * 5 + 1), // Reemplazar si tienes este dato
         status: "Activo", // Reemplazar si viene del backend
         specialties: ["General"], // Reemplazar si viene del backend
@@ -103,7 +106,7 @@ export const GestionAgents = () => {
     }
 
     try {
-      const token = localStorage.getItem("token")
+      const token = localStorage.getItem("token") || localStorage.getItem("authToken");
       if (!token) {
         alert("Token no disponible")
         return

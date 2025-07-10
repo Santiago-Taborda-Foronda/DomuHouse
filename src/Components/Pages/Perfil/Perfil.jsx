@@ -11,6 +11,12 @@ export const Perfil = () => {
   const [isClient, setIsClient] = useState(false)
   const [misPropiedades, setMisPropiedades] = useState([])
   const [totalMisPropiedades, setTotalMisPropiedades] = useState(0)
+  const [alert, setAlert] = useState({
+  show: false,
+  type: 'info',
+  message: ''
+});
+
 
   // Estados para los modales
   const [newImages, setNewImages] = useState([]);
@@ -673,6 +679,34 @@ const handleSaveEdit = async () => {
     )
   }
 
+  const CustomAlert = ({ type = 'info', message, onClose }) => {
+  const alertStyles = {
+    success: 'bg-green-50 border-green-200 text-green-700',
+    error: 'bg-red-50 border-red-200 text-red-700',
+    warning: 'bg-yellow-50 border-yellow-200 text-yellow-700',
+    info: 'bg-blue-50 border-blue-200 text-blue-700'
+  };
+
+  const iconStyles = {
+    success: <Check className="w-5 h-5" />,
+    error: <AlertCircle className="w-5 h-5" />,
+    warning: <AlertTriangle className="w-5 h-5" />,
+    info: <Info className="w-5 h-5" />
+  };
+
+  return (
+    <div className={`fixed top-4 right-4 z-50 border rounded-lg p-4 shadow-lg flex items-start gap-3 ${alertStyles[type]} max-w-md`}>
+      <div className="mt-0.5">{iconStyles[type]}</div>
+      <div className="flex-1">
+        <p className="text-sm font-medium">{message}</p>
+      </div>
+      <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
+        <X className="w-4 h-4" />
+      </button>
+    </div>
+  );
+};
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 px-4 md:px-8 py-8">
       <div className="max-w-7xl mx-auto">
@@ -943,10 +977,10 @@ const handleSaveEdit = async () => {
               {selectedProperty.status}
             </p>
           </div>
-          <div className="bg-gray-50 p-3 rounded-lg">
+          {/* <div className="bg-gray-50 p-3 rounded-lg">
             <p className="text-sm text-gray-500">Tipo</p>
             <p className="font-semibold">{selectedProperty.property_type}</p>
-          </div>
+          </div> */}
           <div className="bg-gray-50 p-3 rounded-lg">
             <p className="text-sm text-gray-500">Área</p>
             <p className="font-semibold">{selectedProperty.built_area} m²</p>
@@ -1084,9 +1118,6 @@ const handleSaveEdit = async () => {
             >
               <option value="Casa">Casa</option>
               <option value="Apartamento">Apartamento</option>
-              <option value="Local">Local</option>
-              <option value="Oficina">Oficina</option>
-              <option value="Lote">Lote</option>
               <option value="Finca">Finca</option>
             </select>
           </div>
@@ -1139,7 +1170,6 @@ const handleSaveEdit = async () => {
               <option value="Disponible">Disponible</option>
               <option value="Vendida">Vendida</option>
               <option value="Arrendada">Arrendada</option>
-              <option value="Reservada">Reservada</option>
             </select>
           </div>
         </div>

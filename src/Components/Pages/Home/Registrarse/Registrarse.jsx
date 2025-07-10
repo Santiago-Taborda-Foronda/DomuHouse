@@ -218,7 +218,7 @@ export const Registrarse = () => {
 
       if (userType === "agente") {
 
-        endpoint = "https://imagen-domuhouse-express.onrender.com/api/registro-agente"
+        endpoint = "http://localhost:10101/api/registro-agente"
 
         // Validar token antes de enviar
         if (!validateTokenBeforeSend()) {
@@ -238,11 +238,11 @@ export const Registrarse = () => {
         console.log("Enviando datos de agente:", payload)
         console.log("Token específico:", tokenToSend)
       } else if (userType === "administrador") {
-        endpoint = "https://imagen-domuhouse-express.onrender.com/api/admin/registerAdmin"
+        endpoint = "http://localhost:10101/api/admin/registerAdmin"
         payload = { ...userData, role: userType }
       } else {
         // Cliente
-        endpoint = "https://imagen-domuhouse-express.onrender.com/register/register"
+        endpoint = "http://localhost:10101/register/register"
         payload = { ...userData, role: userType }
       }
 
@@ -345,7 +345,7 @@ export const Registrarse = () => {
     console.log('📤 Enviando datos de inmobiliaria con logo...')
     
     // ✅ Usar el endpoint correcto que configuramos
-    const response = await fetch('https://imagen-domuhouse-express.onrender.com/api/inmobiliarias/register', {
+    const response = await fetch('http://localhost:10101/api/inmobiliarias/register', {
       method: 'POST',
       body: formData, // ✅ NO pongas Content-Type, el navegador lo maneja automáticamente
     })

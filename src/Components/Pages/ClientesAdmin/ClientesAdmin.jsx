@@ -7,7 +7,7 @@ import { SidebarInmobiliaria } from "../../Layouts/SidebarInmobiliaria/SidebarIn
 import { ClientDetailsModal } from "../ClientDetailsModal/ClientDetailsModal"
 
 // Configuración de la API
-const API_BASE_URL = 'https://imagen-domuhouse-express.onrender.com/api'
+const API_BASE_URL = 'http://localhost:10101/api'
 
 // Servicios para llamadas a la API
 const clientAPI = {

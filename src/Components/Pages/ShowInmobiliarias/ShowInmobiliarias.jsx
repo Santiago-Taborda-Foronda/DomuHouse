@@ -21,7 +21,7 @@ export const ShowInmobiliarias = () => {
   useEffect(() => {
     const fetchRealEstates = async () => {
       try {
-        const response = await fetch('https://imagen-domuhouse-express.onrender.com/api/inmobiliarias/getAllRealEstates');
+        const response = await fetch('http://localhost:10101/api/inmobiliarias/getAllRealEstates');
         if (!response.ok) throw new Error('Error en la respuesta de la red');
         const data = await response.json();
         // Depuración: Verificar los datos devueltos
@@ -66,7 +66,7 @@ export const ShowInmobiliarias = () => {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const response = await fetch('https://imagen-domuhouse-express.onrender.com/api/inmobiliarias/stats');
+        const response = await fetch('http://localhost:10101/api/inmobiliarias/stats');
         if (!response.ok) throw new Error('Error al obtener estadísticas');
         const data = await response.json();
         setStats({

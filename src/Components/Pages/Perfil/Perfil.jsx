@@ -179,7 +179,7 @@ const handleRemoveImage = (index) => {
 
   const cargarPropiedadesDelUsuario = async (userId) => {
     try {
-      const data = await fetchWithAuth(`https://imagen-domuhouse-express.onrender.com/api/properties/mis-propiedades/${userId}`)
+      const data = await fetchWithAuth(`http://localhost:10101/api/properties/mis-propiedades/${userId}`)
       setMisPropiedades(data.properties || [])
       setTotalMisPropiedades(data.total || 0)
     } catch (err) {
@@ -204,7 +204,7 @@ const handleRemoveImage = (index) => {
         }
 
         try {
-          const baseUrl = "https://imagen-domuhouse-express.onrender.com"
+          const baseUrl = "http://localhost:10101"
           const url = `${baseUrl}/api/getUser/perfil`
           const response = await fetchWithAuth(url)
 
@@ -263,7 +263,7 @@ const handleRemoveImage = (index) => {
   const actualizarPerfil = async (datosActualizados) => {
     try {
       setSaving(true)
-      const baseUrl = "https://imagen-domuhouse-express.onrender.com"
+      const baseUrl = "http://localhost:10101"
       const response = await fetchWithAuth(`${baseUrl}/api/update/perfil`, {
         method: "PUT",
         body: JSON.stringify({
@@ -428,7 +428,7 @@ const handleRemoveImage = (index) => {
     if (!authInfo?.token) throw new Error("No se encontró token de autenticación");
 
     const response = await fetch(
-      `https://imagen-domuhouse-express.onrender.com/api/properties/eliminar/${selectedProperty.property_id}`,
+      `http://localhost:10101/api/properties/eliminar/${selectedProperty.property_id}`,
       {
         method: "DELETE",
         headers: {
@@ -499,7 +499,7 @@ const handleSaveEdit = async () => {
     }
 
     const response = await fetch(
-      `https://imagen-domuhouse-express.onrender.com/api/properties/editar/${selectedProperty.property_id}`,
+      `http://localhost:10101/api/properties/editar/${selectedProperty.property_id}`,
       {
         method: "PUT",
         headers: {

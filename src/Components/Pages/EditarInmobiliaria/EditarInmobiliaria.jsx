@@ -48,7 +48,7 @@ export const EditarInmobiliaria = () => {
         setError(null)
         console.log("🔍 Cargando inmobiliaria ID:", id)
 
-        const response = await fetch(`https://imagen-domuhouse-express.onrender.com/api/inmobiliarias/${id}`)
+        const response = await fetch(`http://localhost:10101/api/inmobiliarias/${id}`)
         console.log("📊 Response status:", response.status)
 
         if (!response.ok) {
@@ -140,7 +140,7 @@ export const EditarInmobiliaria = () => {
 
       console.log("💾 Guardando datos:", dataToSend)
 
-      const response = await fetch(`https://imagen-domuhouse-express.onrender.com/api/inmobiliarias/realestate/${id}`, {
+      const response = await fetch(`http://localhost:10101/api/inmobiliarias/realestate/${id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -185,7 +185,7 @@ export const EditarInmobiliaria = () => {
   const handleDelete = async () => {
     setIsDeleting(true)
     try {
-      const response = await fetch(`https://imagen-domuhouse-express.onrender.com/api/inmobiliarias/delete/realestate/${id}`, {
+      const response = await fetch(`http://localhost:10101/api/inmobiliarias/delete/realestate/${id}`, {
         method: "DELETE",
       })
 

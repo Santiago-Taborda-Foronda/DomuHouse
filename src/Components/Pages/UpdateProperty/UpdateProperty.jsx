@@ -61,7 +61,7 @@ const [formData, setFormData] = useState({
         setSubmitError("")
 
         // Primero obtener los datos de la propiedad
-        const detailsResponse = await fetch(`https://imagen-domuhouse-express.onrender.com/api/properties/details/${id}`)
+        const detailsResponse = await fetch(`http://localhost:10101/api/properties/details/${id}`)
         if (!detailsResponse.ok) {
           throw new Error("No se pudo cargar la propiedad")
         }
@@ -216,7 +216,7 @@ const [formData, setFormData] = useState({
         formDataToSend.append("images", file)
       })
 
-      const response = await fetch(`https://imagen-domuhouse-express.onrender.com/api/properties/editar/${id}`, {
+      const response = await fetch(`http://localhost:10101/api/properties/editar/${id}`, {
         method: "PUT",
         body: formDataToSend,
       })

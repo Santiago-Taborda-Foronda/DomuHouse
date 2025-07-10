@@ -4,7 +4,7 @@ import { Header } from '../../Layouts/Header/Header'
 import { SidebarInmobiliaria } from '../../Layouts/SidebarInmobiliaria/SidebarInmobiliaria'
 
 // Configuración de la API
-const API_BASE_URL = 'https://imagen-domuhouse-express.onrender.com/api'
+const API_BASE_URL = 'http://localhost:10101/api'
 
 export const GenerarTokenAgente = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(true)

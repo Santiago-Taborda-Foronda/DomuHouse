@@ -16,6 +16,7 @@ export default function AgentSideBar({ sidebarOpen, setSidebarOpen, toggleSideba
     { name: "Estado De Interés", icon: TrendingUp, path: "/EstadoInteres" },
   ]
 
+
   // Función para verificar si una ruta está activa
   const isActiveRoute = (route) => {
     return location.pathname === route
@@ -113,7 +114,7 @@ export default function AgentSideBar({ sidebarOpen, setSidebarOpen, toggleSideba
           </h3>
           <ul className="space-y-1">
             <MenuItem icon={Phone} label="Contactar Clientes" route="/ContactarCliente" />
-            <MenuItem icon={TrendingUp} label="Estado De Interés" route="/EstadoInteres" />
+            {/* <MenuItem icon={TrendingUp} label="Estado De Interés" route="/EstadoInteres" /> */}
           </ul>
         </section>
       </div>

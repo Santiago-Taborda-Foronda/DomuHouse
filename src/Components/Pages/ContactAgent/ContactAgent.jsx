@@ -43,7 +43,7 @@ const handleSend = async () => {
 
   try {
     setLoading(true)
-    const res = await fetch("https://imagen-domuhouse-express.onrender.com/api/by-email", {
+    const res = await fetch("http://localhost:10101/api/by-email", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({

@@ -286,7 +286,7 @@ export default function CrearPropiedadUsuario() {
       //const url = `/api/properties/user/${userId}`
 
       // ✅ Por esta:
-      const url = `https://imagen-domuhouse-express.onrender.com/api/user/${userId}`
+      const url = `http://localhost:10101/api/user/${userId}`
       console.log("🌐 Enviando a:", url)
 
       const response = await fetch(url, {

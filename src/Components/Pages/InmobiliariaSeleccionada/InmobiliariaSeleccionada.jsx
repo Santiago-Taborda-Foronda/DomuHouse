@@ -59,7 +59,7 @@ export const InmobiliariaSeleccionada = () => {
     const fetchProperties = async () => {
       try {
         const response = await fetch(
-          `https://imagen-domuhouse-express.onrender.com/api/inmobiliarias/admin/${realEstate.person_id}/properties`,
+          `http://localhost:10101/api/inmobiliarias/admin/${realEstate.person_id}/properties`,
         )
         if (!response.ok) throw new Error("No se encontraron propiedades para esta inmobiliaria.")
         const data = await response.json()

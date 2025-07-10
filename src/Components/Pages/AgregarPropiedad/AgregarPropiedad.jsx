@@ -109,7 +109,7 @@ const AgregarPropiedad = () => {
 
       console.log("🚀 Intentando fetch a /api/agentes")
 
-      const response = await fetch("https://imagen-domuhouse-express.onrender.com/api/agentes", {
+      const response = await fetch("http://localhost:10101/api/agentes", {
         method: "GET",
         headers: headers,
         // NO usar credentials: "include" para evitar problemas de CORS
@@ -371,7 +371,7 @@ const AgregarPropiedad = () => {
       }
 
       // Llamada al API del backend
-      const response = await fetch("https://imagen-domuhouse-express.onrender.com/api/properties/create", {
+      const response = await fetch("http://localhost:10101/api/properties/create", {
         method: "POST",
         headers,
         body: formDataToSend,
@@ -458,7 +458,7 @@ const AgregarPropiedad = () => {
     const { token } = getUserData()
 
     try {
-      const response = await fetch("https://imagen-domuhouse-express.onrender.com/api/agentes", {
+      const response = await fetch("http://localhost:10101/api/agentes", {
         method: "GET",
         headers: {
           Authorization: `Bearer ${token}`,

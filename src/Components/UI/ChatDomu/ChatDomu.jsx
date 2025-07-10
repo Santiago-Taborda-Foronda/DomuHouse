@@ -97,7 +97,7 @@ export const ChatDomu = () => {
     setInputText("");
 
     try {
-      const response = await axios.post("https://imagen-domuhouse-express.onrender.com/ia/ingresar-inmueble", {
+      const response = await axios.post("http://localhost:10101/ia/ingresar-inmueble", {
         descripcion: inputText,
       });
 

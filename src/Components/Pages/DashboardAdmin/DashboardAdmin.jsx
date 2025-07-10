@@ -32,17 +32,17 @@ export const DashboardAdmin = () => {
       if (!adminId) throw new Error("No se encontró el ID del administrador")
 
       // Obtener propiedades del admin
-      const resProps = await fetch(`https://imagen-domuhouse-express.onrender.com/api/properties/admin/${adminId}`)
+      const resProps = await fetch(`http://localhost:10101/api/properties/admin/${adminId}`)
       const propiedadesAdmin = await resProps.json()
       const propiedadesActivas = propiedadesAdmin?.length || 0
 
       // Obtener usuarios registrados
-      const resUsers = await fetch("https://imagen-domuhouse-express.onrender.com/api/clients/count")
+      const resUsers = await fetch("http://localhost:10101/api/clients/count")
       const userData = await resUsers.json()
       const usuariosRegistrados = userData?.totalClients || 0
 
       // Obtener visitas agendadas
-      const resVisitas = await fetch("https://imagen-domuhouse-express.onrender.com/api/visitas")
+      const resVisitas = await fetch("http://localhost:10101/api/visitas")
       const visitasData = await resVisitas.json()
       const visitasAgendadas = visitasData?.length || 0
 

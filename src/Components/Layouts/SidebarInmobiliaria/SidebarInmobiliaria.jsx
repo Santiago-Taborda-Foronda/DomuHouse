@@ -54,7 +54,7 @@ useEffect(() => {
           clearInterval(interval); // detener cuando se encuentre
           console.log("👤 user from localStorage (sidebar):", user);
 
-          axios.get(`https://imagen-domuhouse-express.onrender.com/api/admin/${user.id}/real-estate`)
+          axios.get(`http://localhost:10101/api/admin/${user.id}/real-estate`)
             .then((res) => {
               console.log("📦 Datos de inmobiliaria:", res.data);
               setInmobiliariaData(res.data);

@@ -44,7 +44,7 @@ export const VentasAlquileresAdmin = () => {
 useEffect(() => {
     const fetchPropiedades = async () => {
       try {
-        const response = await axios.get(`https://imagen-domuhouse-express.onrender.com/api/properties/admin/${adminId}`)
+        const response = await axios.get(`http://localhost:10101/api/properties/admin/${adminId}`)
         const data = response.data
 
         const propiedadesFormateadas = data.map((item) => ({

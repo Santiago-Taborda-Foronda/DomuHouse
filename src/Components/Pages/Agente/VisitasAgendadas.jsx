@@ -54,7 +54,7 @@ export default function VisitasAgendadas() {
         setLoading(true)
         setError(null)
 
-        const res = await fetch(`https://imagen-domuhouse-express.onrender.com/api/agents/${agentId}/visits`)
+        const res = await fetch(`http://localhost:10101/api/agents/${agentId}/visits`)
 
         if (!res.ok) {
           throw new Error(`Error ${res.status}: ${res.statusText}`)
@@ -91,7 +91,7 @@ export default function VisitasAgendadas() {
   /* FUNCIONES PARA CAMBIAR ESTADO, ACTUALIZAR Y ELIMINAR VISITA */
   async function changeVisitStatus(visitId, newStatus) {
     try {
-      const response = await fetch(`https://imagen-domuhouse-express.onrender.com/api/visits/${visitId}/status`, {
+      const response = await fetch(`http://localhost:10101/api/visits/${visitId}/status`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -114,7 +114,7 @@ export default function VisitasAgendadas() {
 
   async function editVisit(visitId, updatedData) {
     try {
-      const response = await fetch(`https://imagen-domuhouse-express.onrender.com/api/visits/${visitId}`, {
+      const response = await fetch(`http://localhost:10101/api/visits/${visitId}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -137,7 +137,7 @@ export default function VisitasAgendadas() {
 
   async function deleteVisit(visitId) {
     try {
-      const response = await fetch(`https://imagen-domuhouse-express.onrender.com/api/visits/${visitId}`, {
+      const response = await fetch(`http://localhost:10101/api/visits/${visitId}`, {
         method: "DELETE",
       })
 
@@ -319,7 +319,7 @@ export default function VisitasAgendadas() {
 
     try {
       setLoading(true)
-      const res = await fetch(`https://imagen-domuhouse-express.onrender.com/api/agents/${agentId}/visits`)
+      const res = await fetch(`http://localhost:10101/api/agents/${agentId}/visits`)
 
       if (!res.ok) {
         throw new Error(`Error ${res.status}: ${res.statusText}`)

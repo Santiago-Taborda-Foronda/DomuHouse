@@ -62,11 +62,11 @@ const PropertyCard = ({ address, title, rooms, bathrooms, area, price, type, age
 
     // Si es una ruta relativa, construir la URL completa
     if (imageUrl.startsWith("/")) {
-      return `https://imagen-domuhouse-express.onrender.com/${imageUrl}`
+      return `http://localhost:10101/${imageUrl}`
     }
 
     // Si no tiene protocolo ni slash inicial, asumir que es una ruta relativa
-    return `https://imagen-domuhouse-express.onrender.com/${imageUrl}`
+    return `http://localhost:10101/${imageUrl}`
   }
 
   console.log("PropertyCard recibió:", { agentName, title, imageUrl })
@@ -184,7 +184,7 @@ export const Main = () => {
       setIsLoading(true)
       try {
         // ✅ Usar la nueva ruta que incluye las imágenes principales
-        const res = await fetch("https://imagen-domuhouse-express.onrender.com/api/properties/with-images")
+        const res = await fetch("http://localhost:10101/api/properties/with-images")
         if (!res.ok) {
           throw new Error(`HTTP error! status: ${res.status}`)
         }
@@ -205,7 +205,7 @@ export const Main = () => {
         // ✅ Fallback a la ruta original si la nueva no existe
         try {
           console.log("🔄 Intentando con ruta original...")
-          const fallbackRes = await fetch("https://imagen-domuhouse-express.onrender.com/api/properties/approved")
+          const fallbackRes = await fetch("http://localhost:10101/api/properties/approved")
           if (fallbackRes.ok) {
             const fallbackData = await fallbackRes.json()
             if (fallbackData.success && Array.isArray(fallbackData.properties)) {
@@ -246,7 +246,7 @@ export const Main = () => {
       const queryParams = new URLSearchParams()
       queryParams.append("operation_type", operationType)
 
-      const url = `https://imagen-domuhouse-express.onrender.com/api/search/search?${queryParams.toString()}`
+      const url = `http://localhost:10101/api/search/search?${queryParams.toString()}`
       console.log(`🔗 Fetching: ${url}`)
 
       const controller = new AbortController()
@@ -346,7 +346,7 @@ export const Main = () => {
         }
       })
 
-      const response = await fetch(`https://imagen-domuhouse-express.onrender.com/api/search/search?${queryParams}`)
+      const response = await fetch(`http://localhost:10101/api/search/search?${queryParams}`)
 
       if (!response.ok) {
         throw new Error(`Search failed: ${response.status}`)
@@ -423,10 +423,10 @@ export const Main = () => {
     setIsLoading(true)
     try {
       // ✅ Usar la nueva ruta con imágenes
-      const res = await fetch(`https://imagen-domuhouse-express.onrender.com/api/properties/with-images`)
+      const res = await fetch(`http://localhost:10101/api/properties/with-images`)
       if (!res.ok) {
         // Fallback a la ruta original
-        const fallbackRes = await fetch(`https://imagen-domuhouse-express.onrender.com/api/properties/approved`)
+        const fallbackRes = await fetch(`http://localhost:10101/api/properties/approved`)
         if (!fallbackRes.ok) {
           throw new Error(`HTTP error! status: ${fallbackRes.status}`)
         }

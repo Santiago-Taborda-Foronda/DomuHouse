@@ -149,9 +149,9 @@ export default function AgentDashboard() {
       console.log("🔍 Cargando datos para agente ID:", id)
 
       const [propertiesRes, visitsRes, messagesRes] = await Promise.all([
-        fetch(`https://domuhouse.onrender.com/api/agents/${id}/properties`),
-        fetch(`https://domuhouse.onrender.com/api/agents/${id}/visits`),
-        fetch(`https://domuhouse.onrender.com/api/agents/${id}/messages?limit=10`),
+        fetch(`https://imagen-domuhouse-express.onrender.com/api/agents/${id}/properties`),
+        fetch(`https://imagen-domuhouse-express.onrender.com/api/agents/${id}/visits`),
+        fetch(`https://imagen-domuhouse-express.onrender.com/api/agents/${id}/messages?limit=10`),
       ])
 
       console.log("📡 Respuestas del servidor:", {
@@ -283,7 +283,7 @@ export default function AgentDashboard() {
   const metricCards = [
     { title: "Propiedades", icon: Home, value: properties.length, subtitle: "Totales" },
     { title: "Visitas", icon: Calendar, value: visits.length, subtitle: "Programadas" },
-    { title: "Mensajes", icon: MessageSquare, value: messages.length, subtitle: "Sin leer" },
+    { title: "Mensajes", icon: MessageSquare, value: messages.length, subtitle: "Llegados" },
   ]
 
   /* ───────── vistas de carga / error ───────── */

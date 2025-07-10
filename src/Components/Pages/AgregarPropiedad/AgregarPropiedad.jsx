@@ -109,7 +109,7 @@ const AgregarPropiedad = () => {
 
       console.log("🚀 Intentando fetch a /api/agentes")
 
-      const response = await fetch("https://domuhouse.onrender.com/api/agentes", {
+      const response = await fetch("https://imagen-domuhouse-express.onrender.com/api/agentes", {
         method: "GET",
         headers: headers,
         // NO usar credentials: "include" para evitar problemas de CORS
@@ -317,7 +317,6 @@ const AgregarPropiedad = () => {
     const operationMap = {
       Venta: "Venta",
       Arriendo: "Arriendo",
-      "Arriendo con opción de compra": "Arriendo con opción de compra",
     }
     return operationMap[frontendType] || "Venta"
   }
@@ -372,7 +371,7 @@ const AgregarPropiedad = () => {
       }
 
       // Llamada al API del backend
-      const response = await fetch("https://domuhouse.onrender.com/api/properties/create", {
+      const response = await fetch("https://imagen-domuhouse-express.onrender.com/api/properties/create", {
         method: "POST",
         headers,
         body: formDataToSend,
@@ -459,7 +458,7 @@ const AgregarPropiedad = () => {
     const { token } = getUserData()
 
     try {
-      const response = await fetch("https://domuhouse.onrender.com/api/agentes", {
+      const response = await fetch("https://imagen-domuhouse-express.onrender.com/api/agentes", {
         method: "GET",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -603,9 +602,7 @@ const AgregarPropiedad = () => {
                       <option value="">Tipo de Propiedad *</option>
                       <option value="casa">Casa</option>
                       <option value="apartamento">Apartamento</option>
-                      <option value="local">Local Comercial</option>
-                      <option value="oficina">Oficina</option>
-                      <option value="terreno">Terreno</option>
+                      <option value="local">Finca</option>
                     </select>
 
                     <select
@@ -616,7 +613,6 @@ const AgregarPropiedad = () => {
                     >
                       <option value="Venta">En Venta</option>
                       <option value="Arriendo">En Arriendo</option>
-                      <option value="Arriendo con opción de compra">Arriendo con opción de compra</option>
                     </select>
                   </div>
 
@@ -694,14 +690,14 @@ const AgregarPropiedad = () => {
                     />
                   </div>
 
-                  <input
+                  {/* <input
                     type="text"
                     name="additionalRoomInfo"
                     placeholder="Información Adicional de Habitaciones"
                     value={formData.additionalRoomInfo}
                     onChange={handleInputChange}
                     className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
+                  /> */}
 
                   <input
                     type="text"
@@ -884,7 +880,7 @@ const AgregarPropiedad = () => {
               </div>
 
               {/* Valoración automática */}
-              <div className="bg-white rounded-2xl p-6 shadow-sm">
+              {/* <div className="bg-white rounded-2xl p-6 shadow-sm">
                 <div className="text-center mb-4">
                   <p className="text-lg font-semibold text-gray-800 mb-2">Valoración Automática</p>
                   {precioEstimado && <p className="text-2xl font-bold text-green-600">${precioEstimado}</p>}
@@ -904,7 +900,7 @@ const AgregarPropiedad = () => {
                     * El precio se ha actualizado automáticamente en el formulario
                   </p>
                 )}
-              </div>
+              </div> */}
             </div>
           </div>
         </form>

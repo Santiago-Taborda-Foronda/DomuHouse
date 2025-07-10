@@ -1,185 +1,249 @@
-import React from 'react';
-import { Header } from '../../Layouts/Header/Header';
-import { PropertyCard } from '../../Layouts/PropertyCard/PropertyCard';
-import { useLocation, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Phone, Mail, MapPin, User, Building } from 'lucide-react';
+"use client"
+import React from "react"
+import { Header } from "../../Layouts/Header/Header"
+import { PropertyCard } from "../../Layouts/PropertyCard/PropertyCard"
+import { useLocation, useNavigate } from "react-router-dom"
+import { ArrowLeft, Phone, Mail, MapPin, Building } from "lucide-react"
 
 export const InmobiliariaSeleccionada = () => {
-  const location = useLocation();
-  const navigate = useNavigate();
-  const { realEstate } = location.state || {};
+  const location = useLocation()
+  const navigate = useNavigate()
+  const { realEstate } = location.state || {}
 
-  // Si no hay datos de inmobiliaria, redirigir
-  if (!realEstate) {
-    navigate('/inmobiliarias');
-    return null;
+  // Estados para manejar las propiedades del backend
+  const [properties, setProperties] = React.useState([])
+  const [loading, setLoading] = React.useState(true)
+  const [error, setError] = React.useState("")
+
+  // Función para obtener las iniciales del agente
+  const getAgentInitials = (name) => {
+    if (!name || name.trim() === "" || name === "Agente") return "AD"
+    return name
+      .trim()
+      .split(" ")
+      .filter((n) => n.length > 0) // Filtrar espacios vacíos
+      .map((n) => n[0])
+      .join("")
+      .substring(0, 2)
+      .toUpperCase()
   }
 
-  // Función para generar propiedades basadas en el propertyCount
-  const generateProperties = (count, realEstateName, realEstateId) => {
-    const propertyTypes = [
-      "Casa Lomas Del Norte",
-      "Apartamento Moderno",
-      "Casa Familiar",
-      "Duplex Premium",
-      "Casa Colonial",
-      "Apartaestudio",
-      "Casa Campestre",
-      "Penthouse",
-      "Casa Esquinera",
-      "Loft Moderno"
-    ];
+  // Función para obtener información del agente principal
+  const getMainAgent = () => {
+    if (properties.length === 0) return null
+    // Tomar el primer agente disponible o el más frecuente
+    const agentCounts = {}
+    properties.forEach((property) => {
+      const agentKey = `${property.agent_name} ${property.agent_lastname}`
+      agentCounts[agentKey] = (agentCounts[agentKey] || 0) + 1
+    })
 
-    const addresses = [
-      "Ur. La Portada Americana",
-      "Barrio Centro",
-      "Zona Rosa",
-      "Ciudadela del Café",
-      "Barrio Modelo",
-      "La Castellana",
-      "Bosques de Pinares",
-      "Villa del Prado",
-      "Nuevo Horizonte",
-      "Portal del Quindío"
-    ];
+    // Encontrar el agente con más propiedades
+    const mainAgentName = Object.keys(agentCounts).reduce((a, b) => (agentCounts[a] > agentCounts[b] ? a : b))
 
-    const agents = [
-      { name: "Jane Doe", phone: "+57 3224456789", email: "jane.doe@realestate.com", initials: "JD" },
-      { name: "Augusto Rodas", phone: "+57 3156789012", email: "augusto.rodas@realestate.com", initials: "AR" },
-      { name: "María González", phone: "+57 3187654321", email: "maria.gonzalez@realestate.com", initials: "MG" },
-      { name: "Carlos Mendoza", phone: "+57 3209876543", email: "carlos.mendoza@realestate.com", initials: "CM" },
-      { name: "Ana Sofía López", phone: "+57 3123456789", email: "ana.lopez@realestate.com", initials: "AL" },
-      { name: "Roberto Silva", phone: "+57 3145678901", email: "roberto.silva@realestate.com", initials: "RS" },
-      { name: "Patricia Ruiz", phone: "+57 3167890123", email: "patricia.ruiz@realestate.com", initials: "PR" },
-      { name: "Fernando García", phone: "+57 3198765432", email: "fernando.garcia@realestate.com", initials: "FG" },
-      { name: "Claudia Sánchez", phone: "+57 3176543210", email: "claudia.sanchez@realestate.com", initials: "CS" },
-      { name: "Jorge Herrera", phone: "+57 3143456789", email: "jorge.herrera@realestate.com", initials: "JH" }
-    ];
+    // Encontrar la información completa del agente principal
+    const mainAgentProperty = properties.find(
+      (property) => `${property.agent_name} ${property.agent_lastname}` === mainAgentName,
+    )
 
-    const descriptions = [
-      "Hermosa casa en una ubicación privilegiada con acabados de primera calidad.",
-      "Propiedad moderna con excelente ubicación y espacios amplios.",
-      "Amplia casa familiar con jardín y garage para dos vehículos.",
-      "Casa espaciosa con diseño contemporáneo y acabados premium.",
-      "Propiedad ideal para familias grandes con espacios bien distribuidos.",
-      "Casa con excelente iluminación natural y áreas sociales amplias.",
-      "Hermosa propiedad con piscina y zonas verdes privadas.",
-      "Casa moderna con tecnología inteligente integrada.",
-      "Propiedad con vista panorámica y acabados de lujo.",
-      "Casa esquinera con múltiples espacios y excelente ventilación."
-    ];
+    return {
+      name: mainAgentName,
+      phone: mainAgentProperty.agent_phone,
+      email: mainAgentProperty.agent_email,
+      initials: getAgentInitials(mainAgentName),
+    }
+  }
 
-    return Array.from({ length: count }, (_, index) => {
-      const randomAgent = agents[Math.floor(Math.random() * agents.length)];
-      const randomType = propertyTypes[Math.floor(Math.random() * propertyTypes.length)];
-      const randomAddress = addresses[Math.floor(Math.random() * addresses.length)];
-      const randomDescription = descriptions[Math.floor(Math.random() * descriptions.length)];
-      
-      // Generar números aleatorios para las características
-      const rooms = Math.floor(Math.random() * 6) + 2; // 2-7 habitaciones
-      const bathrooms = Math.floor(Math.random() * 4) + 1; // 1-4 baños
-      const area = Math.floor(Math.random() * 200) + 80; // 80-280 m²
-      const basePrice = Math.floor(Math.random() * 15000) + 3000; // 3000-18000
-      const price = (basePrice + (index * 100)).toLocaleString('es-CO', { minimumFractionDigits: 2 });
+  // useEffect para cargar propiedades desde el backend
+  React.useEffect(() => {
+    const fetchProperties = async () => {
+      try {
+        const response = await fetch(
+          `https://imagen-domuhouse-express.onrender.com/api/inmobiliarias/admin/${realEstate.person_id}/properties`,
+        )
+        if (!response.ok) throw new Error("No se encontraron propiedades para esta inmobiliaria.")
+        const data = await response.json()
+        setProperties(data)
+      } catch (err) {
+        console.error("Error al cargar propiedades:", err)
+        setError(err.message || "Error al obtener propiedades.")
+      } finally {
+        setLoading(false)
+      }
+    }
 
-      return {
-        id: `${realEstateId}-${index + 1}`,
-        address: `${randomAddress} ${Math.floor(Math.random() * 100) + 1} #${Math.floor(Math.random() * 99) + 1}`,
-        title: randomType,
-        rooms: rooms,
-        bathrooms: bathrooms,
-        area: area,
-        price: price,
-        description: randomDescription,
-        agentInfo: {
-          name: randomAgent.name,
-          phone: randomAgent.phone,
-          email: randomAgent.email,
-          initials: randomAgent.initials,
-          whatsapp: randomAgent.phone
-        }
-      };
-    });
-  };
+    if (realEstate) {
+      fetchProperties()
+    }
+  }, [realEstate])
 
-  const properties = generateProperties(realEstate.propertyCount, realEstate.name, realEstate.id);
-
+  // Función actualizada para manejar el click en propiedades
   const handlePropertyClick = (property) => {
-    navigate('/propiedad-seleccionada', { state: { property } });
-  };
+    console.log("Propiedad seleccionada:", property)
+    if (!property) {
+      console.error("No se recibió ninguna propiedad")
+      return
+    }
+    const propId = property.property_id || property.id
+    if (!propId) {
+      console.error("La propiedad no tiene un ID válido:", property)
+      return
+    }
+    try {
+      navigate(`/propiedad/${propId}`, {
+        state: {
+          property: property,
+        },
+      })
+      console.log(`Navegando a /propiedad/${propId}`)
+    } catch (error) {
+      console.error("Error al navegar:", error)
+      setError(`Error al abrir la propiedad: ${error.message}`)
+    }
+  }
 
   const handleBackClick = () => {
-    navigate('/inmobiliarias');
-  };
+    navigate("/inmobiliarias")
+  }
+
+  // Obtener información del agente principal
+  const mainAgent = getMainAgent()
+
+  // Manejo de estados de loading y error
+  if (loading)
+    return (
+      <>
+        <Header />
+        <div className="flex justify-center items-center min-h-[50vh]">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sky-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Cargando propiedades...</p>
+          </div>
+        </div>
+      </>
+    )
+
+  if (error)
+    return (
+      <>
+        <Header />
+        <div className="flex justify-center items-center min-h-[50vh]">
+          <div className="text-center">
+            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Building className="text-red-600" size={32} />
+            </div>
+            <p className="text-red-600 text-lg font-medium mb-2">Error al cargar propiedades</p>
+            <p className="text-gray-600 mb-4">{error}</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="bg-sky-600 text-white px-4 py-2 rounded-lg hover:bg-sky-700 transition-colors"
+            >
+              Intentar de nuevo
+            </button>
+          </div>
+        </div>
+      </>
+    )
+
+  if (!realEstate) {
+    navigate("/inmobiliarias")
+    return null
+  }
 
   return (
     <>
       <Header />
-      <div className='px-6 md:px-10 lg:px-20 py-10'>
+      <div className="px-6 md:px-10 lg:px-20 py-10">
         {/* Botón de regreso */}
-        <button 
+        <button
           onClick={handleBackClick}
-          className='flex items-center gap-2 text-sky-600 hover:text-sky-800 mb-6 transition-colors'
+          className="flex items-center gap-2 text-sky-600 hover:text-sky-800 mb-6 transition-colors"
         >
           <ArrowLeft size={20} />
           <span>Volver a Inmobiliarias</span>
         </button>
 
         {/* Información de la inmobiliaria */}
-        <div className='bg-white rounded-2xl shadow-lg p-8 mb-8'>
-          <div className='grid grid-cols-1 lg:grid-cols-2 gap-8'>
+        <div className="bg-white rounded-2xl shadow-lg p-8 mb-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Columna izquierda - Info principal */}
             <div>
-              <div className='flex items-center gap-4 mb-6'>
-                <div className='w-16 h-16 bg-sky-100 rounded-2xl flex items-center justify-center'>
-                  <Building className='text-sky-600' size={32} />
+              <div className="flex items-center gap-4 mb-6">
+                <div className="w-16 h-16 bg-sky-100 rounded-2xl flex items-center justify-center">
+                  <Building className="text-sky-600" size={32} />
                 </div>
                 <div>
-                  <h1 className='text-3xl font-bold text-gray-800'>{realEstate.name}</h1>
-                  <p className='text-sky-600 font-medium'>{realEstate.propertyCount} propiedades disponibles</p>
+                  <h1 className="text-3xl font-bold text-gray-800">{realEstate.name}</h1>
+                  <p className="text-sky-600 font-medium">{properties.length} propiedades disponibles</p>
                 </div>
               </div>
-              
-              <p className='text-gray-600 text-lg leading-relaxed mb-6'>
-                {realEstate.description}
-              </p>
+              <p className="text-gray-600 text-lg leading-relaxed mb-6">{realEstate.description}</p>
             </div>
 
             {/* Columna derecha - Información de contacto */}
-            <div className='bg-sky-50 rounded-xl p-6'>
-              <h3 className='text-xl font-semibold text-gray-800 mb-4'>Información de Contacto</h3>
-              
-              <div className='space-y-4'>
-                <div className='flex items-center gap-3'>
-                  <User className='text-sky-600' size={20} />
+            <div className="bg-sky-50 rounded-xl p-6">
+              <h3 className="text-xl font-semibold text-gray-800 mb-4">Información de Contacto</h3>
+              <div className="space-y-4">
+                {/* Mostrar información del agente si está disponible */}
+                {mainAgent ? (
+                  <>
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-[#2F8EAC] to-[#1e6b7a] flex items-center justify-center text-white text-xs sm:text-sm font-bold shadow-md">
+                        {mainAgent.initials}
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500">Agente Principal</p>
+                        <p className="font-medium text-gray-800">{mainAgent.name}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Phone className="text-sky-600" size={20} />
+                      <div>
+                        <p className="text-sm text-gray-500">Teléfono del Agente</p>
+                        <p className="font-medium text-gray-800">{mainAgent.phone}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Mail className="text-sky-600" size={20} />
+                      <div>
+                        <p className="text-sm text-gray-500">Correo del Agente</p>
+                        <p className="font-medium text-gray-800">{mainAgent.email}</p>
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  /* Mostrar información del administrador si no hay agentes */
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-[#2F8EAC] to-[#1e6b7a] flex items-center justify-center text-white text-xs sm:text-sm font-bold shadow-md">
+                      {getAgentInitials(realEstate.administrator)}
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Persona Encargada</p>
+                      <p className="font-medium text-gray-800">{realEstate.administrator}</p>
+                    </div>
+                  </div>
+                )}
+                <div className="flex items-center gap-3">
+                  <MapPin className="text-sky-600" size={20} />
                   <div>
-                    <p className='text-sm text-gray-500'>Persona Encargada</p>
-                    <p className='font-medium text-gray-800'>{realEstate.administrator}</p>
+                    <p className="text-sm text-gray-500">Dirección</p>
+                    <p className="font-medium text-gray-800">{realEstate.address}</p>
+                    <p className="text-sm text-gray-500">Armenia, Quindío</p>
                   </div>
                 </div>
-
-                <div className='flex items-center gap-3'>
-                  <MapPin className='text-sky-600' size={20} />
+                {/* Información general de la inmobiliaria */}
+                <div className="flex items-center gap-3">
+                  <Phone className="text-sky-600" size={20} />
                   <div>
-                    <p className='text-sm text-gray-500'>Dirección</p>
-                    <p className='font-medium text-gray-800'>{realEstate.address}</p>
-                    <p className='text-sm text-gray-500'>Armenia, Quindío</p>
+                    <p className="text-sm text-gray-500">Teléfono Inmobiliaria</p>
+                    <p className="font-medium text-gray-800">{realEstate.phone}</p>
                   </div>
                 </div>
-
-                <div className='flex items-center gap-3'>
-                  <Phone className='text-sky-600' size={20} />
+                <div className="flex items-center gap-3">
+                  <Mail className="text-sky-600" size={20} />
                   <div>
-                    <p className='text-sm text-gray-500'>Teléfono</p>
-                    <p className='font-medium text-gray-800'>{realEstate.phone}</p>
-                  </div>
-                </div>
-
-                <div className='flex items-center gap-3'>
-                  <Mail className='text-sky-600' size={20} />
-                  <div>
-                    <p className='text-sm text-gray-500'>Correo Electrónico</p>
-                    <p className='font-medium text-gray-800'>{realEstate.email}</p>
+                    <p className="text-sm text-gray-500">Correo Inmobiliaria</p>
+                    <p className="font-medium text-gray-800">{realEstate.email}</p>
                   </div>
                 </div>
               </div>
@@ -188,57 +252,40 @@ export const InmobiliariaSeleccionada = () => {
         </div>
 
         {/* Título de propiedades */}
-        <div className='mb-8'>
-          <h2 className='text-2xl font-bold text-gray-800 mb-2'>Propiedades Disponibles</h2>
-          <p className='text-gray-600'>Explora todas las propiedades que {realEstate.name} tiene para ofrecerte</p>
+        <div className="mb-8">
+          <h2 className="text-2xl font-bold text-gray-800 mb-2">Propiedades Disponibles</h2>
+          <p className="text-gray-600">Explora todas las propiedades que {realEstate.name} tiene para ofrecerte</p>
         </div>
 
-        {/* Grid de propiedades */}
-        <div className='flex flex-wrap justify-center gap-6'>
-          {properties.map(property => (
-            <PropertyCard
-              key={property.id}
-              address={property.address}
-              title={property.title}
-              rooms={property.rooms}
-              bathrooms={property.bathrooms}
-              area={property.area}
-              price={property.price}
-              agentName={property.agentInfo.name}
-              onClick={() => handlePropertyClick(property)}
-            />
-          ))}
-        </div>
-
-        {/* Estadísticas de la inmobiliaria */}
-        <div className='mt-12 bg-gradient-to-r from-sky-50 to-blue-50 rounded-2xl p-6'>
-          <h3 className='text-xl font-semibold text-gray-800 mb-4 text-center'>Estadísticas de {realEstate.name}</h3>
-          <div className='grid grid-cols-2 md:grid-cols-4 gap-4'>
-            <div className='bg-white rounded-xl p-4 text-center shadow-sm'>
-              <h4 className='text-2xl font-bold text-sky-600'>{properties.length}</h4>
-              <p className='text-gray-600 text-sm'>Propiedades</p>
-            </div>
-            <div className='bg-white rounded-xl p-4 text-center shadow-sm'>
-              <h4 className='text-2xl font-bold text-sky-600'>
-                {Math.round(properties.reduce((sum, p) => sum + p.area, 0) / properties.length)}
-              </h4>
-              <p className='text-gray-600 text-sm'>m² Promedio</p>
-            </div>
-            <div className='bg-white rounded-xl p-4 text-center shadow-sm'>
-              <h4 className='text-2xl font-bold text-sky-600'>
-                {Math.round(properties.reduce((sum, p) => sum + p.rooms, 0) / properties.length)}
-              </h4>
-              <p className='text-gray-600 text-sm'>Habitaciones Prom.</p>
-            </div>
-            <div className='bg-white rounded-xl p-4 text-center shadow-sm'>
-              <h4 className='text-2xl font-bold text-sky-600'>
-                ${Math.round(properties.reduce((sum, p) => sum + parseFloat(p.price.replace(/,/g, '')), 0) / properties.length).toLocaleString()}
-              </h4>
-              <p className='text-gray-600 text-sm'>Precio Promedio</p>
-            </div>
+        {/* Mensaje si no hay propiedades */}
+        {properties.length === 0 ? (
+          <div className="text-center py-12">
+            <Building className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">No hay propiedades disponibles</h3>
+            <p className="text-gray-500">Esta inmobiliaria no tiene propiedades registradas en este momento.</p>
           </div>
-        </div>
+        ) : (
+          <>
+            {/* Grid de propiedades usando PropertyCard */}
+            <div className="flex flex-wrap justify-center gap-6">
+              {properties.map((property) => (
+                <PropertyCard
+                  key={property.property_id}
+                  address={`${property.city}, ${property.neighborhood}`}
+                  title={property.property_title}
+                  rooms={property.bedrooms}
+                  bathrooms={property.bathrooms}
+                  area={property.built_area}
+                  price={Number.parseFloat(property.price).toLocaleString("es-CO")}
+                  agentName={`${property.agent_name} ${property.agent_lastname}`}
+                  image={getAgentInitials(`${property.agent_name} ${property.agent_lastname}`)}
+                  onClick={() => handlePropertyClick(property)}
+                />
+              ))}
+            </div>
+          </>
+        )}
       </div>
     </>
-  );
-};
+  )
+}

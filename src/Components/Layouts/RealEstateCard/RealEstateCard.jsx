@@ -57,9 +57,8 @@ import { Phone, Mail } from 'lucide-react';
 
         <div className="space-y-2 text-gray-700 text-sm">
           <div className="flex items-start gap-2">
-            <span className="text-gray-500">馃搷</span>
             <span className="line-clamp-2">
-              {address}, {city}, {department}
+               {city}, {department}
             </span>
           </div>
           {phone && (

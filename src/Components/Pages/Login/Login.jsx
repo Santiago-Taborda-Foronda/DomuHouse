@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import logoDomuHouse from '../../../assets/images/Logo-DomuHouse.png';
 import LogoLogin from '../../../assets/images/imagen-login.png';
 
-const URL = "https://domuhouse.onrender.com/login/login";
+const URL = "https://imagen-domuhouse-express.onrender.com/login/login";
 
 export const Login = () => {
   const navigate = useNavigate();
@@ -61,6 +61,7 @@ export const Login = () => {
       }
 
       console.log('📥 Respuesta del servidor (FRONTEND):', data);
+      console.log('🧪 Token recibido desde backend:', data.token);
       console.log('📥 Tipo de data.logged:', typeof data.logged);
       console.log('📥 Valor de data.logged:', data.logged);
       console.log('📥 data.logged === true?', data.logged === true);
@@ -94,6 +95,8 @@ export const Login = () => {
         if (userData.role_id === 1) {
             localStorage.setItem('adminId', userData.id); // ✅ Agrega esta línea
           }
+        localStorage.setItem('token', data.token) // 🔑 Este es el que espera el componente Perfil
+
         window.dispatchEvent(new Event('storage'));
 
         console.log('🎯 Redirigiendo usuario con role_id:', userData.role_id);
@@ -113,9 +116,8 @@ export const Login = () => {
             navigate('/');
             break;
           default:
-            console.log('🔄 Redirigiendo a página principal');
-            navigate('/');
-            break;
+          setError('Rol de usuario no reconocido');
+          break;
         }
 
       } else {

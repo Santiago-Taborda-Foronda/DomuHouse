@@ -1,3 +1,5 @@
+"use client"
+
 import { useState, useEffect, useCallback } from "react"
 import { Eye, Edit, Trash2, Search, Plus, X, Check, AlertTriangle, Building2 } from "lucide-react"
 import AgentSideBar from "./Components/AgentSideBar"
@@ -63,13 +65,11 @@ export default function MisPropiedades() {
     try {
       const storedUser = JSON.parse(localStorage.getItem("userData") || "{}")
       const id = storedUser.person_id ?? storedUser.id
-
       if (!id) {
         setError("No se encontró el ID del agente. Por favor, inicia sesión nuevamente.")
         setLoading(false)
         return
       }
-
       setUserData(storedUser)
       setAgentId(id)
     } catch (err) {
@@ -89,7 +89,7 @@ export default function MisPropiedades() {
     try {
       setLoading(true)
       setError("")
-      const endpoint = `https://domuhouse.onrender.com/api/agents/${currentAgentId}/properties`
+      const endpoint = `https://imagen-domuhouse-express.onrender.com/api/agents/${currentAgentId}/properties`
       const token = localStorage.getItem("token") || ""
 
       const res = await fetch(endpoint, {
@@ -114,7 +114,14 @@ export default function MisPropiedades() {
         status: p.status || "Disponible",
         date: p.publish_date ? p.publish_date.split("T")[0] : new Date().toISOString().split("T")[0],
         type: p.property_type_id || p.propertyType || "N/A", // Mapear property_type_id
-        image: p.image?.[0] || "/placeholder.svg?height=80&width=120",
+        image: (() => {
+          try {
+            const imgs = JSON.parse(p.image)
+            return imgs?.[0] || "/placeholder.svg?height=80&width=120"
+          } catch {
+            return "/placeholder.svg?height=80&width=120"
+          }
+        })(),
         price: `$${Number(p.price || 0).toLocaleString("es-CO")}`,
         location: p.address || "Sin dirección",
         description: p.description || "Sin descripción",
@@ -132,6 +139,8 @@ export default function MisPropiedades() {
         latitude: p.latitude || "",
         longitude: p.longitude || "",
         approved: p.approved || false,
+        // Guardar la imagen original para el modal
+        originalImage: p.image || "",
       }))
 
       setProperties(mapped)
@@ -160,12 +169,15 @@ export default function MisPropiedades() {
 
     try {
       const token = localStorage.getItem("token") || ""
-      const res = await fetch(`https://domuhouse.onrender.com/api/agents/${agentId}/properties/${prop.id}`, {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+      const res = await fetch(
+        `https://imagen-domuhouse-express.onrender.com/api/agents/${agentId}/properties/${prop.id}`,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
         },
-      })
+      )
 
       if (!res.ok) throw new Error("No se pudo cargar la propiedad")
 
@@ -188,6 +200,15 @@ export default function MisPropiedades() {
         parking_spaces: property.parking_spaces || 0,
         operation_type: property.operation_type || "",
         socioeconomic_stratum: property.socioeconomic_stratum || "",
+        // CORRECCIÓN: Usar 'property' en lugar de 'p'
+        image: (() => {
+          try {
+            const imgs = JSON.parse(property.image || prop.originalImage || "[]")
+            return imgs?.[0] || "/placeholder.svg?height=80&width=120"
+          } catch {
+            return prop.image || "/placeholder.svg?height=80&width=120"
+          }
+        })(),
       })
       setShowViewModal(true)
     } catch (err) {
@@ -224,23 +245,26 @@ export default function MisPropiedades() {
     setIsSubmitting(true)
     try {
       const token = localStorage.getItem("token") || ""
-      const res = await fetch(`https://domuhouse.onrender.com/api/agents/${agentId}/properties/${selectedProperty.id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+      const res = await fetch(
+        `https://imagen-domuhouse-express.onrender.com/api/agents/${agentId}/properties/${selectedProperty.id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            property_title: editForm.name, // Usar property_title
+            address: editForm.location,
+            price: Number(editForm.price) || 0,
+            description: editForm.description,
+            status: editForm.status,
+            bedrooms: Number(editForm.rooms) || 0, // Usar bedrooms
+            bathrooms: Number(editForm.bathrooms) || 0, // Usar bathrooms
+            built_area: editForm.area, // Usar built_area
+          }),
         },
-        body: JSON.stringify({
-          property_title: editForm.name, // Usar property_title
-          address: editForm.location,
-          price: Number(editForm.price) || 0,
-          description: editForm.description,
-          status: editForm.status,
-          bedrooms: Number(editForm.rooms) || 0, // Usar bedrooms
-          bathrooms: Number(editForm.bathrooms) || 0, // Usar bathrooms
-          built_area: editForm.area, // Usar built_area
-        }),
-      })
+      )
 
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({}))
@@ -295,13 +319,16 @@ export default function MisPropiedades() {
     setIsSubmitting(true)
     try {
       const token = localStorage.getItem("token") || ""
-      const res = await fetch(`https://domuhouse.onrender.com/api/agents/${agentId}/properties/${selectedProperty.id}`, {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+      const res = await fetch(
+        `https://imagen-domuhouse-express.onrender.com/api/agents/${agentId}/properties/${selectedProperty.id}`,
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
         },
-      })
+      )
 
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({}))
@@ -402,7 +429,10 @@ export default function MisPropiedades() {
         />
 
         {sidebarOpen && (
-          <div className="fixed inset-0 bg-black/50 bg-opacity-50 z-40 lg:hidden" onClick={() => setSidebarOpen(false)} />
+          <div
+            className="fixed inset-0 bg-black/50 bg-opacity-50 z-40 lg:hidden"
+            onClick={() => setSidebarOpen(false)}
+          />
         )}
 
         {/* Contenido principal */}
@@ -729,7 +759,6 @@ export default function MisPropiedades() {
                       <p className="text-gray-900 font-semibold">{selectedProperty.date}</p>
                     </div>
                   </div>
-
                   {/* Información adicional */}
                   {selectedProperty.neighborhood && (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -743,14 +772,12 @@ export default function MisPropiedades() {
                       </div>
                     </div>
                   )}
-
                   {selectedProperty.parking_spaces > 0 && (
                     <div className="bg-gray-50 p-4 rounded-xl">
                       <label className="block text-sm font-medium text-gray-700 mb-1">Espacios de parqueadero:</label>
                       <p className="text-gray-900 font-semibold">{selectedProperty.parking_spaces}</p>
                     </div>
                   )}
-
                   <div className="bg-gray-50 p-4 rounded-xl">
                     <label className="block text-sm font-medium text-gray-700 mb-2">Descripción:</label>
                     <p className="text-gray-900">{selectedProperty.description}</p>
@@ -759,10 +786,6 @@ export default function MisPropiedades() {
                     <div className="bg-gray-50 p-4 rounded-xl">
                       <label className="block text-sm font-medium text-gray-700 mb-1">Agente:</label>
                       <p className="text-gray-900 font-semibold">{selectedProperty.agent}</p>
-                    </div>
-                    <div className="bg-gray-50 p-4 rounded-xl">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Teléfono:</label>
-                      <p className="text-gray-900 font-semibold">{selectedProperty.phone}</p>
                     </div>
                   </div>
                 </div>
@@ -790,13 +813,11 @@ export default function MisPropiedades() {
                     <X className="w-5 h-5" />
                   </button>
                 </div>
-
                 {submitSuccess && (
                   <div className="mb-4 bg-sky-50 border border-green-200 text-blue-700 px-4 py-3 rounded-xl">
                     ¡Propiedad actualizada exitosamente!
                   </div>
                 )}
-
                 <div className="space-y-4">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
@@ -820,7 +841,6 @@ export default function MisPropiedades() {
                       />
                     </div>
                   </div>
-
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">Ubicación:</label>
@@ -847,7 +867,6 @@ export default function MisPropiedades() {
                       </select>
                     </div>
                   </div>
-
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">Área:</label>
@@ -880,7 +899,6 @@ export default function MisPropiedades() {
                       />
                     </div>
                   </div>
-
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Estado:</label>
                     <select
@@ -894,7 +912,6 @@ export default function MisPropiedades() {
                       <option value="Alquilada">Alquilada</option>
                     </select>
                   </div>
-
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Descripción:</label>
                     <textarea
@@ -905,7 +922,6 @@ export default function MisPropiedades() {
                       className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#2F8EAC] focus:border-[#2F8EAC] transition-colors"
                     />
                   </div>
-
                   <div className="flex flex-col sm:flex-row gap-3 pt-4">
                     <button
                       onClick={closeModals}
@@ -955,7 +971,6 @@ export default function MisPropiedades() {
                     <X className="w-5 h-5" />
                   </button>
                 </div>
-
                 <div className="mb-4 sm:mb-6">
                   <p className="text-gray-600 mb-4">
                     ¿Estás seguro de que deseas eliminar la propiedad <strong>{selectedProperty.name}</strong>?
@@ -964,7 +979,6 @@ export default function MisPropiedades() {
                     <p className="text-sm text-red-600">Esta acción no se puede deshacer.</p>
                   </div>
                 </div>
-
                 <div className="flex flex-col sm:flex-row gap-3">
                   <button
                     onClick={closeModals}

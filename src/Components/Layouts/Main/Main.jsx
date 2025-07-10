@@ -62,11 +62,11 @@ const PropertyCard = ({ address, title, rooms, bathrooms, area, price, type, age
 
     // Si es una ruta relativa, construir la URL completa
     if (imageUrl.startsWith("/")) {
-      return `https://domuhouse.onrender.com/${imageUrl}`
+      return `https://imagen-domuhouse-express.onrender.com/${imageUrl}`
     }
 
     // Si no tiene protocolo ni slash inicial, asumir que es una ruta relativa
-    return `https://domuhouse.onrender.com/${imageUrl}`
+    return `https://imagen-domuhouse-express.onrender.com/${imageUrl}`
   }
 
   console.log("PropertyCard recibió:", { agentName, title, imageUrl })
@@ -184,7 +184,7 @@ export const Main = () => {
       setIsLoading(true)
       try {
         // ✅ Usar la nueva ruta que incluye las imágenes principales
-        const res = await fetch("https://domuhouse.onrender.com/api/properties/with-images")
+        const res = await fetch("https://imagen-domuhouse-express.onrender.com/api/properties/with-images")
         if (!res.ok) {
           throw new Error(`HTTP error! status: ${res.status}`)
         }
@@ -205,7 +205,7 @@ export const Main = () => {
         // ✅ Fallback a la ruta original si la nueva no existe
         try {
           console.log("🔄 Intentando con ruta original...")
-          const fallbackRes = await fetch("https://domuhouse.onrender.com/api/properties/approved")
+          const fallbackRes = await fetch("https://imagen-domuhouse-express.onrender.com/api/properties/approved")
           if (fallbackRes.ok) {
             const fallbackData = await fallbackRes.json()
             if (fallbackData.success && Array.isArray(fallbackData.properties)) {
@@ -246,7 +246,7 @@ export const Main = () => {
       const queryParams = new URLSearchParams()
       queryParams.append("operation_type", operationType)
 
-      const url = `https://domuhouse.onrender.com/api/search/search?${queryParams.toString()}`
+      const url = `https://imagen-domuhouse-express.onrender.com/api/search/search?${queryParams.toString()}`
       console.log(`🔗 Fetching: ${url}`)
 
       const controller = new AbortController()
@@ -346,7 +346,7 @@ export const Main = () => {
         }
       })
 
-      const response = await fetch(`https://domuhouse.onrender.com/api/search/search?${queryParams}`)
+      const response = await fetch(`https://imagen-domuhouse-express.onrender.com/api/search/search?${queryParams}`)
 
       if (!response.ok) {
         throw new Error(`Search failed: ${response.status}`)
@@ -423,10 +423,10 @@ export const Main = () => {
     setIsLoading(true)
     try {
       // ✅ Usar la nueva ruta con imágenes
-      const res = await fetch(`https://domuhouse.onrender.com/api/properties/with-images`)
+      const res = await fetch(`https://imagen-domuhouse-express.onrender.com/api/properties/with-images`)
       if (!res.ok) {
         // Fallback a la ruta original
-        const fallbackRes = await fetch(`https://domuhouse.onrender.com/api/properties/approved`)
+        const fallbackRes = await fetch(`https://imagen-domuhouse-express.onrender.com/api/properties/approved`)
         if (!fallbackRes.ok) {
           throw new Error(`HTTP error! status: ${fallbackRes.status}`)
         }
@@ -557,11 +557,10 @@ export const Main = () => {
                 }
               }}
               disabled={isLoading}
-              className={`rounded-2xl px-4 xs:px-6 sm:px-8 lg:px-10 py-1.5 xs:py-2 text-xs xs:text-sm sm:text-base transition-all duration-300 ${
-                filters.operation_type === "Venta"
+              className={`rounded-2xl px-4 xs:px-6 sm:px-8 lg:px-10 py-1.5 xs:py-2 text-xs xs:text-sm sm:text-base transition-all duration-300 ${filters.operation_type === "Venta"
                   ? "bg-[#2F8EAC] text-white border-2 border-[#2F8EAC] shadow-lg transform scale-105"
                   : "bg-transparent border-2 border-white text-white hover:bg-white hover:text-[#2F8EAC] hover:scale-105"
-              } ${isLoading ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:shadow-lg"}`}
+                } ${isLoading ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:shadow-lg"}`}
             >
               {isLoading && filters.operation_type === "Venta" ? "Buscando..." : "Venta"}
             </button>
@@ -577,11 +576,10 @@ export const Main = () => {
                 }
               }}
               disabled={isLoading}
-              className={`rounded-2xl px-4 xs:px-6 sm:px-8 lg:px-10 py-1.5 xs:py-2 text-xs xs:text-sm sm:text-base transition-all duration-300 ${
-                filters.operation_type === "Arriendo"
+              className={`rounded-2xl px-4 xs:px-6 sm:px-8 lg:px-10 py-1.5 xs:py-2 text-xs xs:text-sm sm:text-base transition-all duration-300 ${filters.operation_type === "Arriendo"
                   ? "bg-[#2F8EAC] text-white border-2 border-[#2F8EAC] shadow-lg transform scale-105"
                   : "bg-transparent border-2 border-white text-white hover:bg-white hover:text-[#2F8EAC] hover:scale-105"
-              } ${isLoading ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:shadow-lg"}`}
+                } ${isLoading ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:shadow-lg"}`}
             >
               {isLoading && filters.operation_type === "Arriendo" ? "Buscando..." : "Arriendo"}
             </button>
@@ -819,14 +817,13 @@ export const Main = () => {
                 return (
                   <PropertyCard
                     key={uniqueId}
-                    address={`${property.address || "Sin dirección"}, ${property.neighborhood || "Sin barrio"}, ${
-                      property.city || "Sin ciudad"
-                    }`}
+                    address={`${property.address || "Sin dirección"}, ${property.neighborhood || "Sin barrio"}, ${property.city || "Sin ciudad"
+                      }`}
                     title={property.property_title || property.title || "Sin título"}
                     rooms={property.bedrooms || property.habitaciones || 0}
                     bathrooms={property.bathrooms || property.banos || 0}
                     area={property.built_area || property.area || 0}
-                    price={property.price ? property.price.toLocaleString() : "0"}
+                    price={property.price ? Number.parseFloat(property.price).toLocaleString("es-CO") : "0"}
                     type={property.operation_type || property.tipo_operacion}
                     agentName={agentFullName} // ✅ Aquí se pasa el nombre correcto
                     imageUrl={propertyImage} // ✅ Aquí se pasa la imagen de la propiedad
@@ -861,11 +858,7 @@ export const Main = () => {
           </div>
         </div>
 
-        {/* Botón Ver Más */}
-        <Button
-          name="➡ Ver Más"
-          className="bg-[#2F8EAC] border border-[#2F8EAC] text-white rounded-3xl px-4 xs:px-5 sm:px-6 py-1.5 xs:py-2 flex items-center gap-1 xs:gap-2 mt-6 xs:mt-8 sm:mt-10"
-        />
+
       </section>
     </>
   )

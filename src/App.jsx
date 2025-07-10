@@ -4,10 +4,11 @@ import { Route, Routes } from 'react-router'
 import { Header } from './Components/Layouts/Header/Header'
 import { Home } from './Components/Pages/Home/Home'
 import { Tendencias } from './Components/Pages/Tendencias/Tendencias'
+import CrearPropiedadUsuario from "./Components/Pages/Usuario/CrearPropiedadUsuario"
 import { Encuentrame } from './Components/Pages/Encuentrame/Encuentrame'
 import { Registrarse } from './Components/Pages/Home/Registrarse/Registrarse'
 import { PropiedadSeleccionada } from './Components/Pages/PropiedadSeleccionada/PropiedadSeleccionada';
-import { ContactAgent } from './Components/Pages/ContactAgent/ContactAgent';
+import  { ContactAgent }  from './Components/Pages/ContactAgent/ContactAgent';
 import {CrearInmobiliarias} from './Components/Pages/Inmobiliarias/CrearInmobiliarias'
 import { RegistrarseAdministrador } from './Components/Pages/Administrador/RegistrarseAdministrador/RegistrarseAdministrador'
 import { RecoverPassword } from './Components/Pages/RecoverPassword/RecoverPassword'
@@ -34,7 +35,7 @@ import { Contract } from './Components/Pages/contract/contract'
 import { VentasAlquileresAdmin } from './Components/Pages/VentasAlquileresAdmin/VentasAlquileresAdmin'
 import { ClientesAdmin } from './Components/Pages/ClientesAdmin/ClientesAdmin'
 import { AgendaAdmin } from './Components/Pages/AgendaAdmin/AgendaAdmin'
-// import { ReportesInmobiliaria } from "./Components/Pages/ReportesInmobiliaria/ReportesInmobiliaria";
+import  ReportesInmobiliaria  from "./Components/Pages/ReportesInmobiliaria/ReportesInmobiliaria";
 import { GenerarTokenAgente } from './Components/Pages/GenerarTokenAgente/GenerarTokenAgente'
 import { MetodosPagoPage } from './Components/Pages/MetodosPagoPage/MetodosPagoPage'
 
@@ -44,7 +45,6 @@ import { AnalyticsGlobales } from "./Components/Pages/SuperAdmin/AnalyticsGlobal
 import { GestionInmobiliarias } from "./Components/Pages/SuperAdmin/GestionInmobiliarias/GestionInmobiliarias"
 import { GestionAdministradores } from "./Components/Pages/SuperAdmin/GestionAdministradores/GestionAdministradores"
 import { EditarInmobiliaria } from './Components/Pages/EditarInmobiliaria/EditarInmobiliaria'
-import { ReportesInmobiliaria } from './Components/Pages/ReportesInmobiliaria/ReportesInmobiliaria'
 
 // import { ConfiguracionSistema } from "./Components/Pages/SuperAdmin/ConfiguracionSistema/ConfiguracionSistema"
 // import { FacturacionSuscripciones } from "./Components/Pages/SuperAdmin/FacturacionSuscripciones/FacturacionSuscripciones"
@@ -70,6 +70,7 @@ export const App = () => {
       <Route path="/inmobiliaria-seleccionada" element={<InmobiliariaSeleccionada />} />
       <Route path="/mi-inmobiliaria/propiedades" element={<MiInmobiliaria />} />
       <Route path="/agregar-propiedad" element={<AgregarPropiedad />} />
+      <Route path="/Usuario/CrearPropiedadUsuario" element={<CrearPropiedadUsuario />} />
       {/* <Route path="/actualizar-inmobiliaria" element={<ActualizarInmobiliaria />} /> */}
       <Route path="/privacidad" element={<Privacidad />} />
       <Route path="/terminos" element={<Terminos />} />
@@ -84,6 +85,7 @@ export const App = () => {
       <Route path="/mi-inmobiliaria/clientes" element={<ClientesAdmin />} />
       <Route path="/mi-inmobiliaria/agenda" element={<AgendaAdmin />} />
       <Route path="/mi-inmobiliaria/reportes" element={<ReportesInmobiliaria />} />
+      <Route path="/editar-inmobiliaria/:id" element={<EditarInmobiliaria />} />
       <Route path="/mi-inmobiliaria/configuracion" element={<EditarInmobiliaria />} />
       {/* Rutas del Agente  */}
         <Route path="/AgentDashboard" element={<AgentDashboard />} />

@@ -91,6 +91,7 @@ export default function MiInmobiliaria() {
   const [isAuthenticated, setIsAuthenticated] = useState(true)
 
   // Función para cargar propiedades (preparada para backend)
+// Modifica la función cargarPropiedades para incluir las imágenes
 const cargarPropiedades = async () => {
   const adminId = localStorage.getItem('adminId');
 
@@ -100,34 +101,52 @@ const cargarPropiedades = async () => {
   }
   
   try {
-    const response = await fetch(`https://domuhouse.onrender.com/api/properties/admin/${adminId}`);
-
+    const response = await fetch(`https://imagen-domuhouse-express.onrender.com/api/properties/admin/${adminId}`);
+    
     if (!response.ok) {
       throw new Error('Error al obtener propiedades');
     }
 
     const data = await response.json();
+    console.log("Datos del backend:", data); // Para depuración
 
-    const propiedadesAdaptadas = data.map(prop => ({
-      id: prop.property_id,
-      title: prop.property_title,
-      price: prop.price,
-      status: prop.status,
-      address: `${prop.neighborhood}, ${prop.city}`,
-      type: prop.property_type.toLowerCase(),
-      rooms: prop.bedrooms,
-      bathrooms: prop.bathrooms,
-      area: parseFloat(prop.built_area),
-      propertyType: prop.operation_type.toLowerCase(),
-      description: '',
-      images: [],
-      agent: {
-        name: `${prop.agent_name} ${prop.agent_lastname}`,
-        phone: prop.agent_phone,
-        email: prop.agent_email,
-      },
-      createdAt: '',
-    }));
+    const propiedadesAdaptadas = data.map(prop => {
+      // Procesar las imágenes
+      let images = [];
+      if (prop.image) {
+        try {
+          // Corregir el string JSON malformado (reemplazar puntos por comas)
+          const fixedJsonString = prop.image.replace(/\"\.\"/g, '","');
+          images = JSON.parse(fixedJsonString);
+        } catch (error) {
+          console.error("Error al parsear imágenes:", error);
+          // Si falla el parseo, intentar extraer URLs manualmente
+          const urlMatches = prop.image.match(/https?:\/\/[^\"]+/g);
+          images = urlMatches || [];
+        }
+      }
+
+      return {
+        id: prop.property_id,
+        title: prop.property_title,
+        price: prop.price,
+        status: prop.status,
+        address: `${prop.neighborhood}, ${prop.city}`,
+        type: prop.property_type.toLowerCase(),
+        rooms: prop.bedrooms,
+        bathrooms: prop.bathrooms,
+        area: parseFloat(prop.built_area),
+        propertyType: prop.operation_type.toLowerCase(),
+        description: prop.description || '',
+        images: Array.isArray(images) ? images : [], // Asegurar que es un array
+        agent: {
+          name: `${prop.agent_name} ${prop.agent_lastname}`,
+          phone: prop.agent_phone,
+          email: prop.agent_email,
+        },
+        createdAt: prop.publish_date || '',
+      };
+    });
 
     setPropiedades(propiedadesAdaptadas);
   } catch (error) {
@@ -135,7 +154,6 @@ const cargarPropiedades = async () => {
     alert('Error al obtener propiedades');
   }
 };
-
 
 
   // Cargar propiedades al montar el componente
@@ -313,7 +331,7 @@ const cargarPropiedades = async () => {
               </div>
               
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-                <div>
+                {/* <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Estado</label>
                   <select 
                     className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#2F8EAC] focus:border-[#2F8EAC] transition-colors text-sm"
@@ -326,7 +344,7 @@ const cargarPropiedades = async () => {
                     <option value="arrendada">Arrendada</option>
                     <option value="vendida">Vendida</option>
                   </select>
-                </div>
+                </div> */}
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Tipo</label>
@@ -416,9 +434,9 @@ const cargarPropiedades = async () => {
                           <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                             Precio
                           </th>
-                          <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                          {/* <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                             Estado
-                          </th>
+                          </th> */}
                           <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                             Agente
                           </th>
@@ -432,17 +450,21 @@ const cargarPropiedades = async () => {
                           <tr key={propiedad.id} className="hover:bg-gray-50 transition-colors">
                             <td className="px-6 py-4">
                               <div className="flex items-center gap-4">
-                                <div className="w-16 h-12 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden">
-                                  {propiedad.images && propiedad.images.length > 0 ? (
-                                    <img 
-                                      src={propiedad.images[0]} 
-                                      alt={propiedad.title}
-                                      className="w-full h-full object-cover"
-                                    />
-                                  ) : (
-                                    <Building2 className="w-6 h-6 text-gray-400" />
-                                  )}
-                                </div>
+                                 <div className="w-16 h-12 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden">
+                                    {propiedad.images && propiedad.images.length > 0 ? (
+                                      <img 
+                                        src={propiedad.images[0]} 
+                                        alt={propiedad.title}
+                                        className="w-full h-full object-cover"
+                                        onError={(e) => {
+                                          e.target.onerror = null;
+                                          e.target.src = 'https://via.placeholder.com/80x60?text=No+Imagen';
+                                        }}
+                                      />
+                                    ) : (
+                                      <Building2 className="w-6 h-6 text-gray-400" />
+                                    )}
+                                  </div>
                                 <div>
                                   <div className="text-sm font-semibold text-gray-900">{propiedad.title}</div>
                                   <div className="text-xs text-gray-500">{formatearTipo(propiedad.type)}</div>
@@ -462,11 +484,11 @@ const cargarPropiedades = async () => {
                                 {formatearPrecio(propiedad.price)}
                               </div>
                             </td>
-                            <td className="px-6 py-4">
+                            {/* <td className="px-6 py-4">
                               <span className={`inline-flex px-3 py-1 text-xs font-medium rounded-full ${getEstadoColor(propiedad.status)}`}>
                                 {propiedad.status}
                               </span>
-                            </td>
+                            </td> */}
                             <td className="px-6 py-4">
                               <div className="text-sm text-gray-900">{propiedad.agent.name}</div>
                               <div className="text-xs text-gray-500">{propiedad.agent.phone}</div>
